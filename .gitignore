@@ -1,0 +1,19 @@
+__pycache__
+*.py[cod]
+
+# Build
+
+.firefly.qrc
+firefly.spec
+dist
+build
+
+# Settings
+
+local_settings.json
+state.*
+
+# Other
+
+.vscode/
+_res/

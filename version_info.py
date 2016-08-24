@@ -1,0 +1,2 @@
+VERSION_INFO = "Firefly 4.28"
+PROTOCOL = 150101
