@@ -37,7 +37,7 @@ class ApiResult():
         return self.data.get(key, default)
 
     def __getitem__(self, key):
-        return self[key]
+        return self.data[key]
 
 
 
@@ -46,31 +46,35 @@ class NebulaApi():
         self.settings = kwargs
         self.cookies = requests.cookies.RequestsCookieJar()
 
-    @property
-    def is_logged(self):
-        response = requests.post(
-                self.settings["host"] + "/ping",
-                cookies=self.cookies
-            )
-        self.cookies = response.cookies
-        result = json.loads(response.text)
-        return success(result["response"])
+    def get_user(self):
+        try:
+            response = requests.post(
+                    self.settings["host"] + "/ping",
+                    cookies=self.cookies
+                )
+            self.cookies = response.cookies
+            result = json.loads(response.text)
+        except:
+            log_traceback()
+            return False
+        if result["response"] >= 400:
+            return False
+        return User(meta=result["user"])
 
     @property
     def auth_key(self):
         return self.cookies.get("session_id", "0")
 
-    @property
     def set_auth(self, key):
         self.cookies["session_id"] = key
 
-
     def login(self, login, password):
-        data = {"login" : login, "password" : password, "interactive" : 0}
+        data = {"login" : login, "password" : password, "api" : 1}
+        print (data)
         response = requests.post(self.settings["host"] + "/login", data)
         self.cookies = response.cookies
-        print (self.cookies)
         data = json.loads(response.text)
+        print ("RESPONSE:",  data)
         return ApiResult(**data)
 
 
