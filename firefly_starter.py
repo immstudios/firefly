@@ -30,19 +30,21 @@ class Login(QDialog):
                 login=self.login.text(),
                 password=self.password.text()
             )
+        print (result.data)
         if result.is_success:
-            self.result = True
+            self.result = User(meta=result["user"])
             self.close()
         else:
             QMessageBox.critical(self, "Error", result.message)
 
 
 def check_login():
-    if api.is_logged:
-        return True
+    user = api.get_user()
+    if user:
+        return user
     dlg = Login()
     dlg.exec_()
-    return True
+    return dlg.result
 
 
 class Firestarter(QApplication):
@@ -71,8 +73,11 @@ class Firestarter(QApplication):
         except:
             log_traceback()
 
-        if not check_login():
+        global user
+        user = check_login()
+        if not user:
             sys.exit(0)
+
 
         self.tasks = [
                 ]
