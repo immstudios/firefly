@@ -1,12 +1,10 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+from .common import *
+from .widgets import *
 
-from firefly_common import *
-from firefly_widgets import *
+__all__ == ["format_header", "FireflyViewModel", "FireflySortModel", "FireflyView"]
 
 def format_header(key):
-    return meta_types.col_alias(key, config.get("language","en-US"))
-
+    return meta_types.col_alias(key, config.get("language", "en-US"))
 
 class NXViewModel(QAbstractTableModel):
     def __init__(self, parent):
@@ -14,7 +12,6 @@ class NXViewModel(QAbstractTableModel):
         self.object_data     = []
         self.header_data     = []
         self.changed_objects = []
-
         self.font_normal  = QFont()
         self.font_virtual = QFont()
         self.font_virtual.setItalic(True)
@@ -22,7 +19,6 @@ class NXViewModel(QAbstractTableModel):
         self.font_bold.setBold(True)
         self.font_underline = QFont()
         self.font_underline.setUnderline(True)
-
 
     def rowCount(self, parent):
         return len(self.object_data)
@@ -35,32 +31,35 @@ class NXViewModel(QAbstractTableModel):
             return format_header(self.header_data[col])
         return None
 
-
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid():
             return None
-
         row = index.row()
         obj = self.object_data[row]
         obj.model = self
         tag = self.header_data[index.column()]
 
-        if   role == Qt.DisplayRole:     return obj.format_display(tag)
-        elif role == Qt.ForegroundRole:  return QColor(obj.format_foreground(tag))
+        if   role == Qt.DisplayRole:     
+            return obj.format_display(tag)
+        elif role == Qt.ForegroundRole:  
+            return QColor(obj.format_foreground(tag))
         elif role == Qt.BackgroundRole:
             bkg = obj.format_background(tag, self)
             if bkg:
                 return QColor(bkg)
-        elif role == Qt.EditRole:        return obj.format_edit(tag)
-        elif role == Qt.UserRole:        return obj.format_sort(tag)
-        elif role == Qt.DecorationRole:  return pixlib[obj.format_decoration(tag)]
-        elif role == Qt.ToolTipRole:     return "\n".join(
+        elif role == Qt.EditRole:        
+            return obj.format_edit(tag)
+        elif role == Qt.UserRole:        
+            return obj.format_sort(tag)
+        elif role == Qt.DecorationRole:  
+            return pixlib[obj.format_decoration(tag)]
+        elif role == Qt.ToolTipRole:     
+            return "\n".join(
             "{} : {}".format(
-                meta_types.tag_alias(tag, config.get("language","en-US")),
+                meta_types.tag_alias(tag, config.get("language", "en-US")),
                 obj.format_display(tag)
                 ) for tag in sorted(obj.meta.keys()) if obj.format_display(tag)
             ) if config.get("debug", False) else None
-
         elif role == Qt.FontRole:
             if obj.object_type == "event":
                 return self.font_bold
@@ -68,7 +67,6 @@ class NXViewModel(QAbstractTableModel):
                 return self.font_bold
             else:
                 return self.font_normal
-
         return None
 
 
@@ -90,9 +88,9 @@ class NXViewModel(QAbstractTableModel):
         pass
 
 
-class NXSortModel(QSortFilterProxyModel):
+class FireflySortModel(QSortFilterProxyModel):
     def __init__(self, model):
-        super(NXSortModel, self).__init__()
+        super(FireflySortModel, self).__init__()
         self.setSourceModel(model)
         self.setDynamicSortFilter(True)
         self.setSortLocaleAware(True)
@@ -106,9 +104,9 @@ class NXSortModel(QSortFilterProxyModel):
         return self.sourceModel().mimeData([self.mapToSource(idx) for idx in indexes ])
 
 
-class NXView(QTableView):
+class FireflyView(QTableView):
     def __init__(self, parent):
-        super(NXView, self).__init__(parent)
+        super(FireflyView, self).__init__(parent)
         self.setStyleSheet(base_css)
         self.verticalHeader().setVisible(False)
         self.setWordWrap(False)

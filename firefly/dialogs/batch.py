@@ -3,8 +3,9 @@ from firefly_widgets import *
 
 ERR = "** ERROR **"
 
+__all__ = ["FireflyBatchDialog"]
 
-class BatchDialog(QDialog):
+class FireflyBatchDialog(QDialog):
     def __init__(self,  parent, objects):
         super(BatchDialog, self).__init__(parent)
         self.objects = sorted(objects, key=lambda obj: obj.id)
@@ -53,7 +54,6 @@ class BatchDialog(QDialog):
             txt += "{:<50}{}\n".format(asset[self.ident.text()], value)
         self.preview.setText(txt)
 
-
     def on_submit(self):
         key = self.key.text()
         for asset in self.objects:
@@ -64,20 +64,3 @@ class BatchDialog(QDialog):
             if not success(stat):
                 QMessageBox.critical(self, "Error", res)
         self.close()
-
-
-
-if __name__ == "__main__":
-    config["site_name"] = "nxtv"
-    asset_cache.load()
-    objs = []
-    for i, aid in enumerate(asset_cache.keys()):
-        if i > 15:
-            break
-        objs.append(asset_cache[aid])
-
-    app = QApplication(sys.argv)
-    dlg = BatchDialog(None, objects=objs)
-    dlg.exec_()
-
-

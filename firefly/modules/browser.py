@@ -1,13 +1,11 @@
 import math
-
 from functools import partial
 
-from firefly_view import *
-from mod_browser_model import BrowserModel
+from firefly.view import *
+from firefly.dialogs.sendto import SendTo
+from firefly.dialogs.batch import BatchDialog
 
-from dlg_sendto import SendTo
-from dlg_batch import BatchDialog
-
+from .browser_model import BrowserModel
 
 class SearchWidget(QLineEdit):
     def __init__(self, parent):
