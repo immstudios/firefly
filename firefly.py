@@ -3,33 +3,7 @@
 import os
 import sys
 
-try:
-    import locale
-    locale.setlocale(locale.LC_ALL, '')
-except:
-    pass
-
-#
-# firefly imports
-#
-
-from version_info import VERSION_INFO
-
-from firefly_common import *
-from firefly_menu import create_menu
-from firefly_starter import Firestarter
-
-from dlg_system import SystemDialog
-
-from mod_browser import Browser
-from mod_preview import Preview
-from mod_detail import Detail
-from mod_rundown import Rundown
-from mod_scheduler import Scheduler
-
-#
-# Application main window
-#
+from firefly import *
 
 class Firefly(QMainWindow):
     def __init__(self, parent):
