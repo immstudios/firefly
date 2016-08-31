@@ -1,7 +1,5 @@
-from firefly_common import config, has_right
 from functools import partial
-from qt_common import *
-
+from .common import *
 
 def about_dialog(parent):
     QMessageBox.about(parent, "About Firefly",
@@ -13,6 +11,7 @@ def about_dialog(parent):
 
 
 def create_menu(wnd):
+    logging.debug("Create demo")
     menubar = wnd.menuBar()
 
     menu_file = menubar.addMenu('&File')

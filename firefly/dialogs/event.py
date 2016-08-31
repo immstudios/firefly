@@ -1,11 +1,10 @@
 import time
 import datetime
 
-from firefly_common import *
-from firefly_widgets import *
+from firefly.common import *
+from firefly.widgets import *
 
 from nx.objects import Event
-
 
 def event_toolbar(wnd):
     toolbar = QToolBar(wnd)
@@ -30,7 +29,6 @@ def event_toolbar(wnd):
     toolbar.addAction(action_cancel)
 
     return toolbar
-
 
 
 class EventForm(QWidget):

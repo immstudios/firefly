@@ -5,7 +5,7 @@ import requests
 
 from urllib.request import urlopen
 
-from firefly_common import *
+from .common import *
 
 def readlines(f):
     buff = b""

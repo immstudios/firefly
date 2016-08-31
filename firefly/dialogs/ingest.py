@@ -1,5 +1,5 @@
-from firefly_common import *
-from firefly_widgets import *
+from firefly.common import *
+from firefly.widgets import *
 
 class IngestDialog(QDialog):
     def __init__(self,  parent, asset=False):

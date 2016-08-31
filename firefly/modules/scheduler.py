@@ -1,5 +1,4 @@
-from mod_scheduler_model import *
-
+from .scheduler_model import *
 
 class EmptyEventButton(QToolButton):
     def __init__(self, parent):

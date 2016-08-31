@@ -2,11 +2,11 @@ import re
 import math
 import datetime
 
-from firefly_common import *
-from firefly_view import *
+from firefly.common import *
+from firefly.view import *
 
-from dlg_event import EventDialog
-from dlg_dramatica import DramaticaDialog
+from firefly.dialogs.event import EventDialog
+from firefly.dialogs.dramatica import DramaticaDialog
 
 
 COLOR_CALENDAR_BACKGROUND = QColor("#161616")

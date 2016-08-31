@@ -1,7 +1,7 @@
 from functools import partial
 
-from firefly_common import *
-from firefly_widgets import *
+from firefly.common import *
+from firefly.widgets import *
 
 class CGPlugin(QWidget):
     def __init__(self, parent, data):
@@ -71,8 +71,6 @@ class CGPlugin(QWidget):
             )
 
 
-
-
 class CG(QTabWidget):
     def __init__(self, parent):
         super(CG, self).__init__(parent)
@@ -96,8 +94,6 @@ class CG(QTabWidget):
         for plugin in plugins:
             self.plugins.append(CGPlugin(self, plugin))
             self.addTab(self.plugins[-1], plugin["title"])
-
-
 
     def execute(self, id_plugin, id_slot, value=False):
         stat, res = query(

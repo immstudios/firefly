@@ -1,8 +1,7 @@
 from functools import partial
 
-from firefly_common import *
-from firefly_view import *
-
+from firefly.common import *
+from firefly.view import *
 
 ITEM_ROLES = {
     "studio" : [["title", "Studio"], ["duration", 300], ["article", ""]],

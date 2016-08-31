@@ -1,9 +1,9 @@
 from functools import partial
 
-from firefly_common import *
-from firefly_widgets import *
+from firefly.common import *
+from firefly.widgets import *
+from firefly.dialogs.subclips import SubclipsDialog
 
-from dlg_subclips import SubclipsDialog
 from nx.connection import DEFAULT_PORT, DEFAULT_SSL
 
 T_MARK_IN  = 0

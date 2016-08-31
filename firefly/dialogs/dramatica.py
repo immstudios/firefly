@@ -1,7 +1,4 @@
-import time
-import datetime
-
-from firefly_common import *
+from firefly.common import *
 
 class DramaticaDialog(QDialog):
     def __init__(self,  parent, **kwargs):

@@ -1,11 +1,10 @@
 import sys
 
-from firefly_common import *
-from firefly_listener import SeismicListener
-from firefly_filesystem import load_filesystem
-from dlg_sites import SiteSelect
+from firefly.dialogs.site_select import SiteSelectDialog
 
-from version_info import PROTOCOL
+from .common import *
+from .listener import SeismicListener
+from .filesystem import load_filesystem
 
 class Login(QDialog):
     def __init__(self):
@@ -17,6 +16,10 @@ class Login(QDialog):
         self.password.setEchoMode(QLineEdit.Password)
         self.btn_login = QPushButton('Login', self)
         self.btn_login.clicked.connect(self.handleLogin)
+
+        #for debug
+        self.login.setText("demo")
+        self.password.setText("demo")
 
         layout = QFormLayout(self)
         layout.addRow("Login", self.login)
@@ -108,8 +111,12 @@ class Firestarter(QApplication):
         self.splash_message("Loading site settings")
         stat, res = query("site_settings")
         config["rights"] = {}
+        print (">>><<<<")
+        print (stat, res)
         if success(stat):
             config.update(res)
+            config["playout_channels"] = {}
+            config["ingest_channels"] = {}
 
             if "JSON IS RETARDED AND CAN'T HANDLE INTEGER BASED KEYS IN DICTS":
                 nfolders = {}

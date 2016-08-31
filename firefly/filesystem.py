@@ -2,7 +2,7 @@ import os
 import time
 import subprocess
 
-from firefly_common import *
+from .common import *
 
 def load_filesystem(handler=False):
     if PLATFORM == "windows":

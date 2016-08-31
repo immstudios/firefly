@@ -1,11 +1,8 @@
-from qt_common import *
+from firefly.common import *
 
-#TODO
-
-class ColumnSelect(QDialog):
+class ColumnsSelectDialog(QDialog):
     def __init__(self,  parent, available=[], current=[]):
-        super(ColumnSelect, self).__init__(parent)
-
+        super(ColumnsSelectDialog, self).__init__(parent)
         self.list_available  = QListWidget(self)
         self.list_available.setDragDropMode(QAbstractItemView.DragDrop);
         self.list_current = QListWidget(self)

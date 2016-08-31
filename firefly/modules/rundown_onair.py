@@ -1,7 +1,7 @@
 import math
 
-from firefly_common import *
-from firefly_widgets import *
+from firefly.common import *
+from firefly.widgets import *
 
 PROGRESS_BAR_RESOLUTION = 2000
 

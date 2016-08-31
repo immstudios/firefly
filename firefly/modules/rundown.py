@@ -6,12 +6,12 @@ from functools import partial
 from firefly_common import *
 from firefly_view import *
 
-from mod_rundown_onair import OnAir
-from mod_rundown_cg import CG
-from mod_rundown_model import RundownModel
+from .rundown_onair import OnAir
+from .rundown_cg import CG
+from .rundown_model import RundownModel
 
-from dlg_sendto import SendTo
-from dlg_event import EventDialog
+from firefly.dialogs.send_to import SendToDialog
+from firefly.dialogs.event import EventDialog
 
 
 DEFAULT_COLUMNS = [
@@ -417,7 +417,7 @@ class RundownView(NXView):
         if not objs:
             logging.warning("No rundown item selected")
             return
-        dlg = SendTo(self, objs)
+        dlg = SendToDialog(self, objs)
         dlg.exec_()
 
 

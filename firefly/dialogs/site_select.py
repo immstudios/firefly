@@ -1,12 +1,12 @@
 from functools import partial
-from qt_common import *
+from firefly.qt import *
 
-class SendToButton(QPushButton):
+class SiteSelectButton(QPushButton):
     pass
 
-class SiteSelect(QDialog):
+class SiteSelectDialog(QDialog):
     def __init__(self,  parent, sites=[]):
-        super(SiteSelect, self).__init__(parent)
+        super(SiteSelectDialog, self).__init__(parent)
         self.sites = sites
         self.setModal(True)
         self.setStyleSheet(base_css)
@@ -15,7 +15,7 @@ class SiteSelect(QDialog):
 
         layout = QVBoxLayout()
         for i, site in enumerate(sites):
-            btn_site = SendToButton(site.get("site_title", False) or site["site_name"])
+            btn_site = SiteSelectButton(site.get("site_title", False) or site["site_name"])
             btn_site.clicked.connect(partial(self.on_select, i))
             layout.addWidget(btn_site, 1)
 

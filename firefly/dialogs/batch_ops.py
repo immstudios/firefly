@@ -3,11 +3,11 @@ from firefly_widgets import *
 
 ERR = "** ERROR **"
 
-__all__ = ["FireflyBatchDialog"]
+__all__ = ["BatchOpsDialog"]
 
-class FireflyBatchDialog(QDialog):
+class BatchOpsDialog(QDialog):
     def __init__(self,  parent, objects):
-        super(BatchDialog, self).__init__(parent)
+        super(BatchOpsDialog, self).__init__(parent)
         self.objects = sorted(objects, key=lambda obj: obj.id)
         self.values = {}
         self.setWindowTitle("Batch modify: {} assets".format(len(self.objects)))

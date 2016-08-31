@@ -1,8 +1,8 @@
 import copy
 
-from firefly_common import *
-from firefly_widgets import *
-from dlg_ingest import IngestDialog
+from firefly.common import *
+from firefly.widgets import *
+from firefly.dialogs.ingest import IngestDialog
 
 class DetailTabMain(QWidget):
     def __init__(self, parent):

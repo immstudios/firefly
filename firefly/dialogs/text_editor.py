@@ -1,6 +1,5 @@
-from firefly_common import *
-from firefly_syntaxhl import *
-
+from firefly.common import *
+from firefly.syntaxhl import *
 
 class TextWidget(QTextEdit):
     def __init__(self, parent, syntax=False):
@@ -37,11 +36,6 @@ class TextWidget(QTextEdit):
         QTextEdit.keyPressEvent(self,  event)
 
 
-
-
-
-
-
 def editor_toolbar(wnd):
     toolbar = QToolBar(wnd)
     toolbar.setMovable(False)
@@ -63,7 +57,7 @@ def editor_toolbar(wnd):
 
 
 
-class TextEditor(QDialog):
+class TextEditorDialog(QDialog):
     def __init__(self, default, index=False, syntax=False):
         super(TextEditor, self).__init__()
 
@@ -115,35 +109,3 @@ class TextEditor(QDialog):
 
     def toPlainText(self):
         return self.edit.toPlainText()
-
-
-
-
-
-
-if __name__ == "__main__":
-    r = """class SuperMegaClass(object)
-    def match_multiline(self, text, delimiter, in_state, style):
-        if self.previousBlockState() == in_state:
-            start = 0
-            add = 0
-        else:
-            start = delimiter.indexIn(text)
-            add = delimiter.matchedLength()
-        while start >= 0:
-            end = delimiter.indexIn(text, start + add)
-            if end >= add:
-                length = end - start + add + delimiter.matchedLength()
-                self.setCurrentBlockState(0)
-            else:
-                self.setCurrentBlockState(in_state)
-                length = len(text) - start + add
-            self.setFormat(start, length, style)
-            start = delimiter.indexIn(text, start + length)
-        if self.currentBlockState() == in_state:  return True
-        else: return False
-"""
-
-    app = QApplication(sys.argv)
-    dlg = TextEditor(r, syntax="python")
-    dlg.exec_()

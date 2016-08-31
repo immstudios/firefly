@@ -5,9 +5,10 @@ import pprint
 
 from nx import *
 
-from qt_common import *
-from firefly_rc import *
-from default_state import DEFAULT_STATE
+from .qt import *
+from .rc import *
+from .default_state import DEFAULT_STATE
+from .version_info import VERSION_INFO, PROTOCOL
 
 DEBUG     = 0
 INFO      = 1
@@ -138,10 +139,6 @@ class BaseWidget(QWidget):
     def load_state(self):
         pass
 
-    def status(self, message, message_type=INFO):
-        #DEPRECATED
-        print ("Deprecated status call:", message)
-
     def subscribe(self, *methods):
         self.parent().subscribe(self.seismic_handler, *methods)
 
@@ -178,7 +175,6 @@ class BaseDock(QDockWidget):
             elif self.class_ == "rundown":
                 self.resize(800,600)
 
-
     def reset_object_name(self):
         self.setObjectName(str(uuid.uuid1()))
 
@@ -202,7 +198,6 @@ class BaseDock(QDockWidget):
     def status(self, message, message_type=INFO):
         # DEPRECATED. USE LOGGING INSTEAS
         self.parent().status(message, message_type)
-
 
 
 class ToolBarStretcher(QWidget):

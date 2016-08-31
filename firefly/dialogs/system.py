@@ -1,7 +1,5 @@
-from firefly_common import *
-from firefly_widgets import *
-
-
+from firefly.common import *
+from firefly.widgets import *
 
 def format_header(tag):
     return {"id_service" : "#",
@@ -73,10 +71,7 @@ class ServiceViewModel(QAbstractTableModel):
         elif role == Qt.ForegroundRole:
             if tag == "state":
                 return QBrush(QColor(SVC_STATES[obj[tag]][1]))
-
         return None
-
-
 
     def refresh(self):
         pass
@@ -137,10 +132,6 @@ class ServiceView(QTableView):
         elif action == "autostart":
             stat, res = query("services", command=-1, id_service=id_service)
             self.parent().load()
-
-
-
-
 
 
 class SystemDialog(QDialog):

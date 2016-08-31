@@ -2,8 +2,8 @@ import math
 from functools import partial
 
 from firefly.view import *
-from firefly.dialogs.sendto import SendTo
-from firefly.dialogs.batch import BatchDialog
+from firefly.dialogs.send_to import SendToDialog
+from firefly.dialogs.batch_ops import BatchOpsDialog
 
 from .browser_model import BrowserModel
 
@@ -216,7 +216,7 @@ class Browser(BaseWidget):
 
 
     def on_send_to(self):
-        dlg = SendTo(self, self.view.selected_objects)
+        dlg = SendToDialog(self, self.view.selected_objects)
         dlg.exec_()
 
 
@@ -256,12 +256,11 @@ class Browser(BaseWidget):
 
 
     def on_batch(self):
-        dlg = BatchDialog(self, self.view.selected_objects)
+        dlg = BatchOpsDialog(self, self.view.selected_objects)
         dlg.exec_()
 
     def on_choose_columns(self):
         pass #TODO
-
 
     def on_copy_result(self):
         result = ""

@@ -1,15 +1,12 @@
-import time
-import datetime
-
 from functools import partial
-from firefly_common import *
+from firefly.common import *
 
 class SendToButton(QPushButton):
     pass
 
-class SendTo(QDialog):
+class SendToDialog(QDialog):
     def __init__(self,  parent, objects=[]):
-        super(SendTo, self).__init__(parent)
+        super(SendToDialog, self).__init__(parent)
         self.objects = list(objects)
         self.setModal(True)
         self.setStyleSheet(base_css)

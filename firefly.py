@@ -3,7 +3,9 @@
 import os
 import sys
 
-from firefly import *
+from firefly.common import *
+from firefly.menu import *
+from firefly.starter import Firestarter
 
 class Firefly(QMainWindow):
     def __init__(self, parent):
@@ -328,7 +330,7 @@ class Firefly(QMainWindow):
         asset_cache[a.id] = a
 
     def push_asset_data(self, dock):
-        # Push asset data to dock which need it
+        # Push asset data to dock which needs it
         if dock.class_ in ["rundown", "browser"]:
             dock.main_widget.model.refresh_assets(asset_cache.keys())
 
