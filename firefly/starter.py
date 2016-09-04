@@ -91,7 +91,6 @@ class Firestarter(QApplication):
         self.splash_message("Loading user workspace...")
         self.main_window = main_window(self)
 
-        logging.user = "Firefly"
         logging.add_handler(self.main_window.log_handler)
 
 
@@ -111,8 +110,6 @@ class Firestarter(QApplication):
         self.splash_message("Loading site settings")
         stat, res = query("site_settings")
         config["rights"] = {}
-        print (">>><<<<")
-        print (stat, res)
         if success(stat):
             config.update(res)
             config["playout_channels"] = {}

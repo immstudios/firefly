@@ -20,6 +20,9 @@ GOOD_NEWS = 4
 # Settings and utils
 #
 
+logging.user = "Firefly"
+
+
 def p(*args):
     l = pprint.pprint(*args)
 
