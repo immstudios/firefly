@@ -82,15 +82,12 @@ class Firestarter(QApplication):
             sys.exit(0)
 
 
-        self.tasks = [
-                ]
-
-        for task in self.tasks:
-            task()
+        self.load_site_settings()
+        self.load_meta_types()
+        self.load_storages()
 
         self.splash_message("Loading user workspace...")
         self.main_window = main_window(self)
-
         logging.add_handler(self.main_window.log_handler)
 
 
@@ -101,45 +98,41 @@ class Firestarter(QApplication):
         self.main_window.handle_messaging(data)
 
 
-
     def splash_message(self, msg):
         self.splash.showMessage(msg,alignment=Qt.AlignBottom|Qt.AlignLeft, color=Qt.white)
 
 
     def load_site_settings(self):
         self.splash_message("Loading site settings")
-        stat, res = query("site_settings")
-        config["rights"] = {}
-        if success(stat):
-            config.update(res)
-            config["playout_channels"] = {}
-            config["ingest_channels"] = {}
-
-            if "JSON IS RETARDED AND CAN'T HANDLE INTEGER BASED KEYS IN DICTS":
-                nfolders = {}
-                for id_folder in config["folders"]:
-                    nfolders[int(id_folder)] = config["folders"][id_folder]
-                config["folders"] = nfolders
-
-                nviews = {}
-                i = 0
-                for id_view, title, columns in config["views"]:
-                    nviews[id_view] = i, title, columns
-                    i += 1
-                config["views"] = nviews
-
-                nch = {}
-                for id_channel in config["playout_channels"]:
-                    nch[int(id_channel)] = config["playout_channels"][id_channel]
-                config["playout_channels"] = nch
-
-                nch = {}
-                for id_channel in config["ingest_channels"]:
-                    nch[int(id_channel)] = config["ingest_channels"][id_channel]
-                config["ingest_channels"] = nch
-        else:
+        result = api.settings()
+        if result.is_error:
             QMessageBox.critical(self.splash, "Error", res)
             critical_error("Unable to load site settings")
+
+        config.update(result.data)
+
+        if "JSON IS RETARDED AND CAN'T HANDLE INTEGER BASED KEYS IN DICTS":
+            nfolders = {}
+            for id_folder in config["folders"]:
+                nfolders[int(id_folder)] = config["folders"][id_folder]
+            config["folders"] = nfolders
+
+            nviews = {}
+            i = 0
+            for id_view, title, columns in config["views"]:
+                nviews[id_view] = i, title, columns
+                i += 1
+            config["views"] = nviews
+
+            nch = {}
+            for id_channel in config["playout_channels"]:
+                nch[int(id_channel)] = config["playout_channels"][id_channel]
+            config["playout_channels"] = nch
+
+            nch = {}
+            for id_channel in config["ingest_channels"]:
+                nch[int(id_channel)] = config["ingest_channels"][id_channel]
+            config["ingest_channels"] = nch
 
 
     def load_meta_types(self):
@@ -157,6 +150,7 @@ class Firestarter(QApplication):
             m.settings    = t["settings"]
             m.aliases     = t["aliases"]
             meta_types[t["title"]] = m
+
 
     def load_storages(self):
         self.splash_message("Loading storages")
