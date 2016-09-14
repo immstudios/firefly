@@ -11,11 +11,10 @@ __all__ = ["api"]
 DEFAULT_PORT = 443
 DEFAULT_SSL = True
 
-
 class ApiResult():
     def __init__(self, **kwargs):
-        self.data = {}
-        self.data.update(kwargs)
+        self._data = {}
+        self._data.update(kwargs)
 
     @property
     def response(self):
@@ -26,6 +25,10 @@ class ApiResult():
         return self.get("message", "Invalid data")
 
     @property
+    def data(self):
+        return self["data"]
+
+    @property
     def is_success(self):
         return self.response < 400
 
@@ -34,10 +37,10 @@ class ApiResult():
         return self.response >= 400
 
     def get(self, key, default=False):
-        return self.data.get(key, default)
+        return self._data.get(key, default)
 
     def __getitem__(self, key):
-        return self.data[key]
+        return self._data[key]
 
 
 
@@ -70,13 +73,10 @@ class NebulaApi():
 
     def login(self, login, password):
         data = {"login" : login, "password" : password, "api" : 1}
-        print (data)
         response = requests.post(self.settings["host"] + "/login", data)
         self.cookies = response.cookies
         data = json.loads(response.text)
-        print ("RESPONSE:",  data)
         return ApiResult(**data)
-
 
     def run(self, method, **kwargs):
         response = requests.post(
