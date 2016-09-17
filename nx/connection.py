@@ -26,7 +26,7 @@ class ApiResult():
 
     @property
     def data(self):
-        return self["data"]
+        return self.get("data", {})
 
     @property
     def is_success(self):
@@ -46,16 +46,16 @@ class ApiResult():
 
 class NebulaApi():
     def __init__(self, **kwargs):
-        self.settings = kwargs
-        self.cookies = requests.cookies.RequestsCookieJar()
+        self._settings = kwargs
+        self._cookies = requests.cookies.RequestsCookieJar()
 
     def get_user(self):
         try:
             response = requests.post(
-                    self.settings["host"] + "/ping",
-                    cookies=self.cookies
+                    self._settings["host"] + "/ping",
+                    cookies=self._cookies
                 )
-            self.cookies = response.cookies
+            self._cookies = response.cookies
             result = json.loads(response.text)
         except:
             log_traceback()
@@ -66,25 +66,26 @@ class NebulaApi():
 
     @property
     def auth_key(self):
-        return self.cookies.get("session_id", "0")
+        return self._cookies.get("session_id", "0")
 
     def set_auth(self, key):
-        self.cookies["session_id"] = key
+        self._cookies["session_id"] = key
 
     def login(self, login, password):
         data = {"login" : login, "password" : password, "api" : 1}
-        response = requests.post(self.settings["host"] + "/login", data)
-        self.cookies = response.cookies
+        response = requests.post(self._settings["host"] + "/login", data)
+        self._cookies = response.cookies
         data = json.loads(response.text)
         return ApiResult(**data)
 
     def run(self, method, **kwargs):
         response = requests.post(
-                self.settings["host"] + "/api/" + method,
+                self._settings["host"] + "/api/" + method,
                 data=json.dumps(kwargs),
-                cookies=self.cookies
+                cookies=self._cookies
+
             )
-        self.cookies = response.cookies
+        self._cookies = response.cookies
         data = json.loads(response.text)
         return ApiResult(**data)
 
