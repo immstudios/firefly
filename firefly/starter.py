@@ -70,10 +70,12 @@ class Firestarter(QApplication):
 
         config.update(config["available_sites"][i])
 
-        api.settings["host"] = config["host"]
+        api._settings["host"] = config["host"]
         try:
             api.set_auth(open("auth.key").read())
-        except:
+        except FileNotFoundError:
+            pass
+        except Exception:
             log_traceback()
 
         global user
