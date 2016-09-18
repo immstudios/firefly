@@ -121,7 +121,7 @@ class Firestarter(QApplication):
 
             nviews = {}
             for id_view in config["views"]:
-                nviews[id_view] = config["views"][id_view]
+                nviews[int(id_view)] = config["views"][id_view]
             config["views"] = nviews
 
             nch = {}
