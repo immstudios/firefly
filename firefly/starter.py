@@ -120,10 +120,8 @@ class Firestarter(QApplication):
             config["folders"] = nfolders
 
             nviews = {}
-            i = 0
-            for id_view, title, columns in config["views"]:
-                nviews[id_view] = i, title, columns
-                i += 1
+            for id_view in config["views"]:
+                nviews[id_view] = config["views"][id_view]
             config["views"] = nviews
 
             nch = {}
