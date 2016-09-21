@@ -137,10 +137,10 @@ class Firestarter(QApplication):
 
     def load_meta_types(self):
         self.splash_message("Loading metadata types")
-        stat, res = query("meta_types")
-        if not success(stat):
+        result = api.meta_types()
+        if result.is_error:
             critical_error("Unable to load meta types")
-        for t in res:
+        for t in result.data:
             m = MetaType(t["title"])
             m.namespace   = t["namespace"]
             m.editable    = t["editable"]
