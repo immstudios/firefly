@@ -9,9 +9,9 @@ from .main_window import FireflyMainWindow, FireflyMainWidget
 
 
 def check_login():
-    user = api.get_user()
-    if user:
-        return User(meta=user)
+    user_meta = api.get_user()
+    if user_meta:
+        return user_meta
     dlg = LoginDialog()
     dlg.exec_()
     return dlg.result
@@ -44,14 +44,13 @@ class FireflyApplication(Application):
         except Exception:
             log_traceback()
 
-        global user
-        user = check_login()
-        if not user:
+        user_meta = check_login()
+        if not user_meta:
+            logging.error("Unable to log in")
             sys.exit(0)
+        user.meta = user_meta
 
         # Load settings and show main window
-
-
         self.splash_message("Loading site settings...")
         self.load_settings()
         self.splash_message("Loading asset cache...")
