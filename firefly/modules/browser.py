@@ -1,11 +1,14 @@
 import math
-from functools import partial
+import functools
 
-from firefly.view import *
-from firefly.dialogs.send_to import SendToDialog
-from firefly.dialogs.batch_ops import BatchOpsDialog
+from firefly import *
+#from firefly.dialogs.send_to import SendToDialog
+#from firefly.dialogs.batch import BatchDialog
 
-from .browser_model import BrowserModel
+from .browser_model import *
+
+
+
 
 class SearchWidget(QLineEdit):
     def __init__(self, parent):
@@ -21,29 +24,32 @@ class SearchWidget(QLineEdit):
         QLineEdit.keyPressEvent(self, event)
 
 
-class Browser(BaseWidget):
+class BrowserModule(BaseModule):
     def __init__(self, parent):
-        super(Browser, self).__init__(parent)
-        self.search_query = {}
+        super(BrowserModule, self).__init__(parent)
+
+#TODO: defaults from appstate
+        self.search_query = {
+                "view" : min(config["views"].keys())
+            }
 
         self.search_box = SearchWidget(self)
 
-        self.view = NXView(self)
+        self.view = FireflyView(self)
         self.view.setSortingEnabled(True)
         self.view.setItemDelegate(MetaEditItemDelegate(self.view))
-        self.view.activated.connect(self.on_activate)
+        self.view.clicked.connect(self.on_click)
         self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         self.model       = BrowserModel(self)
-        self.sort_model  = NXSortModel(self.model)
+        self.sort_model  = FireflySortModel(self.model)
         self.view.setModel(self.sort_model)
-        self.view.selectionChanged = self.selectionChanged
 
         action_clear = QAction(QIcon(pixlib["search_clear"]), '&Clear search query', parent)
         action_clear.triggered.connect(self.on_clear)
 
         self.action_search = QMenu("Views")
-        self.action_search.setStyleSheet(base_css)
+        self.action_search.setStyleSheet(app_skin)
         self.action_search.menuAction().setIcon(QIcon(pixlib["search"]))
         self.action_search.menuAction().triggered.connect(self.browse)
         self.load_view_menu()
@@ -65,61 +71,39 @@ class Browser(BaseWidget):
         self.setLayout(layout)
 
 
-    def save_state(self):
-        state = self.state
-        id_view = self.search_query.get("view",0)
-        state["{}c".format(id_view)] = self.model.header_data
-        state["{}cw".format(id_view)] = self.view.horizontalHeader().saveState()
-        state["search_query"]  = self.search_query
-        return state
-
-
-    def load_state(self, state):
-        self.search_query = state.get("search_query", {})
-        q = self.search_query.get("fulltext","")
-        if q:
-            self.search_box.setText(q)
-        self.state = state
-        default_view = sorted(config["views"].keys())[0]
-        self.set_view(self.search_query.get("view",default_view), initial=True)
-
-
     def load_view_menu(self):
-        for id_view in sorted(config["views"].keys(), key=lambda k: config["views"][k][0]):
-            pos, title, columns = config["views"][id_view]
-            if title == "-":
+        for id_view in sorted(
+                    config["views"].keys(),
+                    key=lambda k: config["views"][k]["position"]
+                ):
+            view = config["views"][id_view]
+            if view["title"] == "-":
                 self.action_search.addSeparator()
                 continue
-            action = QAction(title, self, checkable=True)
+            action = QAction(view["title"], self, checkable=True)
             action.id_view = id_view
-            action.triggered.connect(partial(self.set_view, id_view))
+            action.triggered.connect(functools.partial(self.set_view, id_view))
             self.action_search.addAction(action)
 
-        self.action_search.addSeparator()
+#
+# Do browse
+#
 
-        action = QAction("Reset view", self)
-        action.triggered.connect(self.reset_view)
-        self.action_search.addAction(action)
+    def browse(self, **kwargs):
+        search_string = self.search_box.text()
+        self.search_query["fulltext"] = search_string
+        self.search_query.update(kwargs)
+        self.model.browse(**self.search_query)
 
     def refresh(self):
         self.browse()
 
+    def on_clear(self):
+        self.search_box.setText("")
+        self.browse(fulltext="")
 
-    def set_view(self, id_view, initial=False):
-        if not initial:
-            self.parent().save()
+    def set_view(self, id_view):
         self.browse(view=id_view)
-
-        self.model.header_data = self.state.get("{}c".format("id_view"), config["views"][id_view][2])
-        cw = self.state.get("{}cw".format(id_view), False)
-        if cw:
-            self.view.horizontalHeader().restoreState(cw)
-        else:
-            for id_column in range(self.model.columnCount(False)):
-                if meta_types[self.model.header_data[id_column]].class_ != BLOB:
-                    self.view.resizeColumnToContents(id_column)
-        self.parent().setWindowTitle("{}".format(config["views"][id_view][1]))
-
         for action in self.action_search.actions():
             if not hasattr(action, "id_view"):
                 continue
@@ -129,30 +113,7 @@ class Browser(BaseWidget):
                 action.setChecked(False)
 
 
-    def reset_view(self):
-        self.model.header_data = config["views"][self.search_query["view"]][2]
-        for id_column in range(self.model.columnCount(False)):
-            if meta_types[self.model.header_data[id_column]].class_ != BLOB:
-                self.view.resizeColumnToContents(id_column)
 
-
-    def on_clear(self):
-        self.search_box.setText("")
-        self.browse(fulltext="")
-
-    def browse(self,**kwargs):
-        search_string = self.search_box.text()
-        if search_string.startswith("\\\\"):
-            exec(search_string.lstrip("\\"))
-            return
-
-        self.search_query["fulltext"] = search_string
-        self.search_query.update(kwargs)
-        self.model.browse(**self.search_query)
-
-    def on_activate(self,mi):
-        self.view.do_edit(mi)
-        self.view.update()
 
     def hideEvent(self, event):
         pass
@@ -199,7 +160,7 @@ class Browser(BaseWidget):
         action_send_to.triggered.connect(self.on_send_to)
         menu.addAction(action_send_to)
 
-        if str(user["is_admin"]).lower() == "true":
+        if config["rights"]["is_admin"].lower() == "true":
             action_batch = QAction('&Batch ops', self)
             action_batch.setStatusTip('Batch operations')
             action_batch.triggered.connect(self.on_batch)
@@ -216,7 +177,7 @@ class Browser(BaseWidget):
 
 
     def on_send_to(self):
-        dlg = SendToDialog(self, self.view.selected_objects)
+        dlg = SendTo(self, self.view.selected_objects)
         dlg.exec_()
 
 
@@ -239,7 +200,6 @@ class Browser(BaseWidget):
         if objs:
             stat, res = query("untrash", objects=objs)
 
-
     def on_archive(self):
         ret = QMessageBox.question(self,
             "Archive",
@@ -254,9 +214,8 @@ class Browser(BaseWidget):
         if objs:
             stat, res = query("unarchive", objects=objs)
 
-
     def on_batch(self):
-        dlg = BatchOpsDialog(self, self.view.selected_objects)
+        dlg = BatchDialog(self, self.view.selected_objects)
         dlg.exec_()
 
     def on_choose_columns(self):
@@ -269,14 +228,13 @@ class Browser(BaseWidget):
         clipboard = QApplication.clipboard();
         clipboard.setText(result)
 
-    def selectionChanged(self, selected, deselected):
+    def on_click(self, index):
         rows = []
         self.view.selected_objects = []
 
         tot_dur = 0
-
         for idx in self.view.selectionModel().selectedIndexes():
-            row      =  self.sort_model.mapToSource(idx).row()
+            row = self.sort_model.mapToSource(idx).row()
             if row in rows:
                 continue
             rows.append(row)
@@ -289,10 +247,6 @@ class Browser(BaseWidget):
         durstr = "{} days {}".format(days, s2time(tot_dur)) if days else s2time(tot_dur)
 
         if self.view.selected_objects:
-            self.parent().parent().focus(self.view.selected_objects)
+            self.main_window.focus(self.view.selected_objects[0])
             if len(self.view.selected_objects) > 1 and tot_dur:
-                self.status("{} objects selected. Total duration {}".format(len(self.view.selected_objects), durstr ))
-
-        super(NXView, self.view).selectionChanged(selected, deselected)
-
-
+                logging.debug("{} objects selected. Total duration {}".format(len(self.view.selected_objects), durstr ))

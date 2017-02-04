@@ -1,5 +1,6 @@
-from functools import partial
-from firefly.qt import *
+import functools
+
+from firefly import *
 
 class SiteSelectButton(QPushButton):
     pass
@@ -7,16 +8,16 @@ class SiteSelectButton(QPushButton):
 class SiteSelectDialog(QDialog):
     def __init__(self,  parent, sites=[]):
         super(SiteSelectDialog, self).__init__(parent)
-        self.sites = sites
-        self.setModal(True)
-        self.setStyleSheet(base_css)
         self.setWindowTitle("Multiple sites are cofigured")
+        self.setStyleSheet(app_skin)
+        self.setModal(True)
+        self.sites = sites
         self.setWindowIcon(QIcon(":/images/firefly.ico"))
 
         layout = QVBoxLayout()
         for i, site in enumerate(sites):
             btn_site = SiteSelectButton(site.get("site_title", False) or site["site_name"])
-            btn_site.clicked.connect(partial(self.on_select, i))
+            btn_site.clicked.connect(functools.partial(self.on_select, i))
             layout.addWidget(btn_site, 1)
 
             self.setLayout(layout)

@@ -31,11 +31,11 @@ class CGPlugin(QWidget):
 
 
             if slot_type == "text":
-                self.widgets.append(NXE_text(self))
+                self.widgets.append(FireflyString(self))
                 signal = self.widgets[-1].textChanged
 
             elif slot_type == "select":
-                self.widgets.append(NXE_select(self, slot["data"]))
+                self.widgets.append(FireflySelect(self, slot["data"]))
                 signal = self.widgets[-1].currentIndexChanged
             else:
                 continue
@@ -74,10 +74,10 @@ class CGPlugin(QWidget):
 class CG(QTabWidget):
     def __init__(self, parent):
         super(CG, self).__init__(parent)
-        self.setStyleSheet(base_css)
+        self.setStyleSheet(app_skin)
         self.plugins = []
         self.id_channel = False
-        self.load_plugins(self.parent().id_channel)
+#        self.load_plugins(self.parent().id_channel)
 
     def load_plugins(self, id_channel):
         for idx in reversed(range(self.count())):

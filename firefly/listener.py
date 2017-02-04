@@ -3,9 +3,9 @@ import socket
 import time
 import requests
 
-from urllib.request import urlopen
-
 from .common import *
+
+__all__ = ["SeismicListener"]
 
 def readlines(f):
     buff = b""
@@ -15,7 +15,7 @@ def readlines(f):
             yield buff.decode("ascii")
             buff = b""
         else:
-            buff+=ch
+            buff += ch
     yield buff.decode("ascii")
 
 
@@ -25,58 +25,73 @@ class SeismicMessage(object):
 
 
 class SeismicListener(QThread):
-    def __init__(self, parent = None):
-        QThread.__init__(self, parent)
-        self._halt = False
-        self.halted = True
-        self.queue = []
-
-    def listen(self, site_name, addr, port):
+    def __init__(self, site_name, addr, port):
+        QThread.__init__(self, None)
         self.site_name = site_name
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.bind(("0.0.0.0",port))
-        self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 255)
-        status = self.sock.setsockopt(socket.IPPROTO_IP,socket.IP_ADD_MEMBERSHIP,socket.inet_aton(addr) + socket.inet_aton("0.0.0.0"));
-        self.sock.settimeout(1)
-        self.start()
 
-    def run(self):
-        logging.info("Starting Seismic listener")
+        self.should_run = True
         self.halted = False
         self.last_msg = time.time()
-        while not self._halt:
-            try:
-                data, addr = self.sock.recvfrom(1024)
-            except (socket.error):
-                pass
-            else:
-                self.parse_message(data)
-            if time.time() - self.last_msg < 3:
-                continue
-            self.listen_http()
-        logging.debug("Listener halted")
-        self.halted = True
+        self.queue = []
 
-    def listen_http(self):
-        host = config.get("host", None)
+        self.addr = addr
+        self.port = port
+        self.start()
 
-        url = "{host}/{target}".format(
-                host=host,
-                target="msg_subscribe?id={}".format(config["site_name"])
+
+    def run(self):
+        logging.info("Starting Seismic listener", handlers=False)
+
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        self.sock.setsockopt(
+                socket.SOL_SOCKET,
+                socket.SO_REUSEADDR,
+                1
+            )
+        self.sock.bind(("0.0.0.0", self.port))
+        self.sock.setsockopt(
+                socket.IPPROTO_IP,
+                socket.IP_MULTICAST_TTL,
+                255
+            )
+        self.sock.setsockopt(
+                socket.IPPROTO_IP,
+                socket.IP_ADD_MEMBERSHIP,
+                socket.inet_aton(self.addr) + socket.inet_aton("0.0.0.0")
             )
 
-        try:
-            request = requests.get(
-                    url,
-                    stream=True,
-                )
-        except:
-            log_traceback("Seismic HTTP request failed")
-            return
+        self.sock.settimeout(1)
 
+        while self.should_run:
+            try:
+                data, addr = self.sock.recvfrom(1024)
+            except socket.error:
+                pass
+            else:
+                print (data)
+                self.parse_message(data.decode("ascii"))
+
+            if time.time() - self.last_msg < 3:
+                continue
+
+            try:
+                self.listen_http()
+            except Exception:
+                log_traceback("Seismic HTTP request failed", handlers=False)
+
+        logging.debug("Listener halted", handlers=False)
+        self.halted = True
+
+
+    def listen_http(self):
+        url = config["hub"] + "/" + "msg_subscribe?id={}".format(config["site_name"])
+        try:
+            request = requests.get(url, stream=True, timeout=.5)
+        except requests.exceptions.Timeout:
+            time.sleep(.5)
+            return
         for line in readlines(request):
-            if self._halt:
+            if not self.should_run:
                 return
             if line:
                 self.parse_message(line)
@@ -85,7 +100,8 @@ class SeismicListener(QThread):
     def parse_message(self, data, addr=False):
         try:
             message = SeismicMessage(json.loads(data))
-        except:
+        except Exception:
+            log_traceback(handlers=False)
             logging.debug("Malformed seismic message detected: {}".format(data))
             return
 
@@ -116,7 +132,5 @@ class SeismicListener(QThread):
 
 
     def halt(self):
-        self._halt = True
-
-    def add_handler(self, handler):
-        self.signal.sig.connect(handler)
+        logging.debug("Shutting down listener")
+        self.should_run = False

@@ -1,177 +1,80 @@
-from functools import partial
+import functools
 
-from firefly.common import *
-from firefly.view import *
+from firefly import *
+from firefly.dialogs.rundown import *
 
-ITEM_ROLES = {
-    "studio" : [["title", "Studio"], ["duration", 300], ["article", ""]],
-    "placeholder" : [["title", "Placeholder"], ["duration", 3600] ],
-}
+DEFAULT_COLUMNS = [
+        "rundown_symbol",
+        "title",
+        "identifier/main",
+        "duration",
+        "run_mode",
+        "rundown_scheduled",
+        "rundown_broadcast",
+        "rundown_difference",
+        "rundown_status",
+        "mark_in",
+        "mark_out",
+        "id_asset",
+        "id_object"
+    ]
 
 
-class PlaceholderDialog(QDialog):
-    def __init__(self,  parent, item_role):
-        super(PlaceholderDialog, self).__init__(parent)
-        self.setWindowTitle("Rundown placeholder")
-
-        self.ok = False
-
-        toolbar = QToolBar(self)
-        toolbar.setMovable(False)
-        toolbar.setFloatable(False)
-        toolbar.addWidget(ToolBarStretcher(toolbar))
-
-        action_accept = QAction(QIcon(pixlib["accept"]), 'Accept changes', self)
-        action_accept.setShortcut('Ctrl+S')
-        action_accept.triggered.connect(self.on_accept)
-        toolbar.addAction(action_accept)
-
-        keys =  [[key, {"default":default}] for key, default in ITEM_ROLES[item_role]]
-        self.form = MetaEditor(parent, keys)
-
-        layout = QVBoxLayout()
-        layout.addWidget(toolbar, 0)
-        layout.addWidget(self.form, 1)
-        self.setLayout(layout)
-
-        self.setModal(True)
-        self.setStyleSheet(base_css)
-        self.setMinimumWidth(400)
+class RundownModel(FireflyViewModel):
+    @property
+    def id_channel(self):
+        return self.parent().id_channel
 
     @property
-    def meta(self):
-        return self.form.meta
+    def start_time(self):
+        return self.parent().start_time
 
-    def on_accept(self):
-        self.ok = True
-        self.close()
-
-
-
-class SubclipSelectDialog(QDialog):
-    def __init__(self,  parent, asset):
-        super(SubclipSelectDialog, self).__init__(parent)
-        self.setModal(True)
-        self.setStyleSheet(base_css)
-        self.setWindowTitle("Select {} subclip to use".format(asset))
-        self.ok = False
-
-        layout = QVBoxLayout()
-
-        btn = QPushButton("Entire clip")
-        btn.clicked.connect(partial(self.on_submit, "", [asset["mark_in"],asset["mark_out"]]))
-        layout.addWidget(btn)
-
-        subclips = asset.meta.get("subclips", {})
-        for subclip in sorted(subclips):
-            marks = subclips[subclip]
-            btn = QPushButton(subclip)
-            btn.clicked.connect(partial(self.on_submit, subclip, marks))
-            layout.addWidget(btn)
-
-        self.setLayout(layout)
-
-
-    def on_submit(self, clip, marks):
-        self.marks = [float(mark) for mark in marks]
-        self.clip = clip
-        self.ok = True
-        self.close()
-
-
-
-class RundownModel(NXViewModel):
-    def load(self, id_channel, start_time, reset=False):
-        self.id_channel = id_channel
-        self.start_time = start_time
-        dbg_start_time = time.time()
-
+    def load(self, **kwargs):
+        load_start_time = time.time()
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
+        logging.info("Loading rundown. Please wait...")
 
-        self.event_ids = [] # helper for auto refresh
-
-        res, data = query("rundown", handler=self.handle_load, id_channel=id_channel, start_time=start_time)
-        if not (success(res) and data):
+        result = api.rundown(id_channel=self.id_channel, start_time=self.start_time)
+        if result.is_error:
             QApplication.restoreOverrideCursor()
             return
 
-        data_len = 0
-        for edata in data["data"]:
-            data_len += 1
-            data_len += max(1, len(edata["items"]))
-
-        if data_len != len(self.object_data) or reset:
-            self.beginResetModel()
-            self.object_data = []
-            reset = True
-
-
-        row = 0
-        current_bin = False
-        changed_rows = []
+        reset = True
         required_assets = []
-        for edata in data["data"]:
-            evt = Event(from_data=edata["event_meta"])
-            evt.bin = Bin(from_data=edata["bin_meta"])
-            current_bin = evt.bin.id
-            self.event_ids.append(evt.id)
-            event_asset = evt["id_asset"]
+        self.beginResetModel()
 
-            evt["rundown_bin"] = current_bin
-            evt["rundown_row"] = row
-            if reset:
-                self.object_data.append(evt)
-            elif self.object_data[row].meta != evt.meta:
-                self.object_data[row] = evt
-                changed_rows.append(row)
-            row += 1
+        self.header_data = DEFAULT_COLUMNS
+        self.object_data = []
 
-            if not edata["items"]:
-                dummy = Dummy("(no item)")
-                dummy["rundown_bin"] = current_bin
-                dummy["rundown_row"] = row
-                if reset:
-                    self.object_data.append(dummy)
-                elif self.object_data[row] != dummy:
-                    self.object_data[row] = dummy
-                    changed_rows.append(row)
-                row += 1
+        for row in result.data:
+            if row["object_type"] == "event":
+                self.object_data.append(Event(meta=row))
+            elif row["object_type"] == "item":
+                required_assets.append([row["id_asset"], row["asset_mtime"]])
+                self.object_data.append(Item(meta=row))
+            else:
+                continue
 
-
-            for i_data in edata["items"]:
-                item = Item(from_data=i_data)
-                id_asset = item["id_asset"]
-
-                if id_asset:
-                    if not id_asset in asset_cache:
-                        asset_cache[id_asset] = Asset()
-                        required_assets.append(id_asset)
-                    elif asset_cache[id_asset]["mtime"] != item["asset_mtime"]:
-                        required_assets.append(id_asset)
-
-                item._asset = asset_cache[item["id_asset"]]
-                item["rundown_bin"] = current_bin
-                item["rundown_row"] = row
-                item["rundown_event_asset"] = event_asset
-                if reset:
-                    self.object_data.append(item)
-                elif self.object_data[row].meta != item.meta:
-                    self.object_data[row] = item
-                    changed_rows.append(row)
-                row += 1
-
-        if required_assets:
-            self.parent().parent().parent().update_assets(required_assets)
+        asset_cache.request(required_assets)
 
         if reset:
             self.endResetModel()
         elif changed_rows:
-            self.dataChanged.emit(self.index(min(changed_rows), 0), self.index(max(changed_rows), len(self.header_data)-1))
-
+            self.dataChanged.emit(
+                    self.index(min(changed_rows), 0),
+                    self.index(max(changed_rows), len(self.header_data)-1)
+                )
 
         QApplication.restoreOverrideCursor()
-        logging.goodnews("Rundown loaded in {:.03f}".format(time.time()-dbg_start_time))
+        logging.goodnews(
+                "{} rows of {} rundown loaded in {:.03f}".format(
+                    len(result.data),
+                    format_time(self.start_time, "%Y-%m-%d"),
+                    time.time() - load_start_time
+                )
+            )
+
 
 
     def refresh_assets(self, assets):
@@ -187,12 +90,6 @@ class RundownModel(NXViewModel):
                 break
 
 
-    def handle_load(self,msg):
-        logging.info("Loading rundown. {:0.0%}".format(msg["progress"]))
-        QApplication.processEvents()
-
-
-
     def flags(self,index):
         flags = super(RundownModel, self).flags(index)
         if index.isValid():
@@ -203,40 +100,38 @@ class RundownModel(NXViewModel):
             flags = Qt.ItemIsDropEnabled # Dropovat se da jen mezi rowy
         return flags
 
-
     def mimeTypes(self):
         return ["application/nx.asset", "application/nx.item"]
 
     def mimeData(self, indexes):
         mimeData = QMimeData()
 
-        data         = [self.object_data[i] for i in set(index.row() for index in indexes if index.isValid())]
+        data = [self.object_data[i] for i in set(index.row() for index in indexes if index.isValid())]
         encodedIData = json.dumps([i.meta for i in data])
         mimeData.setData("application/nx.item", encodedIData)
 
         encodedAData = json.dumps([i.asset.meta for i in data])
         mimeData.setData("application/nx.asset", encodedAData)
-
         try:
-            urls =[QUrl.fromLocalFile(item.asset.file_path) for item in data]
+            urls = [QUrl.fromLocalFile(item.asset.file_path) for item in data]
             mimeData.setUrls(urls)
         except:
             pass
         return mimeData
 
+
     def dropMimeData(self, data, action, row, column, parent):
         if action == Qt.IgnoreAction:
             return True
 
-        if not has_right("rundown_edit", self.id_channel):
+        if not user.has_right("rundown_edit", self.id_channel):
             logging.warning("You are not allowed to modify this rundown")
-            return False
+            return True
 
         if row < 1:
             return False
 
         drop_objects = []
-
         if data.hasFormat("application/nx.item"):
             iformat = ITEM
             d = data.data("application/nx.item").data()
@@ -326,6 +221,6 @@ class RundownModel(NXViewModel):
                 logging.info("Bin order changed")
             else:
                 logging.warning( "Error {} : {}".format(stat, res))
-            self.load(self.id_channel, self.start_time)
+            self.load()
         return True
 

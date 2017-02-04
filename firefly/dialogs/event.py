@@ -1,10 +1,7 @@
 import time
 import datetime
 
-from firefly.common import *
-from firefly.widgets import *
-
-from nx.objects import Event
+from firefly import *
 
 def event_toolbar(wnd):
     toolbar = QToolBar(wnd)
@@ -39,11 +36,11 @@ class EventForm(QWidget):
         self.data = {}
 
         for key, title, widget in [
-            ("start", "Start", NXE_datetime),
-            ("title", "Title", NXE_text),
-            ("title/subtitle", "Subtitle", NXE_text),
-            ("description", "Description", NXE_blob)
-            ]: # TODO: load title and widget from metatypes somehow
+                ("start", "Start", FireflyDatetime),
+                ("title", "Title", FireflyString),
+                ("title/subtitle", "Subtitle", FireflyString),
+                ("description", "Description", FireflyText)
+            ]:
 
             self.data[key] = widget(self)
             if event[key]:

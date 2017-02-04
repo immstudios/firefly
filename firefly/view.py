@@ -1,16 +1,16 @@
 from .common import *
 from .widgets import *
 
-__all__ == ["format_header", "FireflyViewModel", "FireflySortModel", "FireflyView"]
+__all__ = ["format_header", "FireflyViewModel", "FireflySortModel", "FireflyView"]
 
 def format_header(key):
-    return meta_types.col_alias(key, config.get("language", "en-US"))
+    return meta_types[key].header(config.get("language", "en"))
 
-class NXViewModel(QAbstractTableModel):
+class FireflyViewModel(QAbstractTableModel):
     def __init__(self, parent):
-        super(NXViewModel, self).__init__(parent)
-        self.object_data     = []
-        self.header_data     = []
+        super(FireflyViewModel, self).__init__(parent)
+        self.object_data = []
+        self.header_data = []
         self.changed_objects = []
         self.font_normal  = QFont()
         self.font_virtual = QFont()
@@ -37,36 +37,36 @@ class NXViewModel(QAbstractTableModel):
         row = index.row()
         obj = self.object_data[row]
         obj.model = self
-        tag = self.header_data[index.column()]
+        key = self.header_data[index.column()]
 
-        if   role == Qt.DisplayRole:     
-            return obj.format_display(tag)
-        elif role == Qt.ForegroundRole:  
-            return QColor(obj.format_foreground(tag))
-        elif role == Qt.BackgroundRole:
-            bkg = obj.format_background(tag, self)
-            if bkg:
-                return QColor(bkg)
-        elif role == Qt.EditRole:        
-            return obj.format_edit(tag)
-        elif role == Qt.UserRole:        
-            return obj.format_sort(tag)
-        elif role == Qt.DecorationRole:  
-            return pixlib[obj.format_decoration(tag)]
-        elif role == Qt.ToolTipRole:     
-            return "\n".join(
-            "{} : {}".format(
-                meta_types.tag_alias(tag, config.get("language", "en-US")),
-                obj.format_display(tag)
-                ) for tag in sorted(obj.meta.keys()) if obj.format_display(tag)
-            ) if config.get("debug", False) else None
-        elif role == Qt.FontRole:
-            if obj.object_type == "event":
-                return self.font_bold
-            elif obj.object_type == "item" and obj["id_asset"] == obj["rundown_event_asset"]:
-                return self.font_bold
-            else:
-                return self.font_normal
+        if role == Qt.DisplayRole:
+            return obj.show(key)
+       # elif role == Qt.ForegroundRole:
+       #     return QColor(obj.format_foreground(tag))
+       # elif role == Qt.BackgroundRole:
+       #     bkg = obj.format_background(tag, self)
+       #     if bkg:
+       #         return QColor(bkg)
+       # elif role == Qt.EditRole:
+       #     return obj.format_edit(tag)
+       # elif role == Qt.UserRole:
+       #     return obj.format_sort(tag)
+       # elif role == Qt.DecorationRole:
+       #     return pixlib[obj.format_decoration(tag)]
+       # elif role == Qt.ToolTipRole:
+       #     return "\n".join(
+       #     "{} : {}".format(
+       #         meta_types.tag_alias(tag, config.get("language", "en-US")),
+       #         obj.format_display(tag)
+       #         ) for tag in sorted(obj.meta.keys()) if obj.format_display(tag)
+       #     ) if config.get("debug", False) else None
+       # elif role == Qt.FontRole:
+       #     if obj.object_type == "event":
+       #         return self.font_bold
+       #     elif obj.object_type == "item" and obj["id_asset"] == obj["rundown_event_asset"]:
+       #         return self.font_bold
+       #     else:
+       #         return self.font_normal
         return None
 
 
@@ -94,11 +94,11 @@ class FireflySortModel(QSortFilterProxyModel):
         self.setSourceModel(model)
         self.setDynamicSortFilter(True)
         self.setSortLocaleAware(True)
-        self.setSortRole(Qt.UserRole)
+        #self.setSortRole(Qt.UserRole)
 
     @property
     def object_data(self):
-        return self.sourceModel().object_data
+       return self.sourceModel().object_data
 
     def mimeData(self, indexes):
         return self.sourceModel().mimeData([self.mapToSource(idx) for idx in indexes ])
@@ -107,7 +107,7 @@ class FireflySortModel(QSortFilterProxyModel):
 class FireflyView(QTableView):
     def __init__(self, parent):
         super(FireflyView, self).__init__(parent)
-        self.setStyleSheet(base_css)
+        self.setStyleSheet(app_skin)
         self.verticalHeader().setVisible(False)
         self.setWordWrap(False)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)

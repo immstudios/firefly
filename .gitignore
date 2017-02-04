@@ -1,5 +1,6 @@
 __pycache__
 *.py[cod]
+vendor/
 
 # Build
 
@@ -10,10 +11,13 @@ build
 
 # Settings
 
-local_settings.json
-state.*
+settings.json
+firefly.appstate
+cache*
+auth.key
 
 # Other
 
 .vscode/
 _res/
+_old/

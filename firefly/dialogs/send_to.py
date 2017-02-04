@@ -1,5 +1,5 @@
-from functools import partial
-from firefly.common import *
+import functools
+from firefly import *
 
 class SendToButton(QPushButton):
     pass
@@ -25,7 +25,7 @@ class SendToDialog(QDialog):
             layout = QVBoxLayout()
             for id_action, title in data:
                 btn_send = SendToButton(title)
-                btn_send.clicked.connect(partial(self.on_send, id_action))
+                btn_send.clicked.connect(functools.partial(self.on_send, id_action))
                 layout.addWidget(btn_send,1)
 
             self.restart = QCheckBox('Restart existing actions', self)

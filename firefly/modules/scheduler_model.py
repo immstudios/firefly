@@ -2,11 +2,11 @@ import re
 import math
 import datetime
 
-from firefly.common import *
-from firefly.view import *
-
+from firefly import *
 from firefly.dialogs.event import EventDialog
 from firefly.dialogs.dramatica import DramaticaDialog
+
+__all__ = ["TXCalendar"]
 
 
 COLOR_CALENDAR_BACKGROUND = QColor("#161616")
@@ -25,22 +25,17 @@ RUN_PENS = [
     ]
 
 
-DAY = 3600*24
-MIN_PER_DAY = (60 * 24)
-SAFE_OVR = 5 # Do not warn if overflow < 5 mins
+SECS_PER_DAY = 3600 * 24
+MINS_PER_DAY = 60 * 24
+SAFE_OVERRUN = 5 # Do not warn if overrun < 5 mins
 
 CLOCKBAR_WIDTH = 45
-
 
 
 def suggested_duration(dur):
     adur = int(dur) + 360
     g = adur % 300
-    if g > 150:
-        r =  adur-g + 300
-    else:
-        r =  adur -g
-    return r
+    return adur - g + 300 if g > 150 else adur -g
 
 def text_shorten(text, font, target_width):
     fm = QFontMetrics(font)
@@ -76,7 +71,7 @@ class TXVerticalBar(QWidget):
 
     @property
     def min_size(self):
-        return self.height() / MIN_PER_DAY
+        return self.height() / MINS_PER_DAY
 
     @property
     def sec_size(self):
@@ -110,7 +105,7 @@ class TXClockBar(TXVerticalBar):
         font = QFont('Serif', 9, QFont.Light)
         qp.setFont(font)
 
-        for i in range(0, MIN_PER_DAY, self.resolution):
+        for i in range(0, MINS_PER_DAY, self.resolution):
             if i % 60:
                 continue
             y = i * self.min_size
@@ -160,7 +155,7 @@ class TXDayWidget(TXVerticalBar):
         qp.setBrush(COLOR_DAY_BACKGROUND)
         qp.drawRect(0, 0, self.width(), self.height())
 
-        for i in range(0, MIN_PER_DAY, self.resolution):
+        for i in range(0, MINS_PER_DAY, self.resolution):
             for pen in TIME_PENS:
                 if i % pen[0] == 0:
                     qp.setPen(pen[1])
@@ -739,12 +734,12 @@ class TXCalendar(QWidget):
             self.clock_bar.update()
 
             for i, day_widget in enumerate(self.days):
-                day_widget.start_time = self.start_time+(i*DAY)
+                day_widget.start_time = self.start_time+(i*SECS_PER_DAY)
                 day_widget.update()
 
             for i, header in enumerate(self.headers):
-                d = time.strftime("%a %x", time.localtime(self.start_time+(i*DAY))).upper()
-                header.set_rundown(self.id_channel, self.start_time+(i*DAY))
+                d = time.strftime("%a %x", time.localtime(self.start_time+(i*SECS_PER_DAY))).upper()
+                header.set_rundown(self.id_channel, self.start_time+(i*SECS_PER_DAY))
         else:
             logging.error(data)
 

@@ -1,4 +1,4 @@
-from firefly.common import *
+from firefly import *
 
 class DramaticaDialog(QDialog):
     def __init__(self,  parent, **kwargs):

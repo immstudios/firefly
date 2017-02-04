@@ -1,7 +1,6 @@
-#!/usr/bin/env python
+from nebulacore import *
 
-from .core import *
-from .objects import *
 from .connection import *
+from .objects import *
 
 user = User()

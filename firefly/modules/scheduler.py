@@ -1,3 +1,5 @@
+from firefly import *
+
 from .scheduler_model import *
 
 class EmptyEventButton(QToolButton):
@@ -56,13 +58,10 @@ def scheduler_toolbar(wnd):
     return toolbar
 
 
-class Scheduler(BaseWidget):
+class SchedulerModule(BaseModule):
     def __init__(self, parent):
-        super(Scheduler, self).__init__(parent)
+        super(SchedulerModule, self).__init__(parent)
         toolbar = scheduler_toolbar(self)
-        self.parent().setWindowTitle("Scheduler")
-        self.id_channel = False
-
         self.calendar = TXCalendar(self)
 
         layout = QVBoxLayout()
@@ -72,7 +71,7 @@ class Scheduler(BaseWidget):
         layout.addWidget(self.calendar, 1)
 
         self.setLayout(layout)
-        self.set_channel(self.parent().parent().id_channel)
+#        self.set_channel(self.parent().parent().id_channel)
 
 
     def update_header(self):

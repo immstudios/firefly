@@ -1,20 +1,139 @@
 import time
-from functools import partial
+import functools
 
 from nx import *
 
-from qt_common import *
-from dlg_texteditor import TextEditor
+from .common import *
+from .dialogs.text_editor import TextEditorDialog
 
 
 class ChannelDisplay(QLabel):
     pass
 
-# radio or select data . array of [value, label] or array of values
+class ToolBarStretcher(QWidget):
+    def __init__(self, parent):
+        super(ToolBarStretcher, self).__init__(parent)
+        self.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
+#
+# Metadata editor widgets
+#
 
-class NXE_select(QComboBox):
+class FireflyString(QLineEdit):
+    def __init__(self, parent):
+        super(FireflyString, self).__init__(parent)
+        self.default = self.get_value()
+
+    def set_value(self, value):
+        if value == self.get_value():
+            return
+        self.setText(str(value))
+        self.default = self.get_value()
+
+    def get_value(self):
+        return self.text()
+
+
+class FireflyText(QTextEdit):
+    def __init__(self, parent):
+        super(FireflyText, self).__init__(parent)
+        fixed_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+        fixed_font.setStyleHint(QFont.Monospace);
+        self.setCurrentFont(fixed_font)
+        self.default = self.get_value()
+
+    def set_value(self, value):
+        if value == self.get_value():
+            return
+        self.setText(str(value))
+        self.default = self.get_value()
+
+    def get_value(self):
+        return self.toPlainText()
+
+
+class FireflyInteger(QSpinBox):
+    def __init__(self, parent, **kwargs):
+        super(FireflyInteger,self).__init__(parent)
+        self.setMaximum(kwargs.get("max", 99999))
+        self.default = self.get_value()
+
+    def set_value(self, value):
+        if value == self.get_value():
+            return
+        self.setValue(int(value))
+        self.default = self.get_value()
+
+    def get_value(self):
+        return self.value()
+
+
+class FireflyNumeric(QSpinBox):
+    pass
+    #TODO
+
+
+class FireflyBoolean():
+    pass
+    #TODO
+
+
+class FireflyDatetime(QLineEdit):
+    def __init__(self, parent, **kwargs):
+        super(FireflyDatetime,self).__init__(parent)
+        mode = kwargs.get("mode", "datetime")
+
+        if mode == "date":
+            self.mask   = "9999-99-99"
+            self.format = "%Y-%m-%d"
+
+        elif mode == "datetime":
+            self.mask   = "9999-99-99 99:99"
+            self.format = "%Y-%m-%d %H:%M"
+
+            if kwargs.get("show_seconds", False):
+                self.mask += ":99"
+                self.format += ":%S"
+
+        self.setInputMask(self.mask)
+        self.default = self.get_value()
+
+    def set_value(self, timestamp):
+        self.setInputMask("")
+        if timestamp:
+            tt = time.localtime(timestamp)
+            self.setText(time.strftime(self.format, tt))
+        else:
+            self.setText(self.format.replace("9","-"))
+        self.setInputMask(self.mask)
+        self.default = self.get_value()
+
+    def get_value(self):
+        if not self.text().replace("-", "").replace(":","").strip():
+            return float(0)
+        t = time.strptime(self.text(), self.format)
+        return float(time.mktime(t))
+
+
+class FireflyTimecode(QLineEdit):
+    def __init__(self, parent):
+        super(FireflyTimecode,self).__init__(parent)
+        self.setInputMask("99:99:99:99")
+        self.setText("00:00:00:00")
+        self.default = self.get_value()
+
+    def set_value(self, value):
+        self.setText(s2time(value))
+        self.setCursorPosition(0)
+        self.default = self.get_value()
+
+    def get_value(self):
+        hh, mm, ss, ff = [int(i) for i in self.text().split(":")]
+        return (hh*3600) + (mm*60) + ss + (ff/25.0) #FIXME: FPS
+
+
+class FireflySelect(QComboBox):
     def __init__(self, parent, data):
-        super(NXE_select,self).__init__(parent)
+        super(FireflySelect, self).__init__(parent)
         self.cdata = []
         self.set_data(data)
         self.default = self.get_value()
@@ -48,10 +167,9 @@ class NXE_select(QComboBox):
         return self.cdata[self.currentIndex()]
 
 
-
-class NXE_radio(QWidget):
+class FireflyRadio(QWidget):
     def __init__(self, parent, data):
-        super(NXE_radio,self).__init__(parent)
+        super(FireflyRadio, self).__init__(parent)
         self.cdata = []
         self.current_index = -1
         self.buttons = []
@@ -100,119 +218,41 @@ class NXE_radio(QWidget):
             return ""
         return self.cdata[self.current_index]
 
-
     def setReadOnly(self, val):
         for w in self.buttons:
             w.setEnabled(not val)
 
 
+class FireflyRegions():
+    pass
+    #TODO
 
-class NXE_timecode(QLineEdit):
-    def __init__(self, parent):
-        super(NXE_timecode,self).__init__(parent)
-        self.setInputMask("99:99:99:99")
-        self.setText("00:00:00:00")
-        self.default = self.get_value()
+class FireflyFraction():
+    pass
 
-    def set_value(self, value):
-        self.setText(s2time(value))
-        self.setCursorPosition(0)
-        self.default = self.get_value()
-
-    def get_value(self):
-        hh, mm, ss, ff = [int(i) for i in self.text().split(":")]
-        return (hh*3600) + (mm*60) + ss + (ff/25.0) #FIXME: FPS
+class FireflyList():
+    pass
 
 
-class NXE_datetime(QLineEdit):
-    def __init__(self, parent, **kwargs):
-        super(NXE_datetime,self).__init__(parent)
-        mode = kwargs.get("mode", "datetime")
+#
+#
+#
 
-        if mode == "date":
-            self.mask   = "9999-99-99"
-            self.format = "%Y-%m-%d"
-
-        elif mode == "datetime":
-            self.mask   = "9999-99-99 99:99"
-            self.format = "%Y-%m-%d %H:%M"
-
-            if kwargs.get("show_seconds", False):
-                self.mask += ":99"
-                self.format += ":%S"
-
-        self.setInputMask(self.mask)
-        self.default = self.get_value()
-
-    def set_value(self, timestamp):
-        self.setInputMask("")
-        if timestamp:
-            tt = time.localtime(timestamp)
-            self.setText(time.strftime(self.format, tt))
-        else:
-            self.setText(self.format.replace("9","-"))
-        self.setInputMask(self.mask)
-        self.default = self.get_value()
-
-    def get_value(self):
-        if not self.text().replace("-", "").replace(":","").strip():
-            return float(0)
-
-        t = time.strptime(self.text(), self.format)
-        return float(time.mktime(t))
+meta_editors = {
+    STRING    : FireflyString,
+    TEXT      : FireflyText,
+    INTEGER   : FireflyInteger,
+    NUMERIC   : FireflyNumeric,
+    BOOLEAN   : FireflyBoolean,
+    DATETIME  : FireflyDatetime,
+    TIMECODE  : FireflyTimecode,
+    REGIONS   : FireflyRegions,
+    FRACTION  : FireflyFraction,
+    SELECT    : FireflySelect,
+    LIST      : FireflyList,
+}
 
 
-class NXE_integer(QSpinBox):
-    def __init__(self, parent, **kwargs):
-        super(NXE_integer,self).__init__(parent)
-        self.setMaximum(kwargs.get("max", 99999))
-        self.default = self.get_value()
-
-    def set_value(self, value):
-        if value == self.get_value():
-            return
-        self.setValue(int(value))
-        self.default = self.get_value()
-
-    def get_value(self):
-        return self.value()
-
-
-
-class NXE_text(QLineEdit):
-    def __init__(self, parent):
-        super(NXE_text, self).__init__(parent)
-        self.default = self.get_value()
-
-    def set_value(self, value):
-        if value == self.get_value():
-            return
-        self.setText(str(value))
-        self.default = self.get_value()
-
-    def get_value(self):
-        return self.text()
-
-
-class NXE_blob(QTextEdit):
-    def __init__(self, parent):
-        super(NXE_blob, self).__init__(parent)
-        fixed_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-        fixed_font.setStyleHint(QFont.Monospace);
-        self.setCurrentFont(fixed_font)
-        self.default = self.get_value()
-
-    def set_value(self, value):
-        if value == self.get_value():
-            return
-        self.setText(str(value))
-        self.default = self.get_value()
-
-    def get_value(self):
-        return self.toPlainText()
-
-
-########################################################################
 
 class MetaEditItemDelegate(QStyledItemDelegate):
     def __init__(self, parent=None):
@@ -375,4 +415,3 @@ class MetaEditor(QWidget):
         for key in self.keys():
             if self[key] != self.inputs[key].default:
                 self.inputs[key].default = self[key]
-

@@ -1,5 +1,4 @@
-from qt_common import *
-
+from .common import *
 
 def format(color, style=''):
     _color = QColor(color)
@@ -8,7 +7,7 @@ def format(color, style=''):
     _format.setForeground(_color)
     if 'bold' in style:
         _format.setFontWeight(QFont.Bold)
-    if 'italic' in style: 
+    if 'italic' in style:
         _format.setFontItalic(True)
     return _format
 
@@ -45,16 +44,16 @@ class PythonHL (QSyntaxHighlighter):
         rules += [(r'\b%s\b' % w, 0, STYLES['cdefs'])   for w in PythonHL.cdefs]
         rules += [(r'%s' % o, 0, STYLES['operator'])    for o in PythonHL.operators]
         rules += [(r'%s' % b, 0, STYLES['brace'])       for b in PythonHL.braces]
-        rules += [(r'"[^"\\]*(\\.[^"\\]*)*"', 0, STYLES['string']), 
-                  (r"'[^'\\]*(\\.[^'\\]*)*'", 0, STYLES['string']), 
-                  (r'\bdef\b\s*(\w+)', 1, STYLES['defname']), 
-                  (r'\bclass\b\s*(\w+)', 1, STYLES['classname']), 
-                  (r'#[^\n]*', 0, STYLES['comment']), 
+        rules += [(r'"[^"\\]*(\\.[^"\\]*)*"', 0, STYLES['string']),
+                  (r"'[^'\\]*(\\.[^'\\]*)*'", 0, STYLES['string']),
+                  (r'\bdef\b\s*(\w+)', 1, STYLES['defname']),
+                  (r'\bclass\b\s*(\w+)', 1, STYLES['classname']),
+                  (r'#[^\n]*', 0, STYLES['comment']),
                   (r'#![^\n]*', 0, STYLES['pybang']),
                   (r'[0-9]', 0, STYLES['number'])
                   ]
         self.rules = [(QRegExp(pat), index, fmt) for (pat, index, fmt) in rules]
-   
+
     def highlightBlock(self, text):
         for expression, nth, format in self.rules:
             index = expression.indexIn(text, 0)
@@ -66,8 +65,8 @@ class PythonHL (QSyntaxHighlighter):
         self.setCurrentBlockState(0)
         in_multiline = self.match_multiline(text, *self.tri_single)
         if not in_multiline: in_multiline = self.match_multiline(text, *self.tri_double)
-   
-   
+
+
     def match_multiline(self, text, delimiter, in_state, style):
         if self.previousBlockState() == in_state:
             start = 0

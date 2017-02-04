@@ -1,17 +1,11 @@
 import json
-import hashlib
-import socket
-import getpass
 import requests
 
-from .core import *
+from nebulacore import *
 
 __all__ = ["api"]
 
-DEFAULT_PORT = 443
-DEFAULT_SSL = True
-
-class ApiResult():
+class APIResult(object):
     def __init__(self, **kwargs):
         self._data = {}
         self._data.update(kwargs)
@@ -44,7 +38,7 @@ class ApiResult():
 
 
 
-class NebulaApi():
+class NebulaAPI(object):
     def __init__(self, **kwargs):
         self._settings = kwargs
         self._cookies = requests.cookies.RequestsCookieJar()
@@ -52,17 +46,19 @@ class NebulaApi():
     def get_user(self):
         try:
             response = requests.post(
-                    self._settings["host"] + "/ping",
+                    self._settings["hub"] + "/ping",
                     cookies=self._cookies
                 )
             self._cookies = response.cookies
             result = json.loads(response.text)
-        except:
+        except Exception:
             log_traceback()
             return False
         if result["response"] >= 400:
             return False
-        return User(meta=result["user"])
+        if not result["user"]:
+            return False
+        return result["user"]
 
     @property
     def auth_key(self):
@@ -73,21 +69,21 @@ class NebulaApi():
 
     def login(self, login, password):
         data = {"login" : login, "password" : password, "api" : 1}
-        response = requests.post(self._settings["host"] + "/login", data)
+        response = requests.post(self._settings["hub"] + "/login", data)
         self._cookies = response.cookies
         data = json.loads(response.text)
-        return ApiResult(**data)
+        return APIResult(**data)
 
     def run(self, method, **kwargs):
         response = requests.post(
-                self._settings["host"] + "/api/" + method,
+                self._settings["hub"] + "/api/" + method,
                 data=json.dumps(kwargs),
                 cookies=self._cookies
 
             )
         self._cookies = response.cookies
         data = json.loads(response.text)
-        return ApiResult(**data)
+        return APIResult(**data)
 
     def __getattr__(self, method_name):
         def wrapper(**kwargs):
@@ -95,4 +91,4 @@ class NebulaApi():
         return wrapper
 
 
-api = NebulaApi()
+api = NebulaAPI()

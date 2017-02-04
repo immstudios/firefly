@@ -1,4 +1,4 @@
-from firefly.common import *
+from firefly import *
 
 class ColumnsSelectDialog(QDialog):
     def __init__(self,  parent, available=[], current=[]):

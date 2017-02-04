@@ -1,4 +1,4 @@
-from firefly.common import *
+from firefly import *
 from firefly.syntaxhl import *
 
 class TextWidget(QTextEdit):

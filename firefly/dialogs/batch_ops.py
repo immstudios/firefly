@@ -1,5 +1,4 @@
-from firefly_common import *
-from firefly_widgets import *
+from firefly import *
 
 ERR = "** ERROR **"
 
@@ -11,17 +10,17 @@ class BatchOpsDialog(QDialog):
         self.objects = sorted(objects, key=lambda obj: obj.id)
         self.values = {}
         self.setWindowTitle("Batch modify: {} assets".format(len(self.objects)))
-        
+
         self.key = QLineEdit("title")
         self.exp = QLineEdit()
         self.ident = QLineEdit("title", self)
-        self.preview = NXE_blob(self)
+        self.preview = FireflyText(self)
         self.preview.setMinimumSize(740, 400)
         self.btn_submit = QPushButton("Submit")
         self.btn_submit.clicked.connect(self.on_submit)
 
         layout = QFormLayout()
-        
+
         layout.addRow("Key", self.key)
         layout.addRow("Expression", self.exp)
         layout.addRow("Ident", self.ident)

@@ -1,5 +1,4 @@
-from firefly.common import *
-from firefly.widgets import *
+from firefly import *
 
 class SubclipsModel(QAbstractTableModel):
     def __init__(self, parent, subclips):

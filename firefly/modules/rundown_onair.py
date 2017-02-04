@@ -1,10 +1,7 @@
 import math
-
-from firefly.common import *
-from firefly.widgets import *
+from firefly import *
 
 PROGRESS_BAR_RESOLUTION = 2000
-
 
 class OnAirButton(QPushButton):
     def __init__(self, title, parent=None, on_click=False):
@@ -35,8 +32,6 @@ class OnAirLabel(QLabel):
        self.setText("%s: %s"%(self.head,text))
 
 
-
-
 class OnAir(QWidget):
     def __init__(self, parent):
         super(OnAir, self).__init__(parent)
@@ -64,7 +59,7 @@ class OnAir(QWidget):
         self.btn_retake  = OnAirButton(u"Retake", self, self.on_retake)
         self.btn_abort   = OnAirButton(u"Abort",  self, self.on_abort)
 
-        can_mcr = has_right("mcr", self.parent().id_channel)
+        can_mcr = user.has_right("mcr", self.parent().id_channel)
         self.btn_take.setEnabled(can_mcr)
         self.btn_freeze.setEnabled(can_mcr)
         self.btn_retake.setEnabled(can_mcr)
