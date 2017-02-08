@@ -20,23 +20,17 @@ class CellFormat(object):
     def display(self, obj, **kwargs):
         return None
 
-    def decoration(self, obj, **kwargs):
+    def foreground(self, obj, **kwargs):
         return None
-
-    def tooltip(self, obj, **kwargs):
-        return None
-
-    def statustip(self, obj, **kwargs):
-        return self.tooltip(obj, **kwargs)
-
-    def whatsthis(self, obj, **kwargs):
-        return self.tooltip(obj, **kwargs)
 
     def background(self, obj, **kwargs):
         return None
 
-    def foreground(self, obj, **kwargs):
+    def decoration(self, obj, **kwargs):
         return None
+
+    def font(self, obj, **kwargs):
+        pass
 
 #
 # Cell formatters
@@ -166,7 +160,7 @@ class FormatTitle(CellFormat):
         if obj.object_type in ["asset", "item"]:
             return STATUS_FG_COLORS[obj["status"]]
 
-    def font(self, obj, **kwargs)
+    def font(self, obj, **kwargs):
         if obj.object_type == "event":
             return "bold"
         elif obj.object_type == "item" and obj["id_asset"] == obj["rundown_event_asset"]:
@@ -209,10 +203,9 @@ class FireflyObject(BaseObject):
                 shorten=100
             )
 
-    def format_decoration(self, key, **kwargs):
+    def format_foreground(self, key, **kwargs):
         if key in format_helpers:
-            return format_helpers[key].decoration(self, **kwargs)
-        return None
+            return format_helpers[key].foreground(self, **kwargs)
 
     def format_background(self, key, **kwargs):
         model = kwargs.get("model")
@@ -230,9 +223,10 @@ class FireflyObject(BaseObject):
                 return "#121240"
         return None
 
-    def format_foreground(self, key, **kwargs):
+    def format_decoration(self, key, **kwargs):
         if key in format_helpers:
-            return format_helpers[key].foreground(self, **kwargs)
+            return format_helpers[key].decoration(self, **kwargs)
+        return None
 
     def format_font(self, key, **kwargs):
         if key in format_helpers:
