@@ -20,7 +20,7 @@ def check_login():
 class FireflyApplication(Application):
     def __init__(self, **kwargs):
         super(FireflyApplication, self).__init__(name="firefly", title="Firefly")
-        self.splash = QSplashScreen(pixlib['splash'])
+        self.splash = QSplashScreen(pix_lib['splash'])
         self.splash.show()
 
         # Which site we are running
