@@ -15,12 +15,12 @@ def event_toolbar(wnd):
 
     toolbar.addWidget(ToolBarStretcher(toolbar))
 
-    action_accept = QAction(QIcon(pixlib["accept"]), 'Accept changes', wnd)
+    action_accept = QAction(QIcon(pix_lib["accept"]), 'Accept changes', wnd)
     action_accept.setShortcut('Ctrl+S')
     action_accept.triggered.connect(wnd.on_accept)
     toolbar.addAction(action_accept)
 
-    action_cancel = QAction(QIcon(pixlib["cancel"]), 'Cancel', wnd)
+    action_cancel = QAction(QIcon(pix_lib["cancel"]), 'Cancel', wnd)
     action_cancel.setShortcut('ESC')
     action_cancel.triggered.connect(wnd.on_cancel)
     toolbar.addAction(action_cancel)
@@ -68,7 +68,7 @@ class EventDialog(QDialog):
         super(EventDialog, self).__init__(parent)
         self.setWindowTitle("Scheduler")
         self.kwargs = kwargs
-        self.setStyleSheet(base_css)
+        self.setStyleSheet(app_skin)
 
         self.toolbar = event_toolbar(self)
 
@@ -95,30 +95,14 @@ class EventDialog(QDialog):
         layout.addWidget(self.form, 2)
 
         self.setLayout(layout)
-        self.load_state()
         self.setModal(True)
 
 
-
-    def load_state(self):
-        settings = ffsettings()
-        if "dialogs/event_g" in settings.allKeys():
-            self.restoreGeometry(settings.value("dialogs/event_g"))
-        else:
-            self.resize(800,400)
-
-    def save_state(self):
-        settings = ffsettings()
-        settings.setValue("dialogs/event_g", self.saveGeometry())
+    def closeEvent(self, event):
+        event.accept()
 
     def on_cancel(self):
         self.close()
-
-    def closeEvent(self, event):
-         self.save_state()
-         event.accept()
-
-
 
     def on_accept(self):
         for key in self.form.keys():
@@ -129,7 +113,7 @@ class EventDialog(QDialog):
         stat, res = query("set_events",
                 id_channel=self.event["id_channel"],
                 events=[self.event.meta]
-                    )
+            )
 
         self.close()
 
@@ -142,8 +126,8 @@ class EventDialog(QDialog):
 
         self.action_toggle_promoted.setIcon(
             [
-                QIcon(pixlib["star_disabled"]),
-                QIcon(pixlib["star_enabled"])
+                QIcon(pix_lib["star_disabled"]),
+                QIcon(pix_lib["star_enabled"])
             ][bool(self.event["promoted"])]
             )
 
