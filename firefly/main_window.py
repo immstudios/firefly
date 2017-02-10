@@ -21,10 +21,10 @@ class FireflyMainWidget(QWidget):
         self.tabs.addTab(self.scheduler, "Scheduler")
         self.tabs.addTab(self.rundown, "Rundown")
 
+
         self.main_splitter = QSplitter(Qt.Horizontal)
         self.main_splitter.addWidget(self.browser)
         self.main_splitter.addWidget(self.tabs)
-        self.main_splitter.setSizes([100,200])
 
         self.main_window.add_subscriber(self.browser, ["objects_changed"])
         self.main_window.add_subscriber(self.rundown, ["objects_changed", "rundown_changed", "playout_status"])
@@ -39,13 +39,14 @@ class FireflyMainWidget(QWidget):
 
 
 
+
 class FireflyMainWindow(MainWindow):
     def __init__(self, parent, MainWidgetClass):
         self.id_channel = min(config["playout_channels"].keys())
 
         self.subscribers = []
         super(FireflyMainWindow, self).__init__(parent, MainWidgetClass)
-        logging.add_handler(self.log_handler)
+        logging.handlers = [self.log_handler]
         self.listener = SeismicListener(
                 config["site_name"],
                 config["seismic_addr"],
@@ -55,8 +56,15 @@ class FireflyMainWindow(MainWindow):
         self.seismic_timer = QTimer(self)
         self.seismic_timer.timeout.connect(self.on_seismic_timer)
         self.seismic_timer.start(40)
+        self.load_default_state()
         logging.info("Firefly is ready")
-        pprint.pprint(user.meta)
+
+
+    def load_default_state(self):
+        self.showMaximized()
+        one_third = self.width() / 3
+        print (one_third)
+        self.main_widget.main_splitter.setSizes([one_third, one_third*2])
 
     @property
     def browser(self):
