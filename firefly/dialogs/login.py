@@ -28,7 +28,7 @@ class LoginDialog(QDialog):
                 password=self.password.text()
             )
         if result.is_success and result.data:
-            self.result = User(meta=result.data)
+            self.result = result.data
             self.close()
         else:
             QMessageBox.critical(self, "Error", result.message)
