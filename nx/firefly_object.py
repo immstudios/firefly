@@ -57,7 +57,6 @@ class FormatPromoted(CellFormat):
         return ["star_disabled", "star_enabled"][int(obj[self.key])]
 
 
-
 class FormatRundownStatus(CellFormat):
     key = "rundown_status"
     def display(self, obj, **kwargs):
@@ -95,6 +94,9 @@ class FormatRundownStatus(CellFormat):
 
 class FormatRundownDifference(CellFormat):
     key = "rundown_difference"
+    def display(self, obj, **kwargs):
+        return s2tc(abs(obj[self.key]))
+
     def foreground(self, obj, **kwargs):
         if obj["rundown_broadcast"] and obj["rundown_scheduled"]:
             diff = obj["rundown_broadcast"] - obj["rundown_scheduled"]
@@ -179,16 +181,13 @@ format_helpers_list = [
     ]
 
 format_helpers = {}
-
 for h in format_helpers_list:
     helper = h()
     format_helpers[h.key] = helper
 
-
 #
 # Firefly object
 #
-
 
 
 class FireflyObject(BaseObject):
