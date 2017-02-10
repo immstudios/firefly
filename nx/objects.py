@@ -74,6 +74,8 @@ asset_cache = AssetCache()
 class Item(ItemMixIn, FireflyObject):
     @property
     def asset(self):
+        if not self["id_asset"]:
+            return False
         return asset_cache[self["id_asset"]]
 
 class Bin(BinMixIn, FireflyObject):
