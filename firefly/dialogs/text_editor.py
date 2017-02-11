@@ -43,12 +43,12 @@ def editor_toolbar(wnd):
 
     toolbar.addSeparator()
 
-    action_accept = QAction(QIcon(pixlib["accept"]), 'Accept changes', wnd)
+    action_accept = QAction(QIcon(pix_lib["accept"]), 'Accept changes', wnd)
     action_accept.setShortcut('CTRL+S')
     action_accept.triggered.connect(wnd.on_accept)
     toolbar.addAction(action_accept)
 
-    action_cancel = QAction(QIcon(pixlib["cancel"]), 'Cancel', wnd)
+    action_cancel = QAction(QIcon(pix_lib["cancel"]), 'Cancel', wnd)
     action_cancel.setShortcut('ESC')
     action_cancel.triggered.connect(wnd.on_cancel)
     toolbar.addAction(action_cancel)
