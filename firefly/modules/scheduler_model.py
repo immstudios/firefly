@@ -165,7 +165,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         erect = QRect(0, base_t, self.width(), 2)
         qp.fillRect(erect, lcolor)
         if base_h:
-            if base_h > evt_h + (SAFE_OVR * self.min_size):
+            if base_h > evt_h + (SAFE_OVERRUN * self.min_size):
                 lcolor = QColor("#e01010")
             erect = QRect(0, base_t, 2, min(base_h, evt_h))
             qp.fillRect(erect, lcolor)
