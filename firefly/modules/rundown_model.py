@@ -4,7 +4,6 @@ from firefly import *
 from firefly.dialogs.rundown import *
 
 DEFAULT_COLUMNS = [
-        "rundown_symbol",
         "title",
         "identifier/main",
         "duration",
@@ -29,6 +28,14 @@ class RundownModel(FireflyViewModel):
     def start_time(self):
         return self.parent().start_time
 
+    @property
+    def current_item(self):
+        return self.parent().current_item
+
+    @property
+    def cued_item(self):
+        return self.parent().current_item
+
     def load(self, **kwargs):
         load_start_time = time.time()
         QApplication.processEvents()
@@ -51,8 +58,12 @@ class RundownModel(FireflyViewModel):
             if row["object_type"] == "event":
                 self.object_data.append(Event(meta=row))
             elif row["object_type"] == "item":
-                required_assets.append([row["id_asset"], row["asset_mtime"]])
-                self.object_data.append(Item(meta=row))
+                item = Item(meta=row)
+                if row["id_asset"]:
+                    required_assets.append([row["id_asset"], row["asset_mtime"]])
+                else:
+                    item._asset = False
+                self.object_data.append(item)
             else:
                 continue
 
@@ -74,7 +85,6 @@ class RundownModel(FireflyViewModel):
                     time.time() - load_start_time
                 )
             )
-
 
 
     def refresh_assets(self, assets):
@@ -103,20 +113,22 @@ class RundownModel(FireflyViewModel):
     def mimeTypes(self):
         return ["application/nx.asset", "application/nx.item"]
 
-    def mimeData(self, indexes):
+    def mimeData(self, indices):
+        rows = []
+        for index in indices:
+            if index.row() in rows:
+                continue
+            if not index.isValid():
+                continue
+            rows.append(index.row())
+
+        data = [self.object_data[row].meta for row in rows]
+        urls = [QUrl.fromLocalFile(self.object_data[row].file_path) for row in rows if self.object_data[row].file_path]
+
         mimeData = QMimeData()
 
-        data = [self.object_data[i] for i in set(index.row() for index in indexes if index.isValid())]
-        encodedIData = json.dumps([i.meta for i in data])
-        mimeData.setData("application/nx.item", encodedIData)
-
-        encodedAData = json.dumps([i.asset.meta for i in data])
-        mimeData.setData("application/nx.asset", encodedAData)
-        try:
-            urls = [QUrl.fromLocalFile(item.asset.file_path) for item in data]
-            mimeData.setUrls(urls)
-        except:
-            pass
+        mimeData.setData("application/nx.item", json.dumps(data).encode("ascii"))
+        mimeData.setUrls(urls)
         return mimeData
 
 
@@ -133,59 +145,54 @@ class RundownModel(FireflyViewModel):
 
         drop_objects = []
         if data.hasFormat("application/nx.item"):
-            iformat = ITEM
             d = data.data("application/nx.item").data()
             items = json.loads(d.decode("ascii"))
             if not items or items[0].get("rundown_row","") in [row, row-1]:
                 return False
             else:
                 for obj in items:
-                    if not obj.get("id_object", False) and obj.get("item_role", False) in ITEM_ROLES:
+                    if not obj.get("id", False) and obj.get("item_role", False):
                         dlg = PlaceholderDialog(self.parent(), obj["item_role"])
                         dlg.exec_()
                         if not dlg.ok:
                             return
                         for key in dlg.meta:
                             obj[key] = dlg.meta[key]
-
-                    drop_objects.append(Item(from_data=obj))
+                    drop_objects.append(Item(meta=obj))
 
         elif data.hasFormat("application/nx.asset"):
-            iformat = ASSET
             d = data.data("application/nx.asset").data()
             items = json.loads(d.decode("ascii"))
             for obj in items:
-                drop_objects.append(Asset(from_data=obj))
+                drop_objects.append(Asset(meta=obj))
         else:
             return False
 
-
-
-        pre_items = []
-        dbg = []
+        sorted_items = []
         i = row-1
-        to_bin = self.object_data[i]["rundown_bin"]
+        to_bin = self.object_data[i]["id_bin"]
+
+        # Apend heading items
 
         while i >= 1:
-            if self.object_data[i].object_type != "item" or self.object_data[i]["rundown_bin"] != to_bin: break
-            p_item = self.object_data[i].id
-
+            current_object = self.object_data[i]
+            if current_object.object_type != "item" or current_object["id_bin"] != to_bin:
+                break
+            p_item = current_object.id
             if not p_item in [item.id for item in drop_objects]:
-                pre_items.append({"object_type" : ITEM, "id_object" : p_item, "params" : {}})
-                dbg.append(self.object_data[i].id)
+                sorted_items.append({"object_type" : "item", "id_object" : p_item, "meta" : {}})
             i-=1
-        pre_items.reverse()
+        sorted_items.reverse()
 
+        # Append drop
 
         for obj in drop_objects:
             if data.hasFormat("application/nx.item"):
-                pre_items.append({"object_type" : ITEM, "id_object" : obj.id, "params" : obj.meta})
-                dbg.append(obj.id)
+                sorted_items.append({"object_type" : "item", "id_object" : obj.id, "meta" : obj.meta})
 
             elif data.hasFormat("application/nx.asset"):
                 mark_in = mark_out = False
-
-                params = {}
+                meta = {}
 
                 if obj["subclips"]:
                     dlg = SubclipSelectDialog(self.parent(), obj)
@@ -193,34 +200,45 @@ class RundownModel(FireflyViewModel):
                     if dlg.ok:
                         mark_in, mark_out = dlg.marks
                         if dlg.clip:
-                            params["title"] = "{} ({})".format(obj["title"], dlg.clip)
+                            meta["title"] = "{} ({})".format(obj["title"], dlg.clip)
                 else:
                     mark_in  = obj["mark_in"]
                     mark_out = obj["mark_out"]
 
-                if mark_in:  params["mark_in"]  = mark_in
-                if mark_out: params["mark_out"] = mark_out
-                pre_items.append({"object_type" : ASSET, "id_object" : obj.id, "params" : params})
+                if mark_in:
+                    meta["mark_in"]  = mark_in
+                if mark_out:
+                    meta["mark_out"] = mark_out
+                sorted_items.append({"object_type" : "asset", "id_object" : obj.id, "meta" : meta})
+
+        # Append trailing items
 
         i = row
         while i < len(self.object_data):
-            if self.object_data[i].object_type != "item" or self.object_data[i]["rundown_bin"] != to_bin: break
-            p_item = self.object_data[i].id
-
+            current_object = self.object_data[i]
+            if current_object.object_type != "item" or current_object["id_bin"] != to_bin:
+                break
+            p_item = current_object.id
             if not p_item in [item.id for item in drop_objects]:
-                pre_items.append({"object_type" : ITEM, "id_object" : p_item, "params" : {}})
-                dbg.append(self.object_data[i].id)
+                sorted_items.append({"object_type" : "item", "id_object" : p_item, "meta" : {}})
             i+=1
 
-        if pre_items:
+        #
+        # Send order query
+        #
+
+        if sorted_items:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            stat, res = query("bin_order", id_bin=to_bin, order=pre_items, sender=self.parent().parent().objectName())
+            result = api.order(
+                    id_channel=self.id_channel,
+                    id_bin=to_bin,
+                    order=sorted_items
+                )
             QApplication.restoreOverrideCursor()
-            if success(stat):
+            if result.is_success:
                 logging.info("Bin order changed")
             else:
-                logging.warning( "Error {} : {}".format(stat, res))
+                logging.error("Unable to change bin order: {}".format(result.message))
             self.load()
         return True
-
