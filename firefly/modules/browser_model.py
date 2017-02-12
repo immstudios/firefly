@@ -40,12 +40,14 @@ class BrowserModel(FireflyViewModel):
         return ["application/nx.asset"]
 
 
-    def mimeData(self, indexes):
+    def mimeData(self, indices):
         rows = []
-        for idx in indexes:
-            if idx.row() in rows:
+        for index in indices:
+            if index.row() in rows:
                 continue
-            rows.append(idx.row())
+            if not index.isValid():
+                continue
+            rows.append(index.row())
 
         data = [self.object_data[row].meta for row in rows]
         urls = [QUrl.fromLocalFile(self.object_data[row].file_path) for row in rows if self.object_data[row].file_path]
