@@ -45,12 +45,12 @@ class BrowserModule(BaseModule):
         self.sort_model  = FireflySortModel(self.model)
         self.view.setModel(self.sort_model)
 
-        action_clear = QAction(QIcon(pixlib["search_clear"]), '&Clear search query', parent)
+        action_clear = QAction(QIcon(pix_lib["search_clear"]), '&Clear search query', parent)
         action_clear.triggered.connect(self.on_clear)
 
         self.action_search = QMenu("Views")
         self.action_search.setStyleSheet(app_skin)
-        self.action_search.menuAction().setIcon(QIcon(pixlib["search"]))
+        self.action_search.menuAction().setIcon(QIcon(pix_lib["search"]))
         self.action_search.menuAction().triggered.connect(self.browse)
         self.load_view_menu()
 
@@ -69,6 +69,7 @@ class BrowserModule(BaseModule):
         layout.addWidget(toolbar, 0)
         layout.addWidget(self.view, 1)
         self.setLayout(layout)
+        self.browse()
 
 
     def load_view_menu(self):
