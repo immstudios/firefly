@@ -1,11 +1,12 @@
 import math
+
 from firefly import *
 
 PROGRESS_BAR_RESOLUTION = 2000
 
-class OnAirButton(QPushButton):
+class MCRButton(QPushButton):
     def __init__(self, title, parent=None, on_click=False):
-        super(OnAirButton, self).__init__(parent)
+        super(MCRButton, self).__init__(parent)
         self.setText(title)
 
         if title == "Freeze":
@@ -16,14 +17,14 @@ class OnAirButton(QPushButton):
             self.setToolTip("Start cued clip")
         else:
             bg_col = "qlineargradient(x1: 0, y1: 0,    x2: 0, y2: 1,  stop: 0 #787878, stop: 1 #565656);"
-        self.setStyleSheet("OnAirButton{font-size:16px; font-weight: bold; font-family: Arial; color: #eeeeee; border:  1px raised #323232;  width:80px; height:30px; background: %s }  OnAirButton:pressed {border-style: inset;} "%bg_col)
+        self.setStyleSheet("MCRButton{font-size:16px; font-weight: bold; font-family: Arial; color: #eeeeee; border:  1px raised #323232;  width:80px; height:30px; background: %s }  MCRButton:pressed {border-style: inset;} "%bg_col)
 
         if on_click:
             self.clicked.connect(on_click)
 
-class OnAirLabel(QLabel):
+class MCRLabel(QLabel):
     def __init__(self,head, default, parent=None, tcolor="#eeeeee"):
-        super(OnAirLabel,self).__init__(parent)
+        super(MCRLabel,self).__init__(parent)
         self.head = head
         self.setStyleSheet("background-color: #161616; padding:5px; margin:3px; font:16px; font-weight: bold; color : {}; width:160px".format(tcolor))
         #self.setMinimumWidth(160)
@@ -32,9 +33,9 @@ class OnAirLabel(QLabel):
        self.setText("%s: %s"%(self.head,text))
 
 
-class OnAir(QWidget):
+class MCR(QWidget):
     def __init__(self, parent):
-        super(OnAir, self).__init__(parent)
+        super(MCR, self).__init__(parent)
 
         self.pos = 0
         self.dur = 0
@@ -54,10 +55,10 @@ class OnAir(QWidget):
         self.progress_bar.setValue(0)
         self.progress_bar.setMaximum(PROGRESS_BAR_RESOLUTION)
 
-        self.btn_take    = OnAirButton(u"Take",   self, self.on_take)
-        self.btn_freeze  = OnAirButton(u"Freeze", self, self.on_freeze)
-        self.btn_retake  = OnAirButton(u"Retake", self, self.on_retake)
-        self.btn_abort   = OnAirButton(u"Abort",  self, self.on_abort)
+        self.btn_take    = MCRButton(u"Take",   self, self.on_take)
+        self.btn_freeze  = MCRButton(u"Freeze", self, self.on_freeze)
+        self.btn_retake  = MCRButton(u"Retake", self, self.on_retake)
+        self.btn_abort   = MCRButton(u"Abort",  self, self.on_abort)
 
         can_mcr = user.has_right("mcr", self.parent().id_channel)
         self.btn_take.setEnabled(can_mcr)
@@ -79,14 +80,14 @@ class OnAir(QWidget):
         btns_layout.addWidget(self.btn_abort,0)
         btns_layout.addStretch(1)
 
-        self.display_clock   = OnAirLabel("CLK", "--:--:--:--")
-        self.display_pos     = OnAirLabel("POS", "--:--:--:--")
+        self.display_clock   = MCRLabel("CLK", "--:--:--:--")
+        self.display_pos     = MCRLabel("POS", "--:--:--:--")
 
-        self.display_current = OnAirLabel("CUR","(no clip)", tcolor="#cc0000")
-        self.display_cued    = OnAirLabel("NXT","(no clip)", tcolor="#00cc00")
+        self.display_current = MCRLabel("CUR","(no clip)", tcolor="#cc0000")
+        self.display_cued    = MCRLabel("NXT","(no clip)", tcolor="#00cc00")
 
-        self.display_rem     = OnAirLabel("REM","(unknown)")
-        self.display_dur     = OnAirLabel("DUR", "--:--:--:--")
+        self.display_rem     = MCRLabel("REM","(unknown)")
+        self.display_dur     = MCRLabel("DUR", "--:--:--:--")
 
         info_layout = QGridLayout()
         info_layout.setContentsMargins(0,0,0,0)
@@ -115,29 +116,20 @@ class OnAir(QWidget):
         self.display_timer.start(40)
 
     @property
-    def route(self):
-        return "play{}".format(self.parent().id_channel)
+    def id_channel(self):
+        return self.parent().id_channel
 
-    def on_take(self, evt=False):
-        query("take", self.route, id_channel=self.parent().id_channel)
+    def on_take(self):
+        api.mcr(method="take", id_channel=self.id_channel)
 
-    def on_freeze(self, evt=False):
-        query("freeze", self.route, id_channel=self.parent().id_channel)
+    def on_freeze(self):
+        api.mcr(method="freeze", id_channel=self.id_channel)
 
-    def on_retake(self, evt=False):
-        query("retake", self.route, id_channel=self.parent().id_channel)
+    def on_retake(self):
+        api.mcr(method="retake", id_channel=self.id_channel)
 
-    def on_abort(self, evt=False):
-        query("abort", self.route, id_channel=self.parent().id_channel)
-
-    def getState(self):
-        state = {}
-        state["class"] = "onair"
-        return state
-
-    def setState(self, state):
-        pass
-
+    def on_abort(self):
+        api.mcr(method="abort", id_channel=self.id_channel)
 
     def seismic_handler(self, data):
         status = data.data
