@@ -1,18 +1,22 @@
-QMainWindow, QDialog, QWidget, QToolBar, QMenu {
+QMainWindow,
+QDialog,
+QWidget,
+QToolBar,
+QMenu {
     background-color : #242424;
     color : #c0c0c0;
-    }
+}
 
-QStatusBar, QHeaderView, QMenuBar {
+QStatusBar,
+QHeaderView,
+QMenuBar {
     background-color : #161616;
     color : #c0c0c0;
-    border: 0;
-    }
+}
 
 
-/**********************************************************************
-                MENU
-**********************************************************************/
+/* MENU */
+
 
 QMenuBar::item {
     background-color: transparent;
@@ -24,106 +28,81 @@ QMenuBar::item:selected {
 }
 
 QMenu::item:selected {
-    color : #000000;
-    background : QLinearGradient(x1: 0, y1: 0,x2: 0, y2: 1,  stop: 0 #009fbc, stop: 1 #00a5c3);
+    color: #000000;
+    background: #009fbc;
 }
 
 QMenu::item:!enabled {
-    color:#646464;
+    color: #646464;
 }
 
 
-/**********************************************************************
-                TABLES
-**********************************************************************/
+/* TABLES */
 
 
 QTableView {
+    border : 0;
     background-color: #222222;
     alternate-background-color: #202020;
     selection-background-color : rgba(110, 110, 110, 170);
     color : #c0c0c0;
-    border: 0;
-    }
-
-QTableView::item {
-    /*color : #c0c0c0;
-    */}
+}
 
 QTableView::item:focus {
     background-color: rgba(160, 160, 160, 160);
 }
 
-
 QHeaderView::section {
     background-color: #161616;
     color: #c0c0c0;
-    font-weight: bold;
-    }
+}
 
 QTableCornerButton::section{
     background-color: #242424;
-    }
-
-
-
-
-/**********************************************************************
-                TABS
-**********************************************************************/
-
-
-QTabWidget {
-    padding: 0;
 }
+
+
+/* TABS */
+
 
 QTabWidget::pane {
     border: 0;
 }
 
-
-
 QTabBar::tab {
-    background-color: #242424;
-    padding: 5px;
-    margin-bottom: 5px;
-    border:0;
+    background-color : #242424;
 }
 
 QTabBar::tab:selected {
     background-color: #161616;
-    padding: 5px;
-    margin-bottom: 5px;
     color: #00a5c3;
 }
 
 
+/* WIDGETS */
 
 
-/**********************************************************************
-                WIDGETS
-**********************************************************************/
-
-QGroupBox {
-    border:0;
-}
-
-
-QLineEdit, QTextEdit, QComboBox, QPushButton, QSpinBox {
+QLineEdit,
+QTextEdit,
+QComboBox,
+QPushButton,
+QSpinBox {
     background-color : #242424;
     color : #c0c0c0;
     border : 1px solid #646464;
     min-width: 80px;
     min-height: 24px;
-    }
+}
 
-
-QLineEdit:!enabled, QTextEdit:!enabled, QComboBox:!enabled, QPushButton:!enabled {
+QLineEdit:!enabled,
+QTextEdit:!enabled,
+QComboBox:!enabled,
+QPushButton:!enabled {
     color : #646464;
 }
 
 QPushButton:checked{
-    background : QLinearGradient(x1: 0, y1: 0,x2: 0, y2: 1,  stop: 0 #009fbc, stop: 1 #00a5c3);
+    background : #009fbc;
     color: #000000;
 }
 
@@ -137,33 +116,6 @@ QTextEdit {
     min-height: 150px;
 }
 
-
-.NXE_timecode {
-    font: 12px "Courier";
-    font-weight: bold;
-    min-width : 88px;
-    max-width : 88px;
-}
-
-.ChannelDisplay {
-    background-color:  transparent;
-    color : #c0c0c0;
-    margin-right: 10px;
-    font: 16px;
-}
-
-.SendToButton {
-    min-height: 35px;
-    min-width: 300px;
-}
-
-
-/**********************************************************************
-                MOVING PARTS
-**********************************************************************/
-
-
-
 QProgressBar {
     background: #161616;
     border:0;
@@ -172,9 +124,8 @@ QProgressBar {
 }
 
 QProgressBar::chunk{
-    background : QLinearGradient(x1: 0, y1: 0,x2: 0, y2: 1,  stop: 0 #009fbc, stop: 1 #00a5c3);
-    }
-
+    background : #009fbc;
+}
 
 QSlider::groove:horizontal {
     background: #161616;
@@ -186,39 +137,52 @@ QSlider::handle:horizontal {
     background: gray;
     height: 15px;
     width: 15px;
-    /*margin: -5px 0 -5px 0;*/
-    }
+}
 
-/**********************************************************************
-                SCROLL BARS
-**********************************************************************/
+.FireflyTimecode {
+    font: 12px monospace;
+    font-weight: bold;
+    min-width : 88px;
+    max-width : 88px;
+}
+
+.ChannelDisplay {
+    background-color: transparent;
+    color : #c0c0c0;
+    margin-right: 10px;
+    font: 16px;
+}
+
+.SendToButton {
+    min-height: 35px;
+    min-width: 300px;
+}
+
+
+/* SCROLL BARS */
+
 
 QScrollBar:horizontal {
     background: #161616;
     height: 12px;
-    margin:0;
-    }
+}
 
 QScrollBar:vertical {
-    margin:0;
-    margin-top: 23px;
     background: #161616;
     width: 12px;
-    }
+}
 
 QScrollBar::handle:horizontal {
     background: gray;
     min-width: 12px;
-    }
+}
 
 QScrollBar::handle:vertical {
     background: gray;
-    min-height: 12 px;
+    min-height: 12px;
  }
 
-QScrollBar::add-line:horizontal,  QScrollBar::add-line:vertical { background: none; }
-QScrollBar::sub-line:horizontal,  QScrollBar::sub-line:vertical { background: none; }
+QScrollBar::add-line:horizontal, QScrollBar::add-line:vertical { background: none; }
+QScrollBar::sub-line:horizontal, QScrollBar::sub-line:vertical { background: none; }
 QScrollBar::left-arrow:horizontal,QScrollBar::right-arrow:horizontal,QScrollBar:left-arrow:vertical, QScrollBar::right-arrow:vertical { background: none; }
 QScrollBar::add-page:horizontal,  QScrollBar::sub-page:horizontal,QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: none; }
-
-
