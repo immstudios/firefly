@@ -92,7 +92,7 @@ class FireflyApplication(Application):
         self.splash_message("Loading site settings")
         result = api.settings()
         if result.is_error:
-            QMessageBox.critical(self.splash, "Error", res)
+            QMessageBox.critical(self.splash, "Error", result.message)
             critical_error("Unable to load site settings")
 
         config.update(result.data)
