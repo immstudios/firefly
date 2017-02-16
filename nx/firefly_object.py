@@ -38,6 +38,9 @@ class CellFormat(object):
 
 class FormatFolder(CellFormat):
     key = "id_folder"
+    def display(self, obj, **kwargs):
+        return config["folders"][obj["id_folder"]]["title"]
+
     def foreground(self, obj, **kwargs):
         return config["folders"][obj["id_folder"]]["color"]
 
@@ -188,7 +191,6 @@ for h in format_helpers_list:
 #
 # Firefly object
 #
-
 
 class FireflyObject(BaseObject):
     def format_display(self, key, **kwargs):
