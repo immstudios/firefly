@@ -20,7 +20,7 @@ class PlaceholderDialog(QDialog):
         toolbar.setFloatable(False)
         toolbar.addWidget(ToolBarStretcher(toolbar))
 
-        action_accept = QAction(QIcon(pixlib["accept"]), 'Accept changes', self)
+        action_accept = QAction(QIcon(pix_lib["accept"]), 'Accept changes', self)
         action_accept.setShortcut('Ctrl+S')
         action_accept.triggered.connect(self.on_accept)
         toolbar.addAction(action_accept)
