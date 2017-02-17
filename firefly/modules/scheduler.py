@@ -2,6 +2,8 @@ from firefly import *
 
 from .scheduler_model import *
 
+EMPTY_EVENT_DATA = '[{"id" : 0, "title" : "Empty event"}]'.encode("ascii")
+
 class EmptyEventButton(QToolButton):
     def __init__(self, parent):
         super(EmptyEventButton, self).__init__()
@@ -14,7 +16,7 @@ class EmptyEventButton(QToolButton):
         mimeData = QMimeData()
         mimeData.setData(
            "application/nx.event",
-           '[{"id_object":0, "title":"Empty event"}]'  # Empty event
+           EMPTY_EVENT_DATA
            )
         drag.setMimeData(mimeData)
         if drag.exec_(Qt.CopyAction):
