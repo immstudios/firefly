@@ -34,7 +34,7 @@ class RundownModel(FireflyViewModel):
 
     @property
     def cued_item(self):
-        return self.parent().current_item
+        return self.parent().cued_item
 
     def load(self, **kwargs):
         load_start_time = time.time()
