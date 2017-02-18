@@ -7,7 +7,7 @@ from firefly.dialogs.event import EventDialog
 from firefly.dialogs.send_to import SendToDialog
 
 from .rundown_utils import *
-from .rundown_onair import OnAir
+from .rundown_mcr import MCR
 from .rundown_cg import CG
 from .rundown_view import RundownView
 
@@ -22,7 +22,7 @@ class RundownModule(BaseModule):
         self.last_search = ""
 
         self.view = RundownView(self)
-        self.mcr = OnAir(self)
+        self.mcr = MCR(self)
         self.cg = CG(self)
 
         self.toolbar = rundown_toolbar(self)
