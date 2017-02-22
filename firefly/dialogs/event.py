@@ -93,9 +93,7 @@ class EventDialog(QDialog):
 
         layout.addWidget(self.toolbar, 1)
         layout.addWidget(self.form, 2)
-
         self.setLayout(layout)
-        self.setModal(True)
 
 
     def closeEvent(self, event):
