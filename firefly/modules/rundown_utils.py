@@ -76,7 +76,7 @@ class ItemButton(QToolButton):
         super(ItemButton, self).__init__()
         self.button_config = config
         self.pressed.connect(self.startDrag)
-        self.setIcon(QIcon(pixlib[self.button_config["icon"]]))
+        self.setIcon(QIcon(pix_lib[self.button_config["icon"]]))
         self.setToolTip(self.button_config["tooltip"])
 
     def startDrag(self):
@@ -108,29 +108,29 @@ def rundown_toolbar(wnd):
 
     toolbar = QToolBar(wnd)
 
-    action_day_prev = QAction(QIcon(pixlib["back"]), '&Previous day', wnd)
+    action_day_prev = QAction(QIcon(pix_lib["back"]), '&Previous day', wnd)
     action_day_prev.setShortcut('Alt+Left')
     action_day_prev.setStatusTip('Go to previous day')
     action_day_prev.triggered.connect(wnd.on_day_prev)
     toolbar.addAction(action_day_prev)
 
-    action_now = QAction(QIcon(pixlib["now"]), '&Now', wnd)
+    action_now = QAction(QIcon(pix_lib["now"]), '&Now', wnd)
     action_now.setStatusTip('Go to now')
     action_now.triggered.connect(wnd.on_now)
     toolbar.addAction(action_now)
 
-    action_calendar = QAction(QIcon(pixlib["calendar"]), '&Calendar', wnd)
+    action_calendar = QAction(QIcon(pix_lib["calendar"]), '&Calendar', wnd)
     action_calendar.setShortcut('Ctrl+D')
     action_calendar.setStatusTip('Open calendar')
     action_calendar.triggered.connect(wnd.on_calendar)
     toolbar.addAction(action_calendar)
 
-    action_refresh = QAction(QIcon(pixlib["refresh"]), '&Refresh', wnd)
+    action_refresh = QAction(QIcon(pix_lib["refresh"]), '&Refresh', wnd)
     action_refresh.setStatusTip('Refresh rundown')
     action_refresh.triggered.connect(wnd.refresh)
     toolbar.addAction(action_refresh)
 
-    action_day_next = QAction(QIcon(pixlib["next"]), '&Next day', wnd)
+    action_day_next = QAction(QIcon(pix_lib["next"]), '&Next day', wnd)
     action_day_next.setShortcut('Alt+Right')
     action_day_next.setStatusTip('Go to next day')
     action_day_next.triggered.connect(wnd.on_day_next)
@@ -138,19 +138,19 @@ def rundown_toolbar(wnd):
 
     toolbar.addSeparator()
 
-    action_toggle_mcr = QAction(QIcon(pixlib["onair"]), '&Playout controls', wnd)
+    action_toggle_mcr = QAction(QIcon(pix_lib["onair"]), '&Playout controls', wnd)
     action_toggle_mcr.setStatusTip('Toggle playout controls')
     action_toggle_mcr.triggered.connect(wnd.on_toggle_mcr)
     toolbar.addAction(action_toggle_mcr)
 
-    action_toggle_cg = QAction(QIcon(pixlib["cg"]), '&CG controls', wnd)
+    action_toggle_cg = QAction(QIcon(pix_lib["cg"]), '&CG controls', wnd)
     action_toggle_cg.setShortcut('F4')
     action_toggle_cg.setStatusTip('Toggle CG controls')
     action_toggle_cg.triggered.connect(wnd.on_toggle_cg)
     toolbar.addAction(action_toggle_cg)
 
 
-    action_toggle_tools = QAction(QIcon(pixlib["tools"]), '&Rundown tools', wnd)
+    action_toggle_tools = QAction(QIcon(pix_lib["tools"]), '&Rundown tools', wnd)
     action_toggle_tools.setStatusTip('Toggle rundown tools')
     action_toggle_tools.triggered.connect(wnd.on_toggle_tools)
     toolbar.addAction(action_toggle_tools)
