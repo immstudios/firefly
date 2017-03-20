@@ -18,6 +18,14 @@ class RundownView(FireflyView):
     def start_time(self):
         return self.parent().start_time
 
+    @property
+    def current_item(self):
+        return self.parent().current_item
+
+    @property
+    def cued_item(self):
+        return self.parent().cued_item
+
     def load(self):
         self.model().load()
 
@@ -53,23 +61,20 @@ class RundownView(FireflyView):
             self.on_delete()
         FireflyView.keyPressEvent(self, event)
 
-
-    ###################################################
-    ## Rundown actions
+    #
+    # Rundown actions
+    #
 
     def contextMenuEvent(self, event):
         obj_set = list(set([itm.object_type for itm in self.selected_objects]))
         menu = QMenu(self)
 
         if len(obj_set) > 0:
-
             action_focus = QAction('&Focus', self)
             action_focus.setStatusTip('Focus selected object')
             action_focus.triggered.connect(self.on_focus)
             menu.addAction(action_focus)
-
             menu.addSeparator()
-
 
         if len(obj_set) == 1:
             if obj_set[0] == "item" and self.selected_objects[0]["id_asset"]:
