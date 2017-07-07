@@ -50,15 +50,17 @@ class NebulaAPI(object):
                     cookies=self._cookies
                 )
             self._cookies = response.cookies
+            if response.status_code >= 400:
+                return {
+                        "response" : response.status_code,
+                        "message" : "Unable to connect nebula server:\n{}".format(self._settings["hub"])
+                    }
             result = json.loads(response.text)
         except Exception:
-            log_traceback()
-            return False
-        if result["response"] >= 400:
-            return False
+            return {"response" : 500, "message" : log_traceback()}
         if not result["user"]:
-            return False
-        return result["user"]
+            return {"response" : 403, "message" : "Unable to log-in"}
+        return {"response" : 200, "data" : result["user"]}
 
     @property
     def auth_key(self):
@@ -68,7 +70,11 @@ class NebulaAPI(object):
         self._cookies["session_id"] = key
 
     def login(self, login, password):
-        data = {"login" : login, "password" : password, "api" : 1}
+        data = {
+                "login" : login,
+                "password" : password,
+                "api" : 1
+            }
         response = requests.post(self._settings["hub"] + "/login", data)
         self._cookies = response.cookies
         data = json.loads(response.text)
@@ -82,6 +88,15 @@ class NebulaAPI(object):
 
             )
         self._cookies = response.cookies
+        if response.status_code >= 400:
+            return APIResult(
+                    response=response.status_code,
+                    message=DEFAULT_RESPONSE_MESSAGES.get(
+                            response.status_code,
+                            "Unknown error"
+                        )
+                )
+
         data = json.loads(response.text)
         return APIResult(**data)
 

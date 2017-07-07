@@ -8,10 +8,18 @@ from .dialogs.login import LoginDialog
 from .main_window import FireflyMainWindow, FireflyMainWidget
 
 
-def check_login():
-    user_meta = api.get_user()
+def check_login(wnd):
+    data = api.get_user()
+    user_meta = data.get("data", False)
     if user_meta:
         return user_meta
+    if data["response"] > 403:
+        QMessageBox.critical(
+                wnd,
+                "Error {}".format(data["response"]),
+                data["message"]
+            )
+        return False
     dlg = LoginDialog()
     dlg.exec_()
     return dlg.result
@@ -44,7 +52,7 @@ class FireflyApplication(Application):
         except Exception:
             log_traceback()
 
-        user_meta = check_login()
+        user_meta = check_login(self.splash)
         if not user_meta:
             logging.error("Unable to log in")
             sys.exit(0)
