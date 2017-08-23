@@ -36,6 +36,7 @@ class RundownModel(FireflyViewModel):
     def cued_item(self):
         return self.parent().cued_item
 
+
     def load(self, **kwargs):
         load_start_time = time.time()
         QApplication.processEvents()
@@ -53,10 +54,12 @@ class RundownModel(FireflyViewModel):
 
         self.header_data = DEFAULT_COLUMNS
         self.object_data = []
+        self.event_ids = []
 
         for row in result.data:
             if row["object_type"] == "event":
                 self.object_data.append(Event(meta=row))
+                self.event_ids.append(row["id"])
             elif row["object_type"] == "item":
                 item = Item(meta=row)
                 if row["id_asset"]:

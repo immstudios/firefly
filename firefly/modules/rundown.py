@@ -74,7 +74,7 @@ class RundownModule(BaseModule):
                 break
 
 
-    def refresh(self):
+    def refresh(self, reset=False):
         selection = []
         #for idx in self.view.selectionModel().selectedIndexes():
         #    if self.model.object_data[idx.row()].id:
