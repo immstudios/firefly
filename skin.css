@@ -1,9 +1,13 @@
+/*****************************
+#2A2E30
+*****************************/
+
 QMainWindow,
 QDialog,
 QWidget,
 QToolBar,
 QMenu {
-    background-color : #242424;
+    background-color : #2a2e30;
     color : #c0c0c0;
 }
 
@@ -14,9 +18,7 @@ QMenuBar {
     color : #c0c0c0;
 }
 
-
 /* MENU */
-
 
 QMenuBar::item {
     background-color: transparent;
@@ -36,9 +38,7 @@ QMenu::item:!enabled {
     color: #646464;
 }
 
-
 /* TABLES */
-
 
 QTableView {
     border : 0;
@@ -66,30 +66,28 @@ QTableCornerButton::section{
 
 
 QTabWidget::pane {
-    border: 0;
 }
 
 QTabBar::tab {
-    background-color : #242424;
+    background-color: #2a2e30;
+    text-transform: uppercase;
 }
 
 QTabBar::tab:selected {
-    background-color: #161616;
-    color: #00a5c3;
+    background-color: #50595B;
+    text-transform: uppercase;
 }
 
-
 /* WIDGETS */
-
 
 QLineEdit,
 QTextEdit,
 QComboBox,
 QPushButton,
 QSpinBox {
-    background-color : #242424;
-    color : #c0c0c0;
-    border : 1px solid #646464;
+    background-color: #2a2e30;
+    color: #c0c0c0;
+    border: 1px solid #646464;
     min-width: 80px;
     min-height: 24px;
 }
@@ -129,7 +127,7 @@ QProgressBar::chunk{
 
 QSlider::groove:horizontal {
     background: #161616;
-    height: 12px;
+    height: 16px;
     margin: 0 0 0 0;
 }
 
@@ -164,22 +162,22 @@ QSlider::handle:horizontal {
 
 QScrollBar:horizontal {
     background: #161616;
-    height: 12px;
+    height: 16px;
 }
 
 QScrollBar:vertical {
     background: #161616;
-    width: 12px;
+    width: 16px;
 }
 
 QScrollBar::handle:horizontal {
     background: gray;
-    min-width: 12px;
+    min-width: 16px;
 }
 
 QScrollBar::handle:vertical {
     background: gray;
-    min-height: 12px;
+    min-height: 16px;
  }
 
 QScrollBar::add-line:horizontal, QScrollBar::add-line:vertical { background: none; }
