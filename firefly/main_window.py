@@ -83,8 +83,7 @@ class FireflyMainWindow(MainWindow):
         return self.main_widget.detail
 
     def focus(self, obj):
-        logging.debug("Focusing ", obj)
-        #TODO
+        self.detail.focus([obj])
 
     #
     # Messaging
