@@ -14,12 +14,33 @@ class ToolBarStretcher(QWidget):
     def __init__(self, parent):
         super(ToolBarStretcher, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
+
+
 #
 # Metadata editor widgets
 #
 
+
+class FireflyNotImplementedEditor(QLabel):
+    def __init__(self, parent, **kwargs):
+        super(FireflyNotImplementedEditor, self).__init__(parent)
+        self.val = None
+
+    def set_value(self, value):
+        self.setText(str(value))
+        self.val = value
+
+    def get_value(self):
+        return self.val
+
+    def setReadOnly(self, *args, **kwargs):
+        pass
+
+
+
+
 class FireflyString(QLineEdit):
-    def __init__(self, parent):
+    def __init__(self, parent, **kwargs):
         super(FireflyString, self).__init__(parent)
         self.default = self.get_value()
 
@@ -34,7 +55,7 @@ class FireflyString(QLineEdit):
 
 
 class FireflyText(QTextEdit):
-    def __init__(self, parent):
+    def __init__(self, parent, **kwargs):
         super(FireflyText, self).__init__(parent)
         fixed_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         fixed_font.setStyleHint(QFont.Monospace);
@@ -54,7 +75,27 @@ class FireflyText(QTextEdit):
 class FireflyInteger(QSpinBox):
     def __init__(self, parent, **kwargs):
         super(FireflyInteger,self).__init__(parent)
+        self.setMinimum(kwargs.get("min", 0))
         self.setMaximum(kwargs.get("max", 99999))
+        #TODO: set step to 1. disallow floats
+        self.default = self.get_value()
+
+    def set_value(self, value):
+        if value == self.get_value():
+            return
+        self.setValue(int(value))
+        self.default = self.get_value()
+
+    def get_value(self):
+        return int(self.value())
+
+
+class FireflyNumeric(QSpinBox):
+    def __init__(self, parent, **kwargs):
+        super(FireflyInteger,self).__init__(parent)
+        self.setMinimum(kwargs.get("min", -99999))
+        self.setMaximum(kwargs.get("max", 99999))
+        #TODO: custom step (default 1, allow floats)
         self.default = self.get_value()
 
     def set_value(self, value):
@@ -65,16 +106,6 @@ class FireflyInteger(QSpinBox):
 
     def get_value(self):
         return self.value()
-
-
-class FireflyNumeric(QSpinBox):
-    pass
-    #TODO
-
-
-class FireflyBoolean():
-    pass
-    #TODO
 
 
 class FireflyDatetime(QLineEdit):
@@ -115,7 +146,7 @@ class FireflyDatetime(QLineEdit):
 
 
 class FireflyTimecode(QLineEdit):
-    def __init__(self, parent):
+    def __init__(self, parent, **kwargs):
         super(FireflyTimecode,self).__init__(parent)
         self.setInputMask("99:99:99:99")
         self.setText("00:00:00:00")
@@ -131,11 +162,17 @@ class FireflyTimecode(QLineEdit):
         return (hh*3600) + (mm*60) + ss + (ff/25.0) #FIXME: FPS
 
 
+
+
 class FireflySelect(QComboBox):
-    def __init__(self, parent, data):
+    def __init__(self, parent, **kwargs):
         super(FireflySelect, self).__init__(parent)
         self.cdata = []
-        self.set_data(data)
+
+        if kwargs.get("data", []):
+            self.set_data(kwargs["data"])
+        elif kwargs.get("cs", False):
+            pass
         self.default = self.get_value()
 
     def setReadOnly(self, val):
@@ -168,7 +205,7 @@ class FireflySelect(QComboBox):
 
 
 class FireflyRadio(QWidget):
-    def __init__(self, parent, data):
+    def __init__(self, parent, **kwargs):
         super(FireflyRadio, self).__init__(parent)
         self.cdata = []
         self.current_index = -1
@@ -223,20 +260,22 @@ class FireflyRadio(QWidget):
             w.setEnabled(not val)
 
 
-class FireflyRegions():
-    pass
-    #TODO
-
-class FireflyFraction():
+#TODO
+class FireflyBoolean(FireflyNotImplementedEditor):
     pass
 
-class FireflyList():
+class FireflyRegions(FireflyNotImplementedEditor):
+    pass
+
+class FireflyFraction(FireflyNotImplementedEditor):
+    pass
+
+class FireflyList(FireflyNotImplementedEditor):
     pass
 
 
-#
-#
-#
+
+
 
 meta_editors = {
     STRING    : FireflyString,
@@ -253,137 +292,23 @@ meta_editors = {
 }
 
 
-
-class MetaEditItemDelegate(QStyledItemDelegate):
-    def __init__(self, parent=None):
-        super(MetaEditItemDelegate, self).__init__(parent)
-        self.settings = {}
-
-    def createEditor(self, parent, styleOption, index):
-        parent.is_editing = True
-        try:
-            key, class_, msettings, obj = index.model().data(index, Qt.EditRole)
-        except:
-            return None
-
-        default_value = obj[key]
-        settings = self.settings
-
-        if isinstance(msettings, dict):
-            settings.update(msettings)
-
-        if default_value == "None":
-            default_value = ""
-
-        if class_ == DATETIME:
-            editor = NXE_datetime(parent, **settings)
-            editor.set_value(default_value or time.time())
-            editor.editingFinished.connect(self.commitAndCloseEditor)
-
-        elif class_ == SELECT:
-            editor = NXE_select(parent, settings)
-            editor.set_value(default_value)
-            editor.editingFinished.connect(self.commitAndCloseEditor)
-
-        elif class_ == TIMECODE:
-            editor = NXE_timecode(parent)
-            editor.set_value(default_value)
-            editor.editingFinished.connect(self.commitAndCloseEditor)
-
-        elif class_ == TEXT:
-            editor = NXE_text(parent)
-            editor.set_value(default_value)
-            editor.editingFinished.connect(self.commitAndCloseEditor)
-
-        elif class_ == BLOB:
-            parent.text_editor = TextEditor(default_value, index=index)
-            parent.text_editor.setWindowTitle('{} / {} : Firefly text editor'.format(obj["title"], key))
-            parent.text_editor.exec_()
-            return None
-
-        elif class_ == BOOLEAN:
-            model = index.model()
-            model.setData(index, int(not default_value))
-            return None
-
-        else:
-            editor = None
-
-        return editor
-
-
-    def commitAndCloseEditor(self):
-         editor = self.sender()
-         self.commitData.emit(editor)
-         self.closeEditor.emit(editor, QAbstractItemDelegate.NoHint)
-         self.parent().editor_closed_at = time.time()
-
-    def setEditorData(self, editor, index):
-        editor.set_value(editor.default)
-        # why is this here??
-
-    def setModelData(self, editor, model, index):
-        if editor.get_value() != editor.default:
-            model.setData(index, editor.get_value())
-
-
-
-
-
 class MetaEditor(QWidget):
     def __init__(self, parent, keys):
         super(MetaEditor, self).__init__(parent)
         self.inputs = {}
+        self.defaults = {}
+
         layout = QFormLayout()
 
-        for tag, conf in keys:
-            tagname = meta_types.tag_alias(tag, config.get("language","en-US"))
+        for key, conf in keys:
+            key_label = meta_types[key].alias(config.get("language","en"))
+            key_class = meta_types[key]["class"]
+            key_settings = meta_types[key].settings
+            key_settings.update(conf)
 
-            if meta_types[tag].class_ == TEXT:
-                self.inputs[tag] = NXE_text(self)
+            self.inputs[key] = meta_editors[key_class](self, **key_settings)
 
-            elif meta_types[tag].class_ == BLOB:
-                self.inputs[tag] = NXE_blob(self)
-
-            elif meta_types[tag].class_ in [CS_SELECT, SELECT, ENUM, CS_ENUM]:
-                if conf.get("cs", False):
-                    settings = conf["cs"]
-                elif meta_types[tag].class_ in [CS_ENUM, CS_SELECT]:
-                    settings = []
-                    for value, label in config["cs"].get(meta_types[tag].settings, []):
-                        if meta_types[tag].class_ == CS_ENUM:
-                            value = int(value)
-                        settings.append([value, label])
-                else:
-                    settings = meta_types[tag].settings
-
-                if len(settings) > 10:
-                    self.inputs[tag] = NXE_select(self, settings)
-                else:
-                    self.inputs[tag] = NXE_radio(self, settings)
-
-
-            elif meta_types[tag].class_ == BOOLEAN:
-                self.inputs[tag] = NXE_radio(self, [[1,"Yes"],[0,"No"]])
-
-            elif meta_types[tag].class_ == TIMECODE:
-                self.inputs[tag] = NXE_timecode(self)
-
-
-            elif meta_types[tag].class_ == DATETIME:
-                self.inputs[tag] = NXE_datetime(self, **meta_types[tag].settings)
-
-            elif meta_types[tag].class_ == INTEGER:
-                self.inputs[tag] = NXE_integer(self, **(meta_types[tag].settings or {}))
-
-            else:
-                self.inputs[tag] = NXE_text(self)
-                self.inputs[tag].setReadOnly(True)
-
-            if type(conf) == dict and "default" in conf:
-                self.inputs[tag].set_value(conf["default"])
-
-            layout.addRow(tagname, self.inputs[tag])
+            layout.addRow(key_label, self.inputs[key])
         self.setLayout(layout)
 
     def keys(self):
@@ -407,11 +332,11 @@ class MetaEditor(QWidget):
     @property
     def changed(self):
         for key in self.keys():
-            if self[key] != self.inputs[key].default:
+            if self[key] != self.defaults.get(key, None):
                 return True
         return False
 
-    def reset_changes(self):
+    def set_defaults(self):
+        self.defaults = {}
         for key in self.keys():
-            if self[key] != self.inputs[key].default:
-                self.inputs[key].default = self[key]
+            self.defaults[key] = self[key]
