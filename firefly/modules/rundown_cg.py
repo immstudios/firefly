@@ -35,7 +35,7 @@ class CGPlugin(QWidget):
                 signal = self.widgets[-1].textChanged
 
             elif slot_type == "select":
-                self.widgets.append(FireflySelect(self, slot["data"]))
+                self.widgets.append(FireflySelect(self, data=slot["data"]))
                 signal = self.widgets[-1].currentIndexChanged
             else:
                 continue
