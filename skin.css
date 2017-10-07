@@ -66,9 +66,11 @@ QTableCornerButton::section{
 
 
 QTabWidget::pane {
+    background-color: #2a2e30;
 }
 
 QTabBar::tab {
+    width: 120px;
     background-color: #2a2e30;
     text-transform: uppercase;
 }
