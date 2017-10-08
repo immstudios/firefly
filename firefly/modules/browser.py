@@ -37,7 +37,6 @@ class BrowserModule(BaseModule):
 
         self.view = FireflyView(self)
         self.view.setSortingEnabled(True)
-        self.view.setItemDelegate(MetaEditItemDelegate(self.view))
         self.view.clicked.connect(self.on_click)
         self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
@@ -60,8 +59,8 @@ class BrowserModule(BaseModule):
         self.addAction(action_copy)
 
         toolbar = QToolBar()
-        toolbar.addAction(action_clear)
         toolbar.addWidget(self.search_box)
+        toolbar.addAction(action_clear)
         toolbar.addAction(self.action_search.menuAction())
 
         layout = QVBoxLayout()
