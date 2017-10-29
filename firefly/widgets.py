@@ -306,7 +306,7 @@ class MetaEditor(QWidget):
             key_settings = meta_types[key].settings
             key_settings.update(conf)
 
-            self.inputs[key] = meta_editors[key_class](self, **key_settings)
+            self.inputs[key] = meta_editors.get(key_class, FireflyNotImplementedEditor)(self, **key_settings)
 
             layout.addRow(key_label, self.inputs[key])
         self.setLayout(layout)
