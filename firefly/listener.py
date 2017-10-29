@@ -74,27 +74,16 @@ class SeismicListener(QThread):
             if time.time() - self.last_msg < 3:
                 continue
 
-            try:
-                self.listen_http()
-            except Exception:
-                log_traceback("Seismic HTTP request failed", handlers=False)
+            self.listen_ws()
 
         logging.debug("Listener halted", handlers=False)
         self.halted = True
 
 
-    def listen_http(self):
-        url = config["hub"] + "/" + "msg_subscribe?id={}".format(config["site_name"])
-        try:
-            request = requests.get(url, stream=True, timeout=.5)
-        except requests.exceptions.Timeout:
-            time.sleep(.5)
-            return
-        for line in readlines(request):
-            if not self.should_run:
-                return
-            if line:
-                self.parse_message(line)
+    def listen_ws(self):
+        url = config["hub"] + "/" + "mesg"
+
+
 
 
     def parse_message(self, data, addr=False):
