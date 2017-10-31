@@ -83,6 +83,7 @@ class FireflyMainWindow(MainWindow):
         return self.main_widget.detail
 
     def focus(self, obj):
+        logging.debug("Focus (main_window) > {}".format(obj))
         self.detail.focus([obj])
 
     #

@@ -31,7 +31,7 @@ class DetailTabMain(QWidget):
     def load(self, obj, **kwargs):
         id_folder = kwargs.get("id_folder", obj["id_folder"])
         if id_folder != self.id_folder:
-            if id_folder == 0:
+            if not id_folder:
                 self.tags = []
             else:
                 self.tags = config["folders"][id_folder]["meta_set"]
@@ -52,10 +52,11 @@ class DetailTabMain(QWidget):
             self.id_folder = id_folder
             self.status = obj["status"]
 
-        for tag, conf in self.tags:
-            self.form[tag] = obj[tag]
-            obj[tag] = self.form[tag]
-        self.form.set_defaults()
+        if self.form:
+            for tag, conf in self.tags:
+                self.form[tag] = obj[tag]
+                obj[tag] = self.form[tag]
+            self.form.set_defaults()
 
         if self.form:
             enabled = True#has_right("asset_edit", id_folder)
