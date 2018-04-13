@@ -96,20 +96,19 @@ class FireflySortModel(QSortFilterProxyModel):
 class FireflyView(QTableView):
     def __init__(self, parent):
         super(FireflyView, self).__init__(parent)
-        self.setStyleSheet(app_skin)
         self.verticalHeader().setVisible(False)
         self.setWordWrap(False)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
         self.setDropIndicatorShown(True)
         self.setSelectionMode(self.ExtendedSelection)
         self.setShowGrid(False)
         self.setAlternatingRowColors(True)
-        self.editor_closed_at = time.time()
         self.selected_objects = []
         self.focus_enabled = True
 
-    def do_edit(self, mi):
-        if time.time() - self.editor_closed_at > 0.1:
-            self.edit(mi)
+    @property
+    def main_window(self):
+        return self.parent().main_window
