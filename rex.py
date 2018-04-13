@@ -1,9 +1,13 @@
+__all__ = ["require"]
+
 import os
 import sys
 import subprocess
 import time
 import json
 import traceback
+
+###
 
 version_info = sys.version_info[:2]
 PYTHON_VERSION = version_info[0] + float("." + str(version_info[1])) # TODO: make this nice
@@ -20,9 +24,6 @@ else:
     decode_if_py3 = lambda x: x
     encode_if_py3 = lambda x: x
     string_type = unicode
-
-# do not import anything
-__all__ = []
 
 DEBUG, INFO, WARNING, ERROR, GOOD_NEWS = range(5)
 PLATFORM = "windows" if sys.platform == "win32" else "unix"
@@ -103,7 +104,7 @@ def critical_error(msg, **kwargs):
 
 
 
-class Repository():
+class Repository(object):
     def __init__(self, parent,  url, **kwargs):
         self.parent = parent
         self.url = url
@@ -143,19 +144,20 @@ class Rex(object):
         if not hasattr(self, "_repos"):
             if not os.path.exists(self.manifest_path):
                 self._repos = []
-            try:
-                self.manifest = json.load(open(self.manifest_path))
-                if not self.manifest:
-                    return []
-                self._repos = []
-                for repo_url in self.manifest.keys():
-                    repo_settings = self.manifest[repo_url]
-                    repo = Repository(self, repo_url, **repo_settings)
-                    self._repos.append(repo)
-            except Exception:
-                log_traceback()
-                critical_error("Unable to load rex manifest. Exiting")
-                self._repos = []
+            else:
+                try:
+                    self.manifest = json.load(open(self.manifest_path))
+                    if not self.manifest:
+                        return []
+                    self._repos = []
+                    for repo_url in self.manifest.keys():
+                        repo_settings = self.manifest[repo_url]
+                        repo = Repository(self, repo_url, **repo_settings)
+                        self._repos.append(repo)
+                except Exception:
+                    log_traceback()
+                    critical_error("Unable to load rex manifest. Exiting")
+                    self._repos = []
         return self._repos
 
     def self_update(self):
@@ -211,7 +213,14 @@ class Rex(object):
         return True
 
     def post_install(self, repo):
-        if repo.get("python-path") and not repo.path in sys.path:
+        if (repo.get("python-path") or repo.get("python_path")) and not repo.path in sys.path:
             sys.path.insert(0, repo.path)
 
 rex = Rex()
+
+def require(url, **kwargs):
+    if not "python_path" in kwargs:
+        kwargs["python_path"] = True
+    repo = Repository(rex, url, **kwargs)
+    return rex.update(repo) and rex.post_install(repo)
+
