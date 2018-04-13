@@ -1,7 +1,3 @@
-/*****************************
-#2A2E30
-*****************************/
-
 QMainWindow,
 QDialog,
 QWidget,
@@ -52,9 +48,11 @@ QTableView::item:focus {
     background-color: rgba(160, 160, 160, 160);
 }
 
+
 QHeaderView::section {
     background-color: #161616;
     color: #c0c0c0;
+    padding :5px;
 }
 
 QTableCornerButton::section{
@@ -158,31 +156,38 @@ QSlider::handle:horizontal {
     min-width: 300px;
 }
 
-
 /* SCROLL BARS */
-
 
 QScrollBar:horizontal {
     background: #161616;
     height: 16px;
+    padding-left:24px;
+    padding-right:24px;
 }
 
 QScrollBar:vertical {
     background: #161616;
     width: 16px;
+    padding-top:24px;
+    padding-bottom:24px;
 }
 
 QScrollBar::handle:horizontal {
-    background: gray;
-    min-width: 16px;
+    background: #50595b;
+    min-width: 64px;
 }
 
 QScrollBar::handle:vertical {
-    background: gray;
-    min-height: 16px;
+    background: #50595b;
+    min-height: 64px;
  }
 
-QScrollBar::add-line:horizontal, QScrollBar::add-line:vertical { background: none; }
-QScrollBar::sub-line:horizontal, QScrollBar::sub-line:vertical { background: none; }
-QScrollBar::left-arrow:horizontal,QScrollBar::right-arrow:horizontal,QScrollBar:left-arrow:vertical, QScrollBar::right-arrow:vertical { background: none; }
-QScrollBar::add-page:horizontal,  QScrollBar::sub-page:horizontal,QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: none; }
+QScrollBar::add-line:horizontal,
+QScrollBar::add-line:vertical {
+	background: none;
+}
+
+QScrollBar::sub-line:horizontal,
+QScrollBar::sub-line:vertical {
+	background: none;
+}
