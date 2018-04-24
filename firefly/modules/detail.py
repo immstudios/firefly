@@ -28,8 +28,8 @@ class DetailTabMain(QWidget):
         self.setLayout(scroll_layout)
 
 
-    def load(self, obj, **kwargs):
-        id_folder = kwargs.get("id_folder", obj["id_folder"])
+    def load(self, asset, **kwargs):
+        id_folder = kwargs.get("id_folder", asset["id_folder"])
         if id_folder != self.id_folder:
             if not id_folder:
                 self.tags = []
@@ -50,12 +50,12 @@ class DetailTabMain(QWidget):
             self.form = MetaEditor(self, self.tags)
             self.layout.addWidget(self.form)
             self.id_folder = id_folder
-            self.status = obj["status"]
+            self.status = asset["status"]
 
         if self.form:
             for tag, conf in self.tags:
-                self.form[tag] = obj[tag]
-                obj[tag] = self.form[tag]
+                self.form[tag] = asset[tag]
+                asset[tag] = self.form[tag]
             self.form.set_defaults()
 
         if self.form:
@@ -73,28 +73,28 @@ class MetaList(QTextEdit):
 
 
 class DetailTabExtended(MetaList):
-    def load(self, obj, **kwargs):
+    def load(self, asset, **kwargs):
         self.tag_groups = {
                 "core" :  [],
                 "other"  : [],
             }
-        if not obj["id_folder"]:
+        if not asset["id_folder"]:
             return
         for tag in sorted(meta_types):
             if meta_types[tag]["ns"] in ["a", "i", "e", "b", "o"]:
                 self.tag_groups["core"].append(tag)
             elif meta_types[tag]["ns"] in ("f", "q"):
                 continue
-            elif tag not in [r[0] for r in config["folders"][obj["id_folder"]]["meta_set"]]:
+            elif tag not in [r[0] for r in config["folders"][asset["id_folder"]]["meta_set"]]:
                 self.tag_groups["other"].append(tag)
 
         data = ""
         for tag_group in ["core", "other"]:
             for tag in self.tag_groups[tag_group]:
-                if not tag in obj.meta:
+                if not tag in asset.meta:
                     continue
                 tag_title = meta_types[tag].alias(config.get("language","en"))
-                value = obj.format_display(tag) or obj["tag"] or ""
+                value = asset.format_display(tag) or asset["tag"] or ""
                 if value:
                     data += "{:<40}: {}\n".format(tag_title, value)
             data += "\n\n"
@@ -104,7 +104,7 @@ class DetailTabExtended(MetaList):
 
 
 class DetailTabTechnical(MetaList):
-    def load(self, obj, **kwargs):
+    def load(self, asset, **kwargs):
         self.tag_groups = {
                 "File" : [],
                 "Format"  : [],
@@ -120,14 +120,14 @@ class DetailTabTechnical(MetaList):
                 self.tag_groups["QC"].append(tag)
 
         data = ""
-        if not obj["id_folder"]:
+        if not asset["id_folder"]:
             return
         for tag_group in ["File", "Format", "QC"]:
             for tag in self.tag_groups[tag_group]:
-                if not tag in obj.meta:
+                if not tag in asset.meta:
                     continue
                 tag_title = meta_types[tag].alias(config.get("language","en"))
-                value = obj.format_display(tag) or obj["tag"] or ""
+                value = asset.format_display(tag) or asset["tag"] or ""
                 if value:
                     data += "{:<40}: {}\n".format(tag_title, value)
             data += "\n\n"
@@ -149,14 +149,14 @@ class DetailTabs(QTabWidget):
         self.addTab(self.tab_extended, "Extended")
         self.addTab(self.tab_technical, "Technical")
 
-    def load(self, obj, **kwargs):
+    def load(self, asset, **kwargs):
         tabs = [
                 self.tab_main,
                 self.tab_extended,
                 self.tab_technical,
                 ]
         for tab  in tabs:
-            tab.load(obj, **kwargs)
+            tab.load(asset, **kwargs)
 
 
 
@@ -223,7 +223,7 @@ def detail_toolbar(wnd):
 class DetailModule(BaseModule):
     def __init__(self, parent):
         super(DetailModule, self).__init__(parent)
-        self.object = False
+        self.asset = False
 
         self._is_loading = self._load_queue = False
 
@@ -251,102 +251,103 @@ class DetailModule(BaseModule):
             idx = (self.detail_tabs.currentIndex()+1) % self.detail_tabs.count()
         self.detail_tabs.setCurrentIndex(idx)
 
-    def focus(self, objects, silent=False):
-        logging.debug("Focusing", objects)
-        if objects[0].object_type:
+    def focus(self, asset, silent=False):
+        if not isinstance(asset, Asset):
+            logging.debug("[DETAIL] Only assets can be focused. Is: {}".format(type(asset)))
+            return
 
-            if self._is_loading:
-                self._load_queue = objects
-                return
-            else:
-                self._load_queue = False
-                self._is_loading = True
+        logging.debug("[DETAIL] Focusing", asset)
 
-            ###############################################
-            ## Save changes?
+        if self._is_loading:
+            self._load_queue = [asset]
+            return
+        else:
+            self._load_queue = False
+            self._is_loading = True
 
-            changed = False
-            if self.form and self.object and not silent:
-               changed = (self.object["id_folder"] != self.folder_select.get_value()) or self.form.changed
+        ###############################################
+        ## Save changes?
 
-            if changed:
-                reply = QMessageBox.question(
-                        self,
-                        "Save changes?",
-                        "{} has been changed.\n\nSave changes?".format(self.object),
-                        QMessageBox.Yes | QMessageBox.No
-                        )
+        changed = False
+        if self.form and self.asset and not silent:
+           changed = (self.asset["id_folder"] != self.folder_select.get_value()) or self.form.changed
 
-                if reply == QMessageBox.Yes:
-                    self.on_apply()
+        if changed:
+            reply = QMessageBox.question(
+                    self,
+                    "Save changes?",
+                    "{} has been changed.\n\nSave changes?".format(self.asset),
+                    QMessageBox.Yes | QMessageBox.No
+                    )
 
-            ## Save changes?
-            ###############################################
+            if reply == QMessageBox.Yes:
+                self.on_apply()
 
+        ## Save changes?
+        ###############################################
 
-            self.folder_select.setEnabled(True)
-            if not self.object or self.object.id != objects[0].id:
-                self.object = Asset(meta=objects[0].meta)
-                self.parent().setWindowTitle("Detail of {}".format(self.object))
-            else:
-                for tag in set(list(objects[0].meta.keys()) + list(self.detail_tabs.tab_main.form.inputs.keys())):
-                    if self.form and tag in self.form.inputs:
-                        if self.form[tag] != self.object[tag]:
-                            self.object[tag] = self.form[tag]
-                            continue
-                    self.object[tag] = objects[0][tag]
+        self.folder_select.setEnabled(True)
+        if not self.asset or self.asset.id != asset.id:
+            self.asset = Asset(meta=asset.meta)
+            self.parent().setWindowTitle("Detail of {}".format(self.asset))
+        else:
+            for tag in set(list(asset.meta.keys()) + list(self.detail_tabs.tab_main.form.inputs.keys())):
+                if self.form and tag in self.form.inputs:
+                    if self.form[tag] != self.asset[tag]:
+                        self.asset[tag] = self.form[tag]
+                        continue
+                self.asset[tag] = asset[tag]
 
-            self.detail_tabs.load(self.object)
-            self.folder_select.set_value(self.object["id_folder"])
+        self.detail_tabs.load(self.asset)
+        self.folder_select.set_value(self.asset["id_folder"])
 
-            if self.object.object_type in ["asset", "item"]:
-                self.duration.set_value(self.object.duration)
-                self.duration.show()
-                if self.object["status"] == OFFLINE:
-                    self.duration.setEnabled(True)
-                else:
-                    self.duration.setEnabled(False)
+        self.duration.set_value(self.asset.duration)
+        self.duration.show()
+        if self.asset["status"] == OFFLINE:
+            self.duration.setEnabled(True)
+        else:
+            self.duration.setEnabled(False)
 
-            enabled = (self.object.id == 0) # or has_right("asset_edit", self.object["id_folder"])
+        enabled = (self.asset.id == 0) # or has_right("asset_edit", self.object["id_folder"])
 
-            self.folder_select.setEnabled(enabled)
-            self.action_approve.setEnabled(enabled)
-            self.action_qc_reset.setEnabled(enabled)
-            self.action_reject.setEnabled(enabled)
-            self.action_ingest.setEnabled(enabled)
+        self.folder_select.setEnabled(enabled)
+        self.action_approve.setEnabled(enabled)
+        self.action_qc_reset.setEnabled(enabled)
+        self.action_reject.setEnabled(enabled)
+        self.action_ingest.setEnabled(enabled)
 
-            self._is_loading = False
-            if self._load_queue:
-                self.focus(self._load_queue)
+        self._is_loading = False
+        if self._load_queue:
+            self.focus(self._load_queue)
 
 
     def on_folder_changed(self):
-        self.detail_tabs.load(self.object, id_folder=self.folder_select.get_value())
+        self.detail_tabs.load(self.asset, id_folder=self.folder_select.get_value())
 
 
     def new_asset(self):
         new_asset = Asset()
-        if self.object and self.object["id_folder"]:
-            new_asset["id_folder"] = self.object["id_folder"]
+        if self.asset and self.asset["id_folder"]:
+            new_asset["id_folder"] = self.asset["id_folder"]
         else:
             new_asset["id_folder"] = 0
-        self.object = False
+        self.asset = False
         self.duration.set_value(0)
         self.focus([new_asset])
 
 
     def clone_asset(self):
         new_asset = Asset()
-        if self.object and self.object["id_folder"]:
-            new_asset["id_folder"] = self.object["id_folder"]
+        if self.asset and self.asset["id_folder"]:
+            new_asset["id_folder"] = self.asset["id_folder"]
             for key in self.form.inputs:
                 new_asset[key] = self.form[key]
                 if self.duration.isEnabled():
                    new_asset["duration"] = self.duration.get_value()
         else:
             new_asset["id_folder"] = 0
-        self.object = False
-        self.focus([new_asset])
+        self.asset = False
+        self.focus(new_asset)
 
 
     def on_apply(self):
@@ -357,36 +358,31 @@ class DetailModule(BaseModule):
             data[key] = self.form[key]
         if self.duration.isEnabled():
             data["duration"] = self.duration.get_value()
-        stat, res = query("set_meta", objects=[self.object.id], data=data)
+        stat, res = query("set_meta", objects=[self.asset.id], data=data)
         if not success(stat):
             logging.error(res)
         else:
-            if not self.object.id:
-                obj = Asset(meta=res)
-                asset_cache[obj.id] = obj
-                self.focus([obj], silent=True)
+            if not self.asset.id:
+                asset = Asset(meta=res)
+                asset_cache[asset.id] = asset
+                self.focus(asset, silent=True)
         self.form.reset_changes()
-        self.parent().setWindowTitle("Detail of {}".format(self.object))
-
+        self.parent().setWindowTitle("Detail of {}".format(self.asset))
 
     def on_revert(self):
-        if self.object:
-            self.focus([asset_cache[self.object.id]], silent=True)
-
+        if self.asset:
+            self.focus([asset_cache[self.asset.id]], silent=True)
 
     def on_set_qc(self, state):
-        stat, res = query("set_meta", objects=[self.object.id], data={"qc/state" : state} )
+        stat, res = query("set_meta", objects=[self.asset.id], data={"qc/state" : state} )
         if not success(stat):
             logging.error(res)
 
-
     def on_ingest(self):
-        dlg = IngestDialog(self, self.object)
+        dlg = IngestDialog(self, self.asset)
         dlg.exec_()
-
-
 
     def seismic_handler(self, data):
         if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.object:
-            if self.object.id in data.data["objects"] and self.object.id:
-                self.focus([asset_cache[self.object.id]], silent=True)
+            if self.asset.id in data.data["objects"] and self.asset.id:
+                self.focus([asset_cache[self.asset.id]], silent=True)
