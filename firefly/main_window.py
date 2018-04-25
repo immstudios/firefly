@@ -2,6 +2,7 @@ import pprint
 
 from .common import *
 from .modules import *
+from .menu import create_menu
 from .listener import SeismicListener
 
 __all__ = ["FireflyMainWidget", "FireflyMainWindow"]
@@ -21,13 +22,14 @@ class FireflyMainWidget(QWidget):
         self.tabs.addTab(self.scheduler, "Scheduler")
         self.tabs.addTab(self.rundown, "Rundown")
 
-
         self.main_splitter = QSplitter(Qt.Horizontal)
         self.main_splitter.addWidget(self.browser)
         self.main_splitter.addWidget(self.tabs)
 
         self.main_window.add_subscriber(self.browser, ["objects_changed"])
         self.main_window.add_subscriber(self.rundown, ["objects_changed", "rundown_changed", "playout_status"])
+
+        create_menu(self.main_window)
 
         layout = QVBoxLayout()
         layout.addWidget(self.main_splitter)
@@ -42,10 +44,11 @@ class FireflyMainWidget(QWidget):
 
 class FireflyMainWindow(MainWindow):
     def __init__(self, parent, MainWidgetClass):
-        self.id_channel = min(config["playout_channels"].keys())
-
         self.subscribers = []
+
         super(FireflyMainWindow, self).__init__(parent, MainWidgetClass)
+
+
         logging.handlers = [self.log_handler]
         self.listener = SeismicListener(
                 config["site_name"],
@@ -57,13 +60,15 @@ class FireflyMainWindow(MainWindow):
         self.seismic_timer.timeout.connect(self.on_seismic_timer)
         self.seismic_timer.start(40)
         self.load_default_state()
-        logging.info("Firefly is ready")
+
+        self.id_channel = min(config["playout_channels"].keys())
+        self.set_channel(self.id_channel)
+        logging.info("[MAIN WINDOW] Firefly is ready")
 
 
     def load_default_state(self):
         self.showMaximized()
         one_third = self.width() / 3
-        print (one_third)
         self.main_widget.main_splitter.setSizes([one_third, one_third*2])
 
     @property
@@ -83,8 +88,53 @@ class FireflyMainWindow(MainWindow):
         return self.main_widget.detail
 
     def focus(self, obj):
-        logging.debug("Focus (main_window) > {}".format(obj))
-        self.detail.focus([obj])
+        if type(obj) == list:
+            obj = obj[0]
+        if obj.object_type == "item":
+            obj = obj.asset
+        self.detail.focus(obj)
+
+    #
+    # Menu actions
+    #
+
+    def new_asset(self):
+        pass
+
+    def clone_asset(self):
+        pass
+
+    def logout(self):
+        pass
+
+    def exit(self):
+        self.close()
+
+    def search_assets(self):
+        self.browser.search_box.setFocus()
+
+    def now(self):
+        pass
+
+    def set_channel(self, id_channel):
+        self.id_channel = id_channel
+        for action in self.menu_channel.actions():
+            if action.id_channel == id_channel:
+                action.setChecked(True)
+        self.scheduler.set_channel(id_channel)
+        self.rundown.set_channel(id_channel)
+
+    def show_detail(self):
+        pass
+
+    def show_scheduler(self):
+        pass
+
+    def show_rundown(self):
+        pass
+
+    def refresh(self):
+        pass
 
     #
     # Messaging
