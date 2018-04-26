@@ -72,8 +72,17 @@ def create_menu(wnd):
 
     menu_window = menubar.addMenu('&Window')
 
+
+    action_refresh = QAction('&Refresh', wnd)
+    action_refresh.setShortcut('F5')
+    action_refresh.setStatusTip('Refresh views')
+    action_refresh.triggered.connect(wnd.refresh)
+    menu_window.addAction(action_refresh)
+
+    menu_window.addSeparator()
+
     action_wnd_detail = QAction('&Object detail', wnd)
-    action_wnd_detail.setShortcut('F8')
+    action_wnd_detail.setShortcut('F6')
     action_wnd_detail.setStatusTip('Open detail/editor window')
     action_wnd_detail.triggered.connect(wnd.show_detail)
     menu_window.addAction(action_wnd_detail)
@@ -87,19 +96,13 @@ def create_menu(wnd):
     menu_window.addAction(action_wnd_scheduler)
 
     action_wnd_rundown = QAction('&Rundown', wnd)
+    action_wnd_rundown.setShortcut('F8')
     action_wnd_rundown.setStatusTip('Open rundown window')
     action_wnd_rundown.triggered.connect(wnd.show_rundown)
     if not (has_right("rundown_view") or has_right("rundown_edit")):
         action_wnd_rundown.setEnabled(False)
     menu_window.addAction(action_wnd_rundown)
 
-    menu_window.addSeparator()
-
-    action_refresh = QAction('&Refresh', wnd)
-    action_refresh.setShortcut('F5')
-    action_refresh.setStatusTip('Refresh views')
-    action_refresh.triggered.connect(wnd.refresh)
-    menu_window.addAction(action_refresh)
 
 #
 # HELP
