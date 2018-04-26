@@ -6,6 +6,8 @@ from nx import *
 DEBUG, INFO, WARNING, ERROR, GOOD_NEWS = range(5)
 logging.user = "Firefly"
 
+FF_VERSION = 5.0
+
 #
 # pix library
 #
@@ -31,4 +33,27 @@ class PixLib(dict):
             self[key] = get_pix(key)
         return self.get(key, None)
 
+
+ABOUT_TEXT = \
+    "<b>Firefly - Nebula broadcast automation system client application</b>" \
+    "<br><br>" \
+    "Named after American space Western drama television series which ran from 2002–2003," \
+    "created by writer and director Joss Whedon" \
+    "<br><br>" \
+    "Firefly is free software; " \
+    "you can redistribute it and/or modify it under the terms of the GNU General Public " \
+    "License as published by the Free Software Foundation; " \
+    "either version 3 of the License, or (at your option) any later version." \
+    "<br><br>" \
+    "For more information visit <a href=\"https://nebulabroadcast.com\">https://nebulabroadcast.com</a>"
+
+def about_dialog(parent):
+    QMessageBox.about(parent, "Firefly {}".format(FF_VERSION), ABOUT_TEXT)
+
+
 pix_lib = PixLib()
+
+
+def has_right(*args):
+    #TODO
+    return True
