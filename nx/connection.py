@@ -1,9 +1,15 @@
 import json
 import requests
 
+from firefly.version import FIREFLY_VERSION
 from nebulacore import *
 
 __all__ = ["api"]
+
+headers = {
+        'User-Agent': 'nebula-firefly/{}'.format(FIREFLY_VERSION),
+    }
+
 
 class APIResult(object):
     def __init__(self, **kwargs):
@@ -47,7 +53,8 @@ class NebulaAPI(object):
         try:
             response = requests.post(
                     self._settings["hub"] + "/ping",
-                    cookies=self._cookies
+                    cookies=self._cookies,
+                    headers=headers
                 )
             self._cookies = response.cookies
             if response.status_code >= 400:
@@ -75,7 +82,7 @@ class NebulaAPI(object):
                 "password" : password,
                 "api" : 1
             }
-        response = requests.post(self._settings["hub"] + "/login", data)
+        response = requests.post(self._settings["hub"] + "/login", data, headers=headers)
         self._cookies = response.cookies
         data = json.loads(response.text)
         return APIResult(**data)
@@ -84,8 +91,8 @@ class NebulaAPI(object):
         response = requests.post(
                 self._settings["hub"] + "/api/" + method,
                 data=json.dumps(kwargs),
-                cookies=self._cookies
-
+                cookies=self._cookies,
+                headers=headers
             )
         self._cookies = response.cookies
         if response.status_code >= 400:
