@@ -1,12 +1,11 @@
 from nxtools import *
 from pyqtbs import *
+from .version import FIREFLY_VERSION
 
 from nx import *
 
 DEBUG, INFO, WARNING, ERROR, GOOD_NEWS = range(5)
 logging.user = "Firefly"
-
-FF_VERSION = 5.0
 
 #
 # pix library
@@ -48,7 +47,7 @@ ABOUT_TEXT = \
     "For more information visit <a href=\"https://nebulabroadcast.com\">https://nebulabroadcast.com</a>"
 
 def about_dialog(parent):
-    QMessageBox.about(parent, "Firefly {}".format(FF_VERSION), ABOUT_TEXT)
+    QMessageBox.about(parent, "Firefly {}".format(FIREFLY_VERSION), ABOUT_TEXT)
 
 
 pix_lib = PixLib()

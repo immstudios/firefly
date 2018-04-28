@@ -80,7 +80,7 @@ class FireflyApplication(Application):
         i = 0
         while not self.main_window.listener.halted:
             time.sleep(.1)
-            if i > 30:
+            if i > 10:
                 logging.warning("Unable to shutdown listener. Forcing quit", handlers=False)
                 sys.exit(1)
             i+=1
