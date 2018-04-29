@@ -1,7 +1,7 @@
 import json
-import socket
 import time
-import requests
+import websocket
+
 
 from .common import *
 
@@ -28,65 +28,31 @@ class SeismicListener(QThread):
     def __init__(self, site_name, addr, port):
         QThread.__init__(self, None)
         self.site_name = site_name
-
         self.should_run = True
-        self.halted = False
         self.last_msg = time.time()
         self.queue = []
-
-        self.addr = addr
-        self.port = port
         self.start()
 
-
     def run(self):
-        logging.info("Starting Seismic listener", handlers=False)
+        logging.info("Starting listener", handlers=False)
 
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        self.sock.setsockopt(
-                socket.SOL_SOCKET,
-                socket.SO_REUSEADDR,
-                1
-            )
-        self.sock.bind(("0.0.0.0", self.port))
-        self.sock.setsockopt(
-                socket.IPPROTO_IP,
-                socket.IP_MULTICAST_TTL,
-                255
-            )
-        self.sock.setsockopt(
-                socket.IPPROTO_IP,
-                socket.IP_ADD_MEMBERSHIP,
-                socket.inet_aton(self.addr) + socket.inet_aton("0.0.0.0")
-            )
-
-        self.sock.settimeout(1)
+        addr = config["hub"].replace("http", "ws", 1) + "/ws/" + config["site_name"]
 
         while self.should_run:
-            try:
-                data, addr = self.sock.recvfrom(1024)
-            except socket.error:
-                pass
-            else:
-                print (data)
-                self.parse_message(data.decode("ascii"))
-
-            if time.time() - self.last_msg < 3:
-                continue
-
-            self.listen_ws()
+            self.halted = False
+            self.ws = websocket.WebSocketApp(
+                    addr,
+                    on_message = self.on_message,
+                    on_error = self.on_error,
+                    on_close = self.on_close
+                )
+            self.ws.run_forever()
 
         logging.debug("Listener halted", handlers=False)
         self.halted = True
 
 
-    def listen_ws(self):
-        url = config["hub"] + "/" + "mesg"
-
-
-
-
-    def parse_message(self, data, addr=False):
+    def on_message(self, ws, data):
         try:
             message = SeismicMessage(json.loads(data))
         except Exception:
@@ -96,8 +62,6 @@ class SeismicListener(QThread):
 
         if message.site_name != self.site_name:
             return
-        if addr:
-            message.address = addr
         self.last_msg = time.time()
 
         if message.method == "objects_changed":
@@ -119,7 +83,13 @@ class SeismicListener(QThread):
         else:
             self.queue.append(message)
 
+    def on_error(self, ws, error):
+        logging.error(error, handlers=False)
+
+    def on_close(self, ws):
+        logging.warning("WS connection interrupted. Reconnecting", handlers=False)
 
     def halt(self):
         logging.debug("Shutting down listener")
+        self.ws.close()
         self.should_run = False
