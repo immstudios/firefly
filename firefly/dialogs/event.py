@@ -8,11 +8,6 @@ def event_toolbar(wnd):
     toolbar.setMovable(False)
     toolbar.setFloatable(False)
 
-    wnd.action_toggle_promoted = QAction('Toggle promoted', wnd)
-    wnd.action_toggle_promoted.setShortcut('*')
-    wnd.action_toggle_promoted.triggered.connect(wnd.on_toggle_promoted)
-    toolbar.addAction(wnd.action_toggle_promoted)
-
     toolbar.addWidget(ToolBarStretcher(toolbar))
 
     action_accept = QAction(QIcon(pix_lib["accept"]), 'Accept changes', wnd)
@@ -28,49 +23,21 @@ def event_toolbar(wnd):
     return toolbar
 
 
-class EventForm(QWidget):
-    def __init__(self, parent, event):
-        super(EventForm, self).__init__(parent)
-
-        layout = QFormLayout()
-        self.data = {}
-
-        for key, title, widget in [
-                ("start", "Start", FireflyDatetime),
-                ("title", "Title", FireflyString),
-                ("title/subtitle", "Subtitle", FireflyString),
-                ("description", "Description", FireflyText)
-            ]:
-
-            self.data[key] = widget(self)
-            if event[key]:
-                self.data[key].set_value(event[key])
-                if key == "title":
-                    self.data[key].setFocus()
-
-            layout.addRow(title, self.data[key])
-
-        self.setLayout(layout)
-
-    def keys(self):
-        return self.data.keys()
-
-    def __getitem__(self, key):
-        if not key in self.keys():
-            return False
-
-        return self.data[key].get_value()
-
-
-
 class EventDialog(QDialog):
     def __init__(self,  parent, **kwargs):
         super(EventDialog, self).__init__(parent)
         self.setWindowTitle("Scheduler")
         self.kwargs = kwargs
         self.setStyleSheet(app_skin)
-
         self.toolbar = event_toolbar(self)
+
+        default_keys = [
+                ["start", {}],
+                ["title", {}],
+                ["subtitle", {}],
+                ["description", {}]
+            ]
+        keys = default_keys #TODO: config
 
         self.event = kwargs.get("event", Event())
 
@@ -80,12 +47,15 @@ class EventDialog(QDialog):
 
         if "asset" in self.kwargs:
             asset = self.kwargs["asset"]
-            self.form.title.set_value(asset["title"])
-            self.form.description.set_value(asset["description"])
+            for key in [k for k in meta_types if k["ns"] == "m"]:
+                if not key in asset.meta:
+                    continue
+                self.event[key] = asset[key]
 
-        self.on_toggle_promoted(value=self.event["promoted"])
-
-        self.form = EventForm(self, self.event)
+        self.form = MetaEditor(self, keys)
+        for key in self.form.keys():
+            if self.event[key]:
+                self.form[key] = self.event[key]
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
@@ -103,29 +73,18 @@ class EventDialog(QDialog):
         self.close()
 
     def on_accept(self):
-        for key in self.form.keys():
-            value = self.form[key]
+        meta = self.form.meta
+        for key in meta:
+            value = meta[key]
             if value:
-                self.event[key] = self.form[key]
+                self.event[key] = value
 
-        stat, res = query("set_events",
+        result = api.schedule(
                 id_channel=self.event["id_channel"],
                 events=[self.event.meta]
             )
 
+        if result.is_error:
+            logging.error(result.message)
+
         self.close()
-
-
-    def on_toggle_promoted(self, **kwargs):
-        if not "value" in kwargs:
-            self.event["promoted"] = not bool(self.event["promoted"])
-        else:
-            self.event["promoted"] = bool(kwargs.get("value"))
-
-        self.action_toggle_promoted.setIcon(
-            [
-                QIcon(pix_lib["star_disabled"]),
-                QIcon(pix_lib["star_enabled"])
-            ][bool(self.event["promoted"])]
-            )
-
