@@ -47,7 +47,7 @@ class SchedulerClockBar(SchedulerVerticalBar):
         super(SchedulerClockBar, self).__init__(parent)
         self.setMinimumWidth(CLOCKBAR_WIDTH)
         self.setMaximumWidth(CLOCKBAR_WIDTH)
-        self.day_start = [6,0] #default
+        self.day_start = [6, 0] #default
 
     def drawWidget(self, qp):
         qp.setPen(Qt.NoPen)

@@ -3,6 +3,7 @@ import datetime
 from firefly import *
 
 from .scheduler_model import *
+from firefly.dialogs.event import EventDialog
 
 EMPTY_EVENT_DATA = '[{"id" : 0, "title" : "Empty event"}]'.encode("ascii")
 
@@ -75,7 +76,6 @@ class SchedulerModule(BaseModule):
         layout.addWidget(self.calendar, 1)
 
         self.setLayout(layout)
-        self.load()
 
 
     def load(self, *args, **kwargs):
@@ -104,6 +104,9 @@ class SchedulerModule(BaseModule):
 
     def open_rundown(self, ts, event=False):
         logging.info("TODO: Open rundown (scheduler.py)")
+
+    def set_channel(self, id_channel):
+        self.load()
 
 
     def seismic_handler(self, data):
