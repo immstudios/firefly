@@ -3,7 +3,6 @@ import datetime
 import functools
 
 from firefly import *
-from firefly.dialogs.event import EventDialog
 from firefly.dialogs.send_to import SendToDialog
 
 from .rundown_utils import *
@@ -15,8 +14,7 @@ from .rundown_view import RundownView
 class RundownModule(BaseModule):
     def __init__(self, parent):
         super(RundownModule, self).__init__(parent)
-        self.start_time = day_start(time.time(), self.playout_config["day_start"])
-
+        self.start_time = 0
         self.current_item = False
         self.cued_item = False
         self.last_search = ""
@@ -39,9 +37,6 @@ class RundownModule(BaseModule):
 
         self.setLayout(layout)
 
-        self.update_header()
-        self.load()
-
     @property
     def can_edit(self):
         return user.has_right("rundown_edit", self.id_channel)
@@ -51,10 +46,20 @@ class RundownModule(BaseModule):
         return user.has_right("scheduler_edit", self.id_channel)
 
     def load(self, **kwargs):
+        selection = []
+        #for idx in self.view.selectionModel().selectedIndexes():
+        #    if self.model.object_data[idx.row()].id:
+        #        selection.append([self.model.object_data[idx.row()].object_type, self.model.object_data[idx.row()].id])
+
         do_update_header = False
-        if "start_time" in kwargs and kwargs["start_time"] != self.start_time:
-            do_update_header = True
-            self.start_time = kwargs["start_time"]
+        if "start_time" in kwargs:
+            if kwargs["start_time"] != self.start_time:
+                do_update_header = True
+                self.start_time = kwargs["start_time"]
+        else:
+            self.start_time = day_start(time.time(), self.playout_config["day_start"])
+
+
         if "id_channel" in kwargs and kwargs["id_channel"] != self.id_channel:
             do_update_header = True
             self.id_channel = kwargs["id_channel"]
@@ -73,15 +78,6 @@ class RundownModule(BaseModule):
                     )
                 break
 
-
-    def refresh(self, reset=False):
-        selection = []
-        #for idx in self.view.selectionModel().selectedIndexes():
-        #    if self.model.object_data[idx.row()].id:
-        #        selection.append([self.model.object_data[idx.row()].object_type, self.model.object_data[idx.row()].id])
-
-        self.load()
-
         #item_selection = QItemSelection()
         #for i, row in enumerate(self.model.object_data):
         #    if [row.object_type, row.id] in selection:
@@ -91,6 +87,7 @@ class RundownModule(BaseModule):
         #self.view.focus_enabled = False
         #self.view.selectionModel().select(item_selection, QItemSelectionModel.ClearAndSelect)
         #self.view.focus_enabled = True
+
 
     def update_header(self):
         ch = self.playout_config["title"]
@@ -113,7 +110,7 @@ class RundownModule(BaseModule):
     def set_channel(self, id_channel):
         if self.id_channel != id_channel:
             self.id_channel = id_channel
-            self.refresh()
+            self.load()
             if self.cg:
                 self.cg.load_plugins(id_channel)
 
@@ -124,14 +121,13 @@ class RundownModule(BaseModule):
                 self.mcr.btn_retake.setEnabled(can_mcr)
                 self.mcr.btn_abort.setEnabled(can_mcr)
 
-
-    def on_day_prev(self):
+    def go_day_prev(self):
         self.load(start_time=self.start_time - (3600*24))
 
-    def on_day_next(self):
+    def go_day_next(self):
         self.load(start_time=self.start_time + (3600*24))
 
-    def on_now(self):
+    def go_now(self):
         if not (self.start_time + 86400 > time.time() > self.start_time):
             self.load(start_time=day_start(
                         time.time(),
@@ -144,7 +140,7 @@ class RundownModule(BaseModule):
                 self.view.scrollTo(self.view.model().index(i, 0, QModelIndex()), QAbstractItemView.PositionAtTop  )
                 break
 
-    def on_calendar(self):
+    def show_calendar(self):
         y, m, d = get_date()
         if not y:
             return
@@ -152,21 +148,19 @@ class RundownModule(BaseModule):
         dt = datetime.datetime(y,m,d,hh,mm)
         self.load(start_time=time.mktime(dt.timetuple()))
 
-    def on_toggle_mcr(self):
-        if self.mcr:
-            if self.mcr.isVisible():
-                self.mcr.hide()
-            else:
-                self.mcr.show()
+    def toggle_mcr(self):
+        if self.mcr.isVisible():
+            self.mcr.hide()
+        else:
+            self.mcr.show()
 
-    def on_toggle_cg(self):
-        if self.cg and has_right("cg", self.id_channel):
-            if self.cg.isVisible():
-                self.cg.hide()
-            else:
-                self.cg.show()
+    def toggle_cg(self):
+        if self.cg.isVisible():
+            self.cg.hide()
+        else:
+            self.cg.show()
 
-    def on_toggle_tools(self):
+    def toggle_tools(self):
         if self.items_toolbar.isVisible():
             self.items_toolbar.hide()
         else:
@@ -176,7 +170,7 @@ class RundownModule(BaseModule):
     # Search rundown
     #
 
-    def on_find(self):
+    def find(self):
         text, result = QInputDialog.getText(
                 self,
                 "Rundown search",
@@ -188,11 +182,11 @@ class RundownModule(BaseModule):
         else:
             self.last_search = ""
 
-    def on_find_next(self):
+    def find_next(self):
         if self.last_search:
             self.do_find(self.last_search)
         else:
-            self.on_find()
+            self.find()
 
     def do_find(self, search_string, start_row=-1):
         self.last_search = search_string
@@ -234,7 +228,7 @@ class RundownModule(BaseModule):
 
             if message.data["cued_item"] != self.cued_item:
                 self.cued_item = message.data["cued_item"]
-                self.refresh(reset=True)
+                self.load()
 
             if self.mcr:
                 self.mcr.seismic_handler(message)
@@ -242,7 +236,7 @@ class RundownModule(BaseModule):
         elif message.method == "objects_changed" and message.data["object_type"] == "event":
             my_name = self.parent().objectName()
 
-            for id_event in message.data["objects"]:#
-                if message.data.get("sender", False) != my_name and id_event in self.view.model().event_ids :
-                    self.refresh()
+            for id_event in message.data["objects"]:
+                if id_event in self.view.model().event_ids:
+                    self.load()
                     break

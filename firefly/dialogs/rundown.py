@@ -76,5 +76,3 @@ class SubclipSelectDialog(QDialog):
         self.clip = clip
         self.ok = True
         self.close()
-
-

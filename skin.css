@@ -2,16 +2,20 @@ QMainWindow,
 QDialog,
 QWidget,
 QToolBar,
-QMenu {
+QMenuBar {
     background-color : #2a2e30;
     color : #c0c0c0;
 }
 
 QStatusBar,
 QHeaderView,
-QMenuBar {
+QMenu {
     background-color : #161616;
     color : #c0c0c0;
+}
+
+a {
+    color: #009fbc;
 }
 
 /* MENU */

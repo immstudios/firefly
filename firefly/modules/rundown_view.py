@@ -2,6 +2,7 @@ import functools
 from firefly import *
 
 from .rundown_model import RundownModel
+from firefly.dialogs.event import EventDialog
 
 class RundownView(FireflyView):
     def __init__(self, parent):
@@ -195,22 +196,22 @@ class RundownView(FireflyView):
         if items:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            stat, res = query("del_items", items=items)
+            response = api.delete(object_type="item", objets=items)
             QApplication.restoreOverrideCursor()
-            if success(stat):
-                logging.info("Item deleted: {}".format(res))
+            if response.is_error:
+                logging.error(response.message)
             else:
-                logging.error(res)
+                logging.info("Item deleted: {}".format(res))
 
         if events:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            stat, res = query("set_events", delete=events)
+            response = api.schedule(delete=events)
             QApplication.restoreOverrideCursor()
-            if success(stat):
-                logging.info("Event deleted: {}".format(res))
+            if response.is_error:
+                logging.error(response.message)
             else:
-                logging.error(res)
+                logging.info("Item deleted: {}".format(res))
 
         self.parent().refresh()
         self.selectionModel().clear()

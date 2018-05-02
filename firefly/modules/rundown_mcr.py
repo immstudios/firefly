@@ -8,29 +8,49 @@ class MCRButton(QPushButton):
     def __init__(self, title, parent=None, on_click=False):
         super(MCRButton, self).__init__(parent)
         self.setText(title)
-
         if title == "Freeze":
-            bg_col = "qlineargradient(x1: 0, y1: 0,    x2: 0, y2: 1,  stop: 0 #c01616, stop: 1 #941010);"
+            bg_col = "#941010"
             self.setToolTip("Pause/unpause current clip")
         elif title == "Take":
-            bg_col = "qlineargradient(x1: 0, y1: 0,    x2: 0, y2: 1,  stop: 0 #16c316, stop: 1 #109410);"
+            bg_col = "#109410"
             self.setToolTip("Start cued clip")
         else:
-            bg_col = "qlineargradient(x1: 0, y1: 0,    x2: 0, y2: 1,  stop: 0 #787878, stop: 1 #565656);"
-        self.setStyleSheet("MCRButton{font-size:16px; font-weight: bold; font-family: Arial; color: #eeeeee; border:  1px raised #323232;  width:80px; height:30px; background: %s }  MCRButton:pressed {border-style: inset;} "%bg_col)
+            bg_col = "#565656"
+        self.setStyleSheet("""
+            MCRButton {{
+                font-size:16px;
+                font-weight: bold;
+                color: #eeeeee;
+                border: 1px raised #323232;
+                width: 80px;
+                height:30px;
+                background: {}
+            }}
+
+            MCRButton:pressed {{
+                border-style: inset;
+            }}""".format(bg_col))
 
         if on_click:
             self.clicked.connect(on_click)
+
 
 class MCRLabel(QLabel):
     def __init__(self,head, default, parent=None, tcolor="#eeeeee"):
         super(MCRLabel,self).__init__(parent)
         self.head = head
-        self.setStyleSheet("background-color: #161616; padding:5px; margin:3px; font:16px; font-weight: bold; color : {}; width:160px".format(tcolor))
-        #self.setMinimumWidth(160)
+        self.setStyleSheet("""
+                background-color: #161616;
+                padding:5px;
+                margin:3px;
+                font:16px;
+                font-weight: bold;
+                color : {};
+                width:160px
+            """.format(tcolor))
 
     def set_text(self,text):
-       self.setText("%s: %s"%(self.head,text))
+       self.setText("{}: {}".format(self.head, text))
 
 
 class MCR(QWidget):
@@ -60,16 +80,11 @@ class MCR(QWidget):
         self.btn_retake  = MCRButton(u"Retake", self, self.on_retake)
         self.btn_abort   = MCRButton(u"Abort",  self, self.on_abort)
 
-        can_mcr = user.has_right("mcr", self.parent().id_channel)
+        can_mcr = False # disable MCR by default
         self.btn_take.setEnabled(can_mcr)
         self.btn_freeze.setEnabled(can_mcr)
         self.btn_retake.setEnabled(can_mcr)
         self.btn_abort.setEnabled(can_mcr)
-
-        self.btn_take.setShortcut("F9")
-        self.btn_freeze.setShortcut("F10")
-        self.btn_retake.setShortcut("F11")
-        self.btn_abort.setShortcut("F12")
 
         btns_layout = QHBoxLayout()
 
@@ -153,28 +168,28 @@ class MCR(QWidget):
 
 
     def update_display(self):
-            adv = time.time() - self.local_request_time
+        adv = time.time() - self.local_request_time
 
-            rtime = self.request_time+adv
-            rpos = self.pos
+        rtime = self.request_time+adv
+        rpos = self.pos
 
-            if not (self.paused or self.stopped):
-                rpos += adv * self.fps
+        if not (self.paused or self.stopped):
+            rpos += adv * self.fps
 
-            clock = time.strftime("%H:%M:%S:{:02d}", time.localtime(rtime)).format(int(25*(rtime-math.floor(rtime))))
-            self.display_clock.set_text(clock)
-            self.display_pos.set_text(f2tc(min(self.dur, rpos), self.fps))
+        clock = time.strftime("%H:%M:%S:{:02d}", time.localtime(rtime)).format(int(25*(rtime-math.floor(rtime))))
+        self.display_clock.set_text(clock)
+        self.display_pos.set_text(f2tc(min(self.dur, rpos), self.fps))
 
-            rem = self.dur - rpos
-            t = f2tc(max(0, rem), self.fps)
-            if rem < 250:
-                self.display_rem.set_text("<font color='red'>{}</font>".format(t))
-            else:
-                self.display_rem.set_text(t)
+        rem = self.dur - rpos
+        t = f2tc(max(0, rem), self.fps)
+        if rem < 250:
+            self.display_rem.set_text("<font color='red'>{}</font>".format(t))
+        else:
+            self.display_rem.set_text(t)
 
-            try:
-                ppos = int((rpos/self.dur) * PROGRESS_BAR_RESOLUTION)
-            except ZeroDivisionError:
-                return
+        try:
+            ppos = int((rpos/self.dur) * PROGRESS_BAR_RESOLUTION)
+        except ZeroDivisionError:
+            return
 
-            self.progress_bar.setValue(ppos)
+        self.progress_bar.setValue(ppos)
