@@ -8,60 +8,20 @@ from firefly import *
 from .browser_model import *
 
 
+
+
 class SearchWidget(QLineEdit):
     def __init__(self, parent):
         super(QLineEdit, self).__init__()
 
     def keyPressEvent(self, event):
         if event.key() in [Qt.Key_Return,Qt.Key_Enter]:
-            self.parent().parent().load()
+            self.parent().parent().browse()
         elif event.key() == Qt.Key_Escape:
             self.line_edit.setText("")
         elif event.key() == Qt.Key_Down:
             self.parent().parent().view.setFocus()
         QLineEdit.keyPressEvent(self, event)
-
-
-class FireflyBrowserView(FireflyView):
-    def __init__(self, parent):
-        super(FireflyBrowserView, self).__init__(parent)
-        self.setSortingEnabled(True)
-        self.model = BrowserModel(self)
-        self.sort_model = FireflySortModel(self.model)
-        self.setModel(self.sort_model)
-
-    def selectionChanged(self, selected, deselected):
-        rows = []
-        self.selected_objects = []
-
-        tot_dur = 0
-        for idx in self.selectionModel().selectedIndexes():
-            row = self.sort_model.mapToSource(idx).row()
-            if row in rows:
-                continue
-            rows.append(row)
-            obj = self.model.object_data[row]
-            self.selected_objects.append(obj)
-            if obj.object_type in ["asset", "item"]:
-                tot_dur += obj.duration
-
-        days = math.floor(tot_dur / (24*3600))
-        durstr = "{} days {}".format(days, s2time(tot_dur)) if days else s2time(tot_dur)
-
-        if self.selected_objects:
-            self.main_window.focus(asset_cache[self.selected_objects[-1].id])
-            if len(self.selected_objects) > 1 and tot_dur:
-                logging.debug(
-                        "[BROWSER] {} objects selected. Total duration {}".format(
-                            len(self.selected_objects), durstr
-                        )
-                    )
-        super(FireflyView, self).selectionChanged(selected, deselected)
-
-
-
-
-
 
 
 class BrowserModule(BaseModule):
@@ -70,12 +30,19 @@ class BrowserModule(BaseModule):
 
 #TODO: defaults from appstate
         self.search_query = {
-                "id_view" : min(config["views"].keys())
+                "view" : min(config["views"].keys())
             }
 
         self.search_box = SearchWidget(self)
 
-        self.view = FireflyBrowserView(self)
+        self.view = FireflyView(self)
+        self.view.setSortingEnabled(True)
+        self.view.clicked.connect(self.on_click)
+        self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+        self.model       = BrowserModel(self)
+        self.sort_model  = FireflySortModel(self.model)
+        self.view.setModel(self.sort_model)
 
         action_clear = QAction(QIcon(pix_lib["search_clear"]), '&Clear search query', parent)
         action_clear.triggered.connect(self.on_clear)
@@ -83,11 +50,11 @@ class BrowserModule(BaseModule):
         self.action_search = QMenu("Views")
         self.action_search.setStyleSheet(app_skin)
         self.action_search.menuAction().setIcon(QIcon(pix_lib["search"]))
-        self.action_search.menuAction().triggered.connect(self.load)
+        self.action_search.menuAction().triggered.connect(self.browse)
         self.load_view_menu()
 
         action_copy = QAction('Copy result', self)
-        action_copy.setShortcut('CTRL+SHIFT+C')
+        action_copy.setShortcut('CTRL+C')
         action_copy.triggered.connect(self.on_copy_result)
         self.addAction(action_copy)
 
@@ -101,11 +68,7 @@ class BrowserModule(BaseModule):
         layout.addWidget(toolbar, 0)
         layout.addWidget(self.view, 1)
         self.setLayout(layout)
-        self.load()
-
-    @property
-    def model(self):
-        return self.view.model
+        self.browse()
 
 
     def load_view_menu(self):
@@ -126,21 +89,21 @@ class BrowserModule(BaseModule):
 # Do browse
 #
 
-    def load(self, **kwargs):
+    def browse(self, **kwargs):
         search_string = self.search_box.text()
         self.search_query["fulltext"] = search_string
         self.search_query.update(kwargs)
-        self.view.model.load(**self.search_query)
+        self.model.browse(**self.search_query)
 
     def refresh(self):
-        self.load()
+        self.browse()
 
     def on_clear(self):
         self.search_box.setText("")
-        self.load(fulltext="")
+        self.browse(fulltext="")
 
     def set_view(self, id_view):
-        self.load(id_view=id_view)
+        self.browse(view=id_view)
         for action in self.action_search.actions():
             if not hasattr(action, "id_view"):
                 continue
@@ -148,6 +111,12 @@ class BrowserModule(BaseModule):
                 action.setChecked(True)
             else:
                 action.setChecked(False)
+
+
+
+
+    def hideEvent(self, event):
+        pass
 
     def contextMenuEvent(self, event):
         if not self.view.selected_objects:
@@ -211,57 +180,39 @@ class BrowserModule(BaseModule):
         dlg = SendTo(self, self.view.selected_objects)
         dlg.exec_()
 
+
     def on_reset(self):
-        objects = [obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED, RESET]],
-        if not objects:
-            return
-        stat, res = query(
-                "set_meta",
-                objects=objects,
-                data={"status" : RESET}
-                )
+        stat, res = query("set_meta", objects=[obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED, RESET]], data={"status" : RESET} )
+
 
     def on_trash(self):
-        objects = [obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED]]
-        if not objects:
-            return
         ret = QMessageBox.question(self,
-                "Trash",
-                "Do you really want to trash {} selected asset(s)?".format(len(objects)),
-                QMessageBox.Yes | QMessageBox.No
+            "Trash",
+            "Do you really want to trash {} selected asset(s)?".format(len(self.view.selected_objects)),
+            QMessageBox.Yes | QMessageBox.No
             )
         if ret == QMessageBox.Yes:
-            stat, res = query(
-                    "trash",
-                    objects=objects
-                )
+            stat, res = query("trash", objects=[obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED]])
+
 
     def on_untrash(self):
-        objects = [obj.id for obj in self.view.selected_objects if obj["status"] in [TRASHED]]
-        if not objects:
-            return
-        stat, res = query("untrash", objects=objects)
+        objs = [obj.id for obj in self.view.selected_objects if obj["status"] in [TRASHED]]
+        if objs:
+            stat, res = query("untrash", objects=objs)
 
     def on_archive(self):
-        objects = [obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED]]
-        if not objects:
-            return
         ret = QMessageBox.question(self,
-                "Archive",
-                "Do you really want to move {} selected asset(s) to archive?".format(len(objects)),
-                QMessageBox.Yes | QMessageBox.No
+            "Archive",
+            "Do you really want to move {} selected asset(s) to archive?".format(len(self.view.selected_objects)),
+            QMessageBox.Yes | QMessageBox.No
             )
         if ret == QMessageBox.Yes:
-            stat, res = query(
-                    "archive",
-                    objects=objects
-                )
+            stat, res = query("archive", objects=[obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED]])
 
     def on_unarchive(self):
-        objects = [obj.id for obj in self.view.selected_objects if obj["status"] in [ARCHIVED]]
-        if not objects:
-            return
-        stat, res = query("unarchive", objects=objs)
+        objs = [obj.id for obj in self.view.selected_objects if obj["status"] in [ARCHIVED]]
+        if objs:
+            stat, res = query("unarchive", objects=objs)
 
     def on_batch(self):
         dlg = BatchDialog(self, self.view.selected_objects)
@@ -273,13 +224,29 @@ class BrowserModule(BaseModule):
     def on_copy_result(self):
         result = ""
         for obj in self.view.selected_objects:
-            result += "{}\n".format("\t".join([obj.format_display(key) or "" for key in self.view.model.header_data]))
+            result += "{}\n".format("\t".join([obj.format_display(key) or "" for key in self.model.header_data]))
         clipboard = QApplication.clipboard();
         clipboard.setText(result)
 
-    def seismic_handler(self, message):
-        if message.method == "objects_changed" and message.data["object_type"] == "asset":
-            for row, obj in enumerate(self.model.object_data):
-                if obj.id in message.data["objects"]:
-                    self.model.object_data[row] = asset_cache[obj.id]
-                    self.model.dataChanged.emit(self.model.index(row, 0), self.model.index(row, len(self.model.header_data)-1))
+    def on_click(self, index):
+        rows = []
+        self.view.selected_objects = []
+
+        tot_dur = 0
+        for idx in self.view.selectionModel().selectedIndexes():
+            row = self.sort_model.mapToSource(idx).row()
+            if row in rows:
+                continue
+            rows.append(row)
+            obj = self.model.object_data[row]
+            self.view.selected_objects.append(obj)
+            if obj.object_type in ["asset", "item"]:
+                tot_dur += obj.duration
+
+        days = math.floor(tot_dur / (24*3600))
+        durstr = "{} days {}".format(days, s2time(tot_dur)) if days else s2time(tot_dur)
+
+        if self.view.selected_objects:
+            self.main_window.focus(self.view.selected_objects[0])
+            if len(self.view.selected_objects) > 1 and tot_dur:
+                logging.debug("{} objects selected. Total duration {}".format(len(self.view.selected_objects), durstr ))

@@ -1,7 +1,6 @@
 import functools
 
 from firefly import *
-from proxyplayer import VideoPlayer
 
 
 class DetailTabMain(QWidget):
@@ -136,17 +135,7 @@ class DetailTabTechnical(MetaList):
         self.setText(data)
 
 
-class DetailTabPreview(QWidget):
-    def __init__(self, parent):
-        super(DetailTabPreview, self).__init__(parent)
-        layout = QVBoxLayout()
-        self.player = VideoPlayer(self)
-        layout.addWidget(self.player)
-        self.setLayout(layout)
 
-
-    def load(self, asset, **kwargs):
-        self.player.load(config["hub"] + "/proxy/{:04d}/{}.mp4".format(int(asset.id/1000), asset.id))
 
 class DetailTabs(QTabWidget):
     def __init__(self, parent):
@@ -155,20 +144,17 @@ class DetailTabs(QTabWidget):
         self.tab_main = DetailTabMain(self)
         self.tab_extended = DetailTabExtended(self)
         self.tab_technical = DetailTabTechnical(self)
-        self.tab_preview = DetailTabPreview(self)
 
         self.addTab(self.tab_main, "Main")
         self.addTab(self.tab_extended, "Extended")
         self.addTab(self.tab_technical, "Technical")
-        self.addTab(self.tab_preview, "Preview")
 
     def load(self, asset, **kwargs):
         tabs = [
                 self.tab_main,
                 self.tab_extended,
                 self.tab_technical,
-                self.tab_preview,
-            ]
+                ]
         for tab  in tabs:
             tab.load(asset, **kwargs)
 
@@ -211,18 +197,21 @@ def detail_toolbar(wnd):
     wnd.action_reject.setEnabled(False)
     toolbar.addAction(wnd.action_reject)
 
+    toolbar.addSeparator()
+
+    wnd.action_ingest = QAction(QIcon(pix_lib["record"]),'Ingest', wnd)
+    wnd.action_ingest.setShortcut('CTRL+7')
+    wnd.action_ingest.triggered.connect(wnd.on_ingest)
+    wnd.action_ingest.setEnabled(False)
+    toolbar.addAction(wnd.action_ingest)
+
     toolbar.addWidget(ToolBarStretcher(wnd))
 
-    wnd.action_revert = QAction(QIcon(pix_lib["cancel"]), '&Revert changes', wnd)
-    wnd.action_revert.setStatusTip('Revert changes')
-    wnd.action_revert.triggered.connect(wnd.on_revert)
-    toolbar.addAction(wnd.action_revert)
-
-    wnd.action_apply = QAction(QIcon(pix_lib["accept"]), '&Apply changes', wnd)
-    wnd.action_apply.setShortcut('Ctrl+S')
-    wnd.action_apply.setStatusTip('Apply changes')
-    wnd.action_apply.triggered.connect(wnd.on_apply)
-    toolbar.addAction(wnd.action_apply)
+    action_apply = QAction(QIcon(pix_lib["accept"]), '&Apply changes', wnd)
+    action_apply.setShortcut('Ctrl+S')
+    action_apply.setStatusTip('Apply changes')
+    action_apply.triggered.connect(wnd.on_apply)
+    toolbar.addAction(action_apply)
 
     return toolbar
 
@@ -234,9 +223,13 @@ def detail_toolbar(wnd):
 class DetailModule(BaseModule):
     def __init__(self, parent):
         super(DetailModule, self).__init__(parent)
-        self.asset = self._is_loading = self._load_queue = False
+        self.asset = False
+
+        self._is_loading = self._load_queue = False
+
         self.toolbar = detail_toolbar(self)
         self.detail_tabs = DetailTabs(self)
+
         layout = QVBoxLayout()
         layout.addWidget(self.toolbar)
         layout.addWidget(self.detail_tabs)
@@ -272,9 +265,8 @@ class DetailModule(BaseModule):
             self._load_queue = False
             self._is_loading = True
 
-        #
-        # Save changes?
-        #
+        ###############################################
+        ## Save changes?
 
         changed = False
         if self.form and self.asset and not silent:
@@ -291,14 +283,21 @@ class DetailModule(BaseModule):
             if reply == QMessageBox.Yes:
                 self.on_apply()
 
-        #
-        # Show data
-        #
+        ## Save changes?
+        ###############################################
 
         self.folder_select.setEnabled(True)
+        if not self.asset or self.asset.id != asset.id:
+            self.asset = Asset(meta=asset.meta)
+            self.parent().setWindowTitle("Detail of {}".format(self.asset))
+        else:
+            for tag in set(list(asset.meta.keys()) + list(self.detail_tabs.tab_main.form.inputs.keys())):
+                if self.form and tag in self.form.inputs:
+                    if self.form[tag] != self.asset[tag]:
+                        self.asset[tag] = self.form[tag]
+                        continue
+                self.asset[tag] = asset[tag]
 
-        self.asset = Asset(meta=asset.meta) # asset deep copy
-        self.parent().setWindowTitle("Detail of {}".format(self.asset))
         self.detail_tabs.load(self.asset)
         self.folder_select.set_value(self.asset["id_folder"])
 
@@ -309,14 +308,13 @@ class DetailModule(BaseModule):
         else:
             self.duration.setEnabled(False)
 
+        enabled = (self.asset.id == 0) # or has_right("asset_edit", self.object["id_folder"])
 
-        enabled = (not asset.id) or has_right("asset_edit", self.asset["id_folder"])
         self.folder_select.setEnabled(enabled)
         self.action_approve.setEnabled(enabled)
         self.action_qc_reset.setEnabled(enabled)
         self.action_reject.setEnabled(enabled)
-        self.action_apply.setEnabled(enabled)
-        self.action_revert.setEnabled(enabled)
+        self.action_ingest.setEnabled(enabled)
 
         self._is_loading = False
         if self._load_queue:
@@ -355,32 +353,36 @@ class DetailModule(BaseModule):
     def on_apply(self):
         if not self.form:
             return
-        data = {"id_folder" : self.folder_select.get_value()}
+        data = {"id_folder":self.folder_select.get_value()}
         for key in self.form.inputs:
             data[key] = self.form[key]
         if self.duration.isEnabled():
             data["duration"] = self.duration.get_value()
-        response = api.set(objects=[self.asset.id], data=data)
-        if response.is_error:
-            logging.error(response.message)
-            self.form.setEnabled(False) # reenable on seismic message with new data
+        stat, res = query("set_meta", objects=[self.asset.id], data=data)
+        if not success(stat):
+            logging.error(res)
         else:
-            logging.debug("[DETAIL] Set method responded", response.response)
-
+            if not self.asset.id:
+                asset = Asset(meta=res)
+                asset_cache[asset.id] = asset
+                self.focus(asset, silent=True)
+        self.form.reset_changes()
+        self.parent().setWindowTitle("Detail of {}".format(self.asset))
 
     def on_revert(self):
         if self.asset:
-            self.focus(asset_cache[self.asset.id], silent=True)
-
+            self.focus([asset_cache[self.asset.id]], silent=True)
 
     def on_set_qc(self, state):
-        response = api.set(objects=[self.asset.id], data={"qc/state" : state})
-        if response.is_error:
-            logging.error(response.message)
+        stat, res = query("set_meta", objects=[self.asset.id], data={"qc/state" : state} )
+        if not success(stat):
+            logging.error(res)
 
+    def on_ingest(self):
+        dlg = IngestDialog(self, self.asset)
+        dlg.exec_()
 
     def seismic_handler(self, data):
-        if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.asset:
+        if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.object:
             if self.asset.id in data.data["objects"] and self.asset.id:
-                print("OPENING", asset_cache[self.asset.id].meta)
-                self.focus(asset_cache[self.asset.id], silent=True)
+                self.focus([asset_cache[self.asset.id]], silent=True)
