@@ -20,6 +20,10 @@ DEFAULT_COLUMNS = [
 
 
 class RundownModel(FireflyViewModel):
+    def __init__(self, *args, **kwargs):
+        super(RundownModel, self).__init__(*args, **kwargs)
+        self.event_ids = []
+
     @property
     def id_channel(self):
         return self.parent().id_channel
@@ -35,7 +39,6 @@ class RundownModel(FireflyViewModel):
     @property
     def cued_item(self):
         return self.parent().cued_item
-
 
     def load(self, **kwargs):
         load_start_time = time.time()
@@ -56,10 +59,19 @@ class RundownModel(FireflyViewModel):
         self.object_data = []
         self.event_ids = []
 
+        i = 0
         for row in result.data:
+            row["rundown_row"] = i
             if row["object_type"] == "event":
                 self.object_data.append(Event(meta=row))
+                i += 1
                 self.event_ids.append(row["id"])
+                if row["is_empty"]:
+                    self.object_data.append(Item(meta={
+                            "title" : "(Empty event)",
+                            "id_bin" : row["id_bin"]
+                        }))
+                    i += 1
             elif row["object_type"] == "item":
                 item = Item(meta=row)
                 if row["id_asset"]:
@@ -67,6 +79,7 @@ class RundownModel(FireflyViewModel):
                 else:
                     item._asset = False
                 self.object_data.append(item)
+                i += 1
             else:
                 continue
 
@@ -229,6 +242,8 @@ class RundownModel(FireflyViewModel):
         #
         # Send order query
         #
+
+        sorted_items = [item for item in sorted_items if item["id_object"]]
 
         if sorted_items:
             QApplication.processEvents()

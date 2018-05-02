@@ -3,7 +3,7 @@ from firefly import *
 DEFAULT_HEADER_DATA = ["title", "duration", "id_folder"]
 
 class BrowserModel(FireflyViewModel):
-    def browse(self, **kwargs):
+    def load(self, **kwargs):
         start_time = time.time()
         self.beginResetModel()
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -12,7 +12,7 @@ class BrowserModel(FireflyViewModel):
         try:
             self.header_data = config["views"][kwargs["view"]]["columns"]
         except KeyError:
-            self.header_data =  DEFAULT_HEADER_DATA
+            self.header_data = DEFAULT_HEADER_DATA
 
         search_query = kwargs
         search_query["result"] = ["id", "mtime"]
@@ -31,7 +31,6 @@ class BrowserModel(FireflyViewModel):
         flags = super(BrowserModel, self).flags(index)
         if index.isValid():
             if self.object_data[index.row()].id:
-                flags |= Qt.ItemIsEditable
                 flags |= Qt.ItemIsDragEnabled
         return flags
 
@@ -57,4 +56,3 @@ class BrowserModel(FireflyViewModel):
         mimeData.setData("application/nx.asset", json.dumps(data).encode("ascii"))
         mimeData.setUrls(urls)
         return mimeData
-

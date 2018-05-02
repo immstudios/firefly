@@ -26,6 +26,7 @@ class FireflyMainWidget(QWidget):
         self.main_splitter.addWidget(self.browser)
         self.main_splitter.addWidget(self.tabs)
 
+        self.main_window.add_subscriber(self.detail, ["objects_changed"])
         self.main_window.add_subscriber(self.browser, ["objects_changed"])
         self.main_window.add_subscriber(self.rundown, ["objects_changed", "rundown_changed", "playout_status"])
 
@@ -112,29 +113,36 @@ class FireflyMainWindow(MainWindow):
 
     def search_assets(self):
         self.browser.search_box.setFocus()
+        self.browser.search_box.selectAll()
 
     def now(self):
-        pass
+        self.show_rundown()
+        self.rundown.go_now()
 
     def set_channel(self, id_channel):
-        self.id_channel = id_channel
         for action in self.menu_channel.actions():
             if action.id_channel == id_channel:
                 action.setChecked(True)
         self.scheduler.set_channel(id_channel)
         self.rundown.set_channel(id_channel)
+        self.id_channel = id_channel
 
     def show_detail(self):
-        pass
+        if self.main_widget.tabs.currentIndex() == 0:
+            self.detail.switch_tabs()
+        else:
+            self.main_widget.tabs.setCurrentIndex(0)
 
     def show_scheduler(self):
-        pass
+        self.main_widget.tabs.setCurrentIndex(1)
 
     def show_rundown(self):
-        pass
+        self.main_widget.tabs.setCurrentIndex(2)
 
     def refresh(self):
-        pass
+        self.rundown.load()
+        self.scheduler.load()
+        self.browser.load()
 
     #
     # Messaging
@@ -152,6 +160,11 @@ class FireflyMainWindow(MainWindow):
         self.subscribers.append([module, methods])
 
     def seismic_handler(self, message):
+        if message.method == "objects_changed" and message.data["object_type"] == "asset":
+            logging.info("Requesting new data for objects {}".format(message.data["objects"]))
+            now = time.time()
+            asset_cache.request([[aid, now] for aid in message.data["objects"]])
+
         for module, methods in self.subscribers:
             if message.method in methods:
                 module.seismic_handler(message)
