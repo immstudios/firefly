@@ -32,13 +32,6 @@ class CellFormat(object):
     def font(self, obj, **kwargs):
         pass
 
-
-DEFAULT_FOLDER = {
-        "color" : 0xaaaaaa,
-        "title" : "-"
-    }
-
-
 #
 # Cell formatters
 #
@@ -46,12 +39,10 @@ DEFAULT_FOLDER = {
 class FormatFolder(CellFormat):
     key = "id_folder"
     def display(self, obj, **kwargs):
-        id_folder = obj["id_folder"]
-        return config["folders"].get(id_folder, DEFAULT_FOLDER)["title"]
+        return config["folders"][obj["id_folder"]]["title"]
 
     def foreground(self, obj, **kwargs):
-        id_folder = obj["id_folder"]
-        return config["folders"].get(id_folder, DEFAULT_FOLDER)["color"]
+        return config["folders"][obj["id_folder"]]["color"]
 
 
 class FormatContentType(CellFormat):
