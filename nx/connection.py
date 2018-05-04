@@ -1,6 +1,9 @@
 import json
 import requests
 
+import idna.idnadata
+from multiprocessing import Queue # needed by cx_freeze
+
 from firefly.version import FIREFLY_VERSION
 from nebulacore import *
 
