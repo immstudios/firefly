@@ -78,6 +78,8 @@ class FireflyApplication(Application):
         asset_cache.save()
         if not self.main_window.listener:
             return
+        with open("auth.key", "w") as f:
+            f.write(api.auth_key)
         self.main_window.listener.halt()
         i = 0
         while not self.main_window.listener.halted:
@@ -86,8 +88,6 @@ class FireflyApplication(Application):
                 logging.warning("Unable to shutdown listener. Forcing quit", handlers=False)
                 sys.exit(1)
             i+=1
-        with open("auth.key", "w") as f:
-            f.write(api.auth_key)
         sys.exit(0)
 
 
