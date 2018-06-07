@@ -17,7 +17,11 @@ def get_pix(name):
     if name.startswith("folder_"):
         id_folder = int(name.lstrip("folder_"))
         icn = QPixmap(12, 12)
-        icn.fill(QColor(config["folders"][id_folder]["color"]))
+        try:
+            color = config["folders"][id_folder]["color"]
+        except KeyError:
+            color = 0xaaaaaa
+        icn.fill(QColor(color))
         return icn
     pixmap = QPixmap(":/images/{}.png".format(name))
     if not pixmap.width():
@@ -36,7 +40,7 @@ class PixLib(dict):
 ABOUT_TEXT = \
     "<b>Firefly - Nebula broadcast automation system client application</b>" \
     "<br><br>" \
-    "Named after American space Western drama television series which ran from 2002–2003," \
+    "Named after American space Western drama television series which ran from 2002–2003, " \
     "created by writer and director Joss Whedon" \
     "<br><br>" \
     "Firefly is free software; " \
@@ -44,7 +48,7 @@ ABOUT_TEXT = \
     "License as published by the Free Software Foundation; " \
     "either version 3 of the License, or (at your option) any later version." \
     "<br><br>" \
-    "For more information visit <a href=\"https://nebulabroadcast.com\">https://nebulabroadcast.com</a>"
+    "For more information visit <a href=\"https://nebulabroadcast.com\" style=\"color: #ccdd00;\">https://nebulabroadcast.com</a>"
 
 def about_dialog(parent):
     QMessageBox.about(parent, "Firefly {}".format(FIREFLY_VERSION), ABOUT_TEXT)
