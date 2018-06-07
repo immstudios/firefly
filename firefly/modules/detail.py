@@ -1,7 +1,15 @@
 import functools
 
 from firefly import *
-from proxyplayer import VideoPlayer
+
+try:
+    from proxyplayer import VideoPlayer
+    has_player = True
+except OSError:
+    log_traceback()
+    logging.warning("Unable to load MPV libraries. Video preview will not be available.")
+    has_player = False
+
 
 
 class DetailTabMain(QWidget):
@@ -13,6 +21,7 @@ class DetailTabMain(QWidget):
         self.form = False
         self.id_folder = False
         self.status = -1
+        self.has_focus = False
 
         self.scroll_area = QScrollArea(self)
         self.scroll_area.setFrameStyle(QFrame.NoFrame)
@@ -63,6 +72,8 @@ class DetailTabMain(QWidget):
             enabled = True#has_right("asset_edit", id_folder)
             self.form.setEnabled(enabled)
 
+    def on_focus(self):
+        pass
 
 class MetaList(QTextEdit):
     def __init__(self, parent):
@@ -71,7 +82,10 @@ class MetaList(QTextEdit):
         self.setCurrentFont(fixed_font)
         self.setReadOnly(True)
         self.setStyleSheet("border:0;")
+        self.has_focus = False
 
+    def on_focus(self):
+        pass
 
 class DetailTabExtended(MetaList):
     def load(self, asset, **kwargs):
@@ -101,7 +115,6 @@ class DetailTabExtended(MetaList):
             data += "\n\n"
 
         self.setText(data)
-
 
 
 class DetailTabTechnical(MetaList):
@@ -143,10 +156,30 @@ class DetailTabPreview(QWidget):
         self.player = VideoPlayer(self)
         layout.addWidget(self.player)
         self.setLayout(layout)
-
+        self.current_asset = False
+        self.has_focus = False
+        self.loaded = False
 
     def load(self, asset, **kwargs):
-        self.player.load(config["hub"] + "/proxy/{:04d}/{}.mp4".format(int(asset.id/1000), asset.id))
+        self.current_asset = asset
+        self.loaded = False
+        if self.has_focus:
+            self.load_video()
+
+    def load_video(self):
+        if self.current_asset and not self.loaded:
+            logging.debug("Opening {} preview".format(self.current_asset))
+            self.player.load(
+                    config["hub"] + "/proxy/{:04d}/{}.mp4".format(
+                        int(self.current_asset.id/1000),
+                        self.current_asset.id
+                    )
+                )
+            self.loaded = True
+
+    def on_focus(self):
+        self.load_video()
+
 
 class DetailTabs(QTabWidget):
     def __init__(self, parent):
@@ -155,21 +188,37 @@ class DetailTabs(QTabWidget):
         self.tab_main = DetailTabMain(self)
         self.tab_extended = DetailTabExtended(self)
         self.tab_technical = DetailTabTechnical(self)
-        self.tab_preview = DetailTabPreview(self)
+        if has_player:
+            self.tab_preview = DetailTabPreview(self)
 
-        self.addTab(self.tab_main, "Main")
-        self.addTab(self.tab_extended, "Extended")
-        self.addTab(self.tab_technical, "Technical")
-        self.addTab(self.tab_preview, "Preview")
+        self.addTab(self.tab_main, "MAIN")
+        self.addTab(self.tab_extended, "EXTENDED")
+        self.addTab(self.tab_technical, "TECHNICAL")
+        if has_player:
+            self.addTab(self.tab_preview, "PREVIEW")
 
-    def load(self, asset, **kwargs):
-        tabs = [
+        self.currentChanged.connect(self.on_switch)
+        self.setCurrentIndex(0)
+        self.tabs = [
                 self.tab_main,
                 self.tab_extended,
                 self.tab_technical,
                 self.tab_preview,
             ]
-        for tab  in tabs:
+
+    def on_switch(self, *args):
+        try:
+            index = int(args[0])
+        except:
+            index = self.currentIndex()
+        for i, tab in enumerate(self.tabs):
+            hf = index == i
+            tab.has_focus = hf
+            if hf:
+                tab.on_focus()
+
+    def load(self, asset, **kwargs):
+        for tab in self.tabs:
             tab.load(asset, **kwargs)
 
 
@@ -246,6 +295,9 @@ class DetailModule(BaseModule):
     def form(self):
         return self.detail_tabs.tab_main.form
 
+    def set_title(self, title):
+        self.main_window.main_widget.tabs.setTabText(0, title)
+
     def save_state(self):
         state = {}
         return state
@@ -318,14 +370,14 @@ class DetailModule(BaseModule):
         self.action_apply.setEnabled(enabled)
         self.action_revert.setEnabled(enabled)
 
+        self.set_title("DETAIL : " + self.asset.__repr__())
+
         self._is_loading = False
         if self._load_queue:
             self.focus(self._load_queue)
 
-
     def on_folder_changed(self):
         self.detail_tabs.load(self.asset, id_folder=self.folder_select.get_value())
-
 
     def new_asset(self):
         new_asset = Asset()
@@ -336,7 +388,6 @@ class DetailModule(BaseModule):
         self.asset = False
         self.duration.set_value(0)
         self.focus([new_asset])
-
 
     def clone_asset(self):
         new_asset = Asset()
@@ -350,7 +401,6 @@ class DetailModule(BaseModule):
             new_asset["id_folder"] = 0
         self.asset = False
         self.focus(new_asset)
-
 
     def on_apply(self):
         if not self.form:
@@ -367,17 +417,14 @@ class DetailModule(BaseModule):
         else:
             logging.debug("[DETAIL] Set method responded", response.response)
 
-
     def on_revert(self):
         if self.asset:
             self.focus(asset_cache[self.asset.id], silent=True)
-
 
     def on_set_qc(self, state):
         response = api.set(objects=[self.asset.id], data={"qc/state" : state})
         if response.is_error:
             logging.error(response.message)
-
 
     def seismic_handler(self, data):
         if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.asset:

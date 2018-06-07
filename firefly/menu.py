@@ -28,12 +28,13 @@ def create_menu(wnd):
     action_search.triggered.connect(wnd.search_assets)
     menu_file.addAction(action_search)
 
-    action_now = QAction('Now', wnd)
-    action_now.setShortcut('F1')
-    action_now.setStatusTip('Open current position in rundown')
-    action_now.setEnabled(has_right("rundown_view"))
-    action_now.triggered.connect(wnd.now)
-    menu_file.addAction(action_now)
+    if config["playout_channels"]:
+        action_now = QAction('Now', wnd)
+        action_now.setShortcut('F1')
+        action_now.setStatusTip('Open current position in rundown')
+        action_now.setEnabled(has_right("rundown_view"))
+        action_now.triggered.connect(wnd.now)
+        menu_file.addAction(action_now)
 
     menu_file.addSeparator()
 
@@ -52,19 +53,20 @@ def create_menu(wnd):
 # CHANNEL
 #
 
-    wnd.menu_channel = menubar.addMenu('&Channel')
-    ag = QActionGroup(wnd, exclusive=True)
+    if config["playout_channels"]:
+        wnd.menu_channel = menubar.addMenu('&Channel')
+        ag = QActionGroup(wnd, exclusive=True)
 
-    for id_channel in sorted(config["playout_channels"]):
-        a = ag.addAction(
-                QAction(
-                    config["playout_channels"][id_channel]["title"],
-                    wnd,
-                    checkable=True
-                ))
-        a.id_channel = id_channel
-        a.triggered.connect(partial(wnd.set_channel, id_channel))
-        wnd.menu_channel.addAction(a)
+        for id_channel in sorted(config["playout_channels"]):
+            a = ag.addAction(
+                    QAction(
+                        config["playout_channels"][id_channel]["title"],
+                        wnd,
+                        checkable=True
+                    ))
+            a.id_channel = id_channel
+            a.triggered.connect(partial(wnd.set_channel, id_channel))
+            wnd.menu_channel.addAction(a)
 
 #
 # WINDOW

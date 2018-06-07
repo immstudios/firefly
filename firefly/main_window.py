@@ -11,30 +11,42 @@ class FireflyMainWidget(QWidget):
     def __init__(self, main_window):
         super(FireflyMainWidget, self).__init__(main_window)
         self.main_window = main_window
+        self.tabs = QTabWidget(self)
+        self.tabs.currentChanged.connect(self.on_switch_tab)
 
         self.browser = BrowserModule(self)
         self.detail = DetailModule(self)
-        self.scheduler = SchedulerModule(self)
-        self.rundown = RundownModule(self)
 
-        self.tabs = QTabWidget(self)
-        self.tabs.addTab(self.detail, "Detail")
-        self.tabs.addTab(self.scheduler, "Scheduler")
-        self.tabs.addTab(self.rundown, "Rundown")
+        self.main_window.add_subscriber(self.browser, ["objects_changed"])
+        self.main_window.add_subscriber(self.detail, ["objects_changed"])
+
+        self.tabs.addTab(self.detail, "DETAIL")
+
+        if config["playout_channels"]:
+            self.scheduler = SchedulerModule(self)
+            self.rundown = RundownModule(self)
+            #TODO: scheduler subscriber
+            self.main_window.add_subscriber(self.rundown, ["objects_changed", "rundown_changed", "playout_status"])
+
+            self.tabs.addTab(self.scheduler, "SCHEDULER")
+            self.tabs.addTab(self.rundown, "RUNDOWN")
 
         self.main_splitter = QSplitter(Qt.Horizontal)
         self.main_splitter.addWidget(self.browser)
         self.main_splitter.addWidget(self.tabs)
-
-        self.main_window.add_subscriber(self.detail, ["objects_changed"])
-        self.main_window.add_subscriber(self.browser, ["objects_changed"])
-        self.main_window.add_subscriber(self.rundown, ["objects_changed", "rundown_changed", "playout_status"])
 
         create_menu(self.main_window)
 
         layout = QVBoxLayout()
         layout.addWidget(self.main_splitter)
         self.setLayout(layout)
+
+    def on_switch_tab(self, index):
+        if index == 0:
+            self.detail.detail_tabs.on_switch()
+        else:
+            self.detail.detail_tabs.on_switch(-1) # disable proxy loading if player is not focused
+
 
     @property
     def app(self):
@@ -62,8 +74,9 @@ class FireflyMainWindow(MainWindow):
         self.seismic_timer.start(40)
         self.load_default_state()
 
-        self.id_channel = min(config["playout_channels"].keys())
-        self.set_channel(self.id_channel)
+        if config["playout_channels"]:
+            self.id_channel = min(config["playout_channels"].keys())
+            self.set_channel(self.id_channel)
         logging.info("[MAIN WINDOW] Firefly is ready")
 
 
@@ -116,16 +129,18 @@ class FireflyMainWindow(MainWindow):
         self.browser.search_box.selectAll()
 
     def now(self):
-        self.show_rundown()
-        self.rundown.go_now()
+        if config["playout_channels"]:
+            self.show_rundown()
+            self.rundown.go_now()
 
     def set_channel(self, id_channel):
-        for action in self.menu_channel.actions():
-            if action.id_channel == id_channel:
-                action.setChecked(True)
-        self.scheduler.set_channel(id_channel)
-        self.rundown.set_channel(id_channel)
-        self.id_channel = id_channel
+        if config["playout_channels"]:
+            for action in self.menu_channel.actions():
+                if action.id_channel == id_channel:
+                    action.setChecked(True)
+            self.scheduler.set_channel(id_channel)
+            self.rundown.set_channel(id_channel)
+            self.id_channel = id_channel
 
     def show_detail(self):
         if self.main_widget.tabs.currentIndex() == 0:
@@ -134,15 +149,18 @@ class FireflyMainWindow(MainWindow):
             self.main_widget.tabs.setCurrentIndex(0)
 
     def show_scheduler(self):
-        self.main_widget.tabs.setCurrentIndex(1)
+        if config["playout_channels"]:
+            self.main_widget.tabs.setCurrentIndex(1)
 
     def show_rundown(self):
-        self.main_widget.tabs.setCurrentIndex(2)
+        if config["playout_channels"]:
+            self.main_widget.tabs.setCurrentIndex(2)
 
     def refresh(self):
-        self.rundown.load()
-        self.scheduler.load()
         self.browser.load()
+        if config["playout_channels"]:
+            self.rundown.load()
+            self.scheduler.load()
 
     #
     # Messaging
