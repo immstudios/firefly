@@ -86,7 +86,7 @@ class FireflyApplication(Application):
             time.sleep(.1)
             if i > 10:
                 logging.warning("Unable to shutdown listener. Forcing quit", handlers=False)
-                sys.exit(1)
+                sys.exit(0)
             i+=1
         sys.exit(0)
 
@@ -119,3 +119,4 @@ class FireflyApplication(Application):
             for id in config[config_group]:
                 ng[int(id)] = config[config_group][id]
             config[config_group] = ng
+#        config["playout_channels"] = {} #testing CMS MODE

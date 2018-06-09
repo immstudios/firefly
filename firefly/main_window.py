@@ -14,13 +14,23 @@ class FireflyMainWidget(QWidget):
         self.tabs = QTabWidget(self)
         self.tabs.currentChanged.connect(self.on_switch_tab)
 
+        # MAM modules
+
         self.browser = BrowserModule(self)
         self.detail = DetailModule(self)
+        self.tabs.addTab(self.detail, "DETAIL")
 
         self.main_window.add_subscriber(self.browser, ["objects_changed"])
         self.main_window.add_subscriber(self.detail, ["objects_changed"])
 
-        self.tabs.addTab(self.detail, "DETAIL")
+        # Jobs modul
+
+        if True: #TODO: if existing actions
+            self.jobs = JobsModule(self)
+            self.tabs.addTab(self.jobs, "JOBS")
+            self.main_window.add_subscriber(self.jobs, ["job_progress"])
+
+        # Channel control modules
 
         if config["playout_channels"]:
             self.scheduler = SchedulerModule(self)
@@ -31,6 +41,8 @@ class FireflyMainWidget(QWidget):
             self.tabs.addTab(self.scheduler, "SCHEDULER")
             self.tabs.addTab(self.rundown, "RUNDOWN")
 
+        # Layout
+
         self.main_splitter = QSplitter(Qt.Horizontal)
         self.main_splitter.addWidget(self.browser)
         self.main_splitter.addWidget(self.tabs)
@@ -40,19 +52,21 @@ class FireflyMainWidget(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.main_splitter)
         self.setLayout(layout)
-
-    def on_switch_tab(self, index):
-        if index == 0:
-            self.detail.detail_tabs.on_switch()
-        else:
-            self.detail.detail_tabs.on_switch(-1) # disable proxy loading if player is not focused
-
+        self.on_switch_tab()
 
     @property
     def app(self):
         return self.main_window.app
 
+    @property
+    def current_module(self):
+        return self.tabs.currentWidget()
 
+    def on_switch_tab(self, index=None):
+        if self.current_module == self.detail:
+            self.detail.detail_tabs.on_switch()
+        else:
+            self.detail.detail_tabs.on_switch(-1) # disable proxy loading if player is not focused
 
 
 class FireflyMainWindow(MainWindow):
@@ -60,7 +74,6 @@ class FireflyMainWindow(MainWindow):
         self.subscribers = []
 
         super(FireflyMainWindow, self).__init__(parent, MainWidgetClass)
-
 
         logging.handlers = [self.log_handler]
         self.listener = SeismicListener(
