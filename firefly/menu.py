@@ -22,19 +22,24 @@ def create_menu(wnd):
 
     menu_file.addSeparator()
 
-    action_search = QAction('Search assets', wnd)
+    action_search = QAction('&Search assets', wnd)
     action_search.setShortcut('ESC')
     action_search.setStatusTip('Focus asset search bar')
     action_search.triggered.connect(wnd.search_assets)
     menu_file.addAction(action_search)
 
-    if config["playout_channels"]:
-        action_now = QAction('Now', wnd)
-        action_now.setShortcut('F1')
-        action_now.setStatusTip('Open current position in rundown')
-        action_now.setEnabled(has_right("rundown_view"))
-        action_now.triggered.connect(wnd.now)
-        menu_file.addAction(action_now)
+    action_detail = QAction('Asset &detail', wnd)
+    action_detail.setShortcut('F2')
+    action_detail.setStatusTip('Focus asset search bar')
+    action_detail.triggered.connect(wnd.show_detail)
+    menu_file.addAction(action_detail)
+
+    action_refresh = QAction('&Refresh', wnd)
+    action_refresh.setShortcut('F5')
+    action_refresh.setStatusTip('Refresh views')
+    action_refresh.triggered.connect(wnd.refresh)
+    menu_file.addAction(action_refresh)
+
 
     menu_file.addSeparator()
 
@@ -72,38 +77,22 @@ def create_menu(wnd):
 # WINDOW
 #
 
-    menu_window = menubar.addMenu('&Window')
+
+    if config["playout_channels"]:
+        menu_rundown = menubar.addMenu('&Scheduling')
 
 
-    action_refresh = QAction('&Refresh', wnd)
-    action_refresh.setShortcut('F5')
-    action_refresh.setStatusTip('Refresh views')
-    action_refresh.triggered.connect(wnd.refresh)
-    menu_window.addAction(action_refresh)
 
-    menu_window.addSeparator()
+        menu_rundown = menubar.addMenu('&Rundown')
 
-    action_wnd_detail = QAction('&Object detail', wnd)
-    action_wnd_detail.setShortcut('F6')
-    action_wnd_detail.setStatusTip('Open detail/editor window')
-    action_wnd_detail.triggered.connect(wnd.show_detail)
-    menu_window.addAction(action_wnd_detail)
+        action_now = QAction('Now', wnd)
+        action_now.setShortcut('F1')
+        action_now.setStatusTip('Open current position in rundown')
+        action_now.setEnabled(has_right("rundown_view"))
+        action_now.triggered.connect(wnd.now)
+        menu_rundown.addAction(action_now)
 
-    action_wnd_scheduler = QAction('&Scheduler', wnd)
-    action_wnd_scheduler.setShortcut('F7')
-    action_wnd_scheduler.setStatusTip('Open scheduler window')
-    action_wnd_scheduler.triggered.connect(wnd.show_scheduler)
-    if not (has_right("scheduler_view") or has_right("scheduler_edit")):
-        action_wnd_scheduler.setEnabled(False)
-    menu_window.addAction(action_wnd_scheduler)
 
-    action_wnd_rundown = QAction('&Rundown', wnd)
-    action_wnd_rundown.setShortcut('F8')
-    action_wnd_rundown.setStatusTip('Open rundown window')
-    action_wnd_rundown.triggered.connect(wnd.show_rundown)
-    if not (has_right("rundown_view") or has_right("rundown_edit")):
-        action_wnd_rundown.setEnabled(False)
-    menu_window.addAction(action_wnd_rundown)
 
 
 #

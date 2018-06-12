@@ -1,15 +1,13 @@
 QMainWindow,
 QDialog,
 QWidget,
-QToolBar,
-QMenuBar {
+QToolBar {
     background-color : #2a2e30;
     color : #c0c0c0;
 }
 
 QStatusBar,
-QHeaderView,
-QMenu {
+QHeaderView {
     background-color : #161616;
     color : #c0c0c0;
 }
@@ -18,7 +16,22 @@ a {
     color: #009fbc;
 }
 
+QToolButton{
+    font-size: 24px;
+}
+
 /* MENU */
+
+QMenu{
+    background-color #2a2e30;
+    color : #c0c0c0;
+    border: 1px solid #50595B;
+}
+
+QMenuBar {
+    background-color : #2a2e30;
+    color : #c0c0c0;
+}
 
 QMenuBar::item {
     background-color: transparent;
@@ -52,7 +65,6 @@ QTableView::item:focus {
     background-color: rgba(160, 160, 160, 160);
 }
 
-
 QHeaderView::section {
     background-color: #161616;
     color: #c0c0c0;
@@ -63,23 +75,29 @@ QTableCornerButton::section{
     background-color: #242424;
 }
 
-
 /* TABS */
 
 
 QTabWidget::pane {
-    background-color: #2a2e30;
+    border-top: 1px solid #50595B;
 }
 
 QTabBar::tab {
-    width: 120px;
+    min-width: 120px;
+    min-height : 30px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 8px;
+    padding-right: 8px;
     background-color: #2a2e30;
-    text-transform: uppercase;
+    border: 1px solid #50595B;
+    border-bottom: 0;
 }
 
 QTabBar::tab:selected {
     background-color: #50595B;
-    text-transform: uppercase;
+    border: 1px solid #50595B;
+    border-bottom: 0;
 }
 
 /* WIDGETS */
@@ -89,11 +107,12 @@ QTextEdit,
 QComboBox,
 QPushButton,
 QSpinBox {
+    padding-left: 5px;
+    padding-right: 5px;
     background-color: #2a2e30;
-    color: #c0c0c0;
-    border: 1px solid #646464;
+    border: 1px solid #50595B;
     min-width: 80px;
-    min-height: 24px;
+    min-height: 30px;
 }
 
 QLineEdit:!enabled,
@@ -102,6 +121,8 @@ QComboBox:!enabled,
 QPushButton:!enabled {
     color : #646464;
 }
+
+
 
 QPushButton:checked{
     background : #009fbc;

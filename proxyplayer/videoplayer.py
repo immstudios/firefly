@@ -26,7 +26,6 @@ class TimecodeWindow(QLineEdit):
         super(TimecodeWindow, self).__init__(parent)
         self.setText("00:00:00:00")
         self.setInputMask("99:99:99:99")
-        self.setStyleSheet("font-family: monospace; border: 1px solid; padding-left: 2px; padding-right: 2px;")
 
         fm = self.fontMetrics()
         w = fm.boundingRect(self.text()).width() + 16
@@ -38,7 +37,6 @@ class TimecodeWindow(QLineEdit):
 
 def get_navbar(wnd):
     toolbar = QToolBar(wnd)
-    toolbar.setStyleSheet("background-color:transparent;")
 
     wnd.action_frame_prev5 = QAction('Previous 5 frames', wnd)
     wnd.action_frame_prev5.setShortcut('1')
@@ -118,6 +116,7 @@ class VideoPlayer(QWidget):
         super(VideoPlayer, self).__init__(parent)
 
         self.video_window = QWidget(self)
+        self.video_window.setStyleSheet("background-color: #161616;")
         self.player = MPV(
                     keep_open=True,
                     wid=str(int(self.video_window.winId()))
@@ -222,8 +221,12 @@ class VideoPlayer(QWidget):
         self.position = value
 
     def on_duration_change(self, value):
-        self.duration = value
-        self.mark_out = self.mark_out or value - self.frame_dur
+        if value:
+            self.duration = value
+            self.mark_out = self.mark_out or value - self.frame_dur
+        else:
+            self.duration = 0
+            self.mark_out = 0
 
     def on_timeline_seek(self):
         self.player["pause"] = True

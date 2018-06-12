@@ -471,7 +471,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         if ret == QMessageBox.Yes:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            result = api.schedule(delete=[cursor_event.id])
+            result = api.schedule(delete=[cursor_event.id], id_channel=self.id_channel)
             QApplication.restoreOverrideCursor()
             if result.is_success:
                 logging.info("Event deleted")

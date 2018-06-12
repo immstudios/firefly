@@ -1,6 +1,8 @@
 from .common import *
 from .widgets import *
 
+from pprint import pformat
+
 __all__ = ["FireflyViewModel", "FireflySortModel", "FireflyView"]
 
 def format_header(key):
@@ -57,6 +59,11 @@ class FireflyViewModel(QAbstractTableModel):
             font = obj.format_font(key, model=self)
             if font in self.fonts:
                 return self.fonts[font]
+        elif role == Qt.ToolTipRole:
+            r = pformat(obj.meta)
+            if obj.object_type == "item":
+                r += "\n\n" + pformat(obj.asset.meta)
+            return r
         return None
 
 

@@ -62,6 +62,11 @@ class FireflyMainWidget(QWidget):
     def current_module(self):
         return self.tabs.currentWidget()
 
+    def switch_tab(self, module):
+        for i in range(self.tabs.count()):
+            if self.tabs.widget(i) == module:
+                self.tabs.setCurrentIndex(i)
+
     def on_switch_tab(self, index=None):
         if self.current_module == self.detail:
             self.detail.detail_tabs.on_switch()
@@ -163,11 +168,11 @@ class FireflyMainWindow(MainWindow):
 
     def show_scheduler(self):
         if config["playout_channels"]:
-            self.main_widget.tabs.setCurrentIndex(1)
+            self.main_widget.switch_tab(self.scheduler)
 
     def show_rundown(self):
         if config["playout_channels"]:
-            self.main_widget.tabs.setCurrentIndex(2)
+            self.main_widget.switch_tab(self.rundown)
 
     def refresh(self):
         self.browser.load()

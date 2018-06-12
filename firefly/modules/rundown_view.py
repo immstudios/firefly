@@ -160,10 +160,10 @@ class RundownView(FireflyView):
             return
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        stat, res = query("set_meta", object_type=self.selected_objects[0].object_type, objects=[obj.id for obj in self.selected_objects], data={"run_mode":mode})
+        result = api.set(object_type=self.selected_objects[0].object_type, objects=[obj.id for obj in self.selected_objects], data={"run_mode":mode})
         QApplication.restoreOverrideCursor()
-        if not success(stat):
-            logging.error(res)
+        if result.is_error:
+            logging.error(result.message)
         self.parent().refresh()
         self.selectionModel().clear()
         return
@@ -263,19 +263,12 @@ class RundownView(FireflyView):
     def on_activate(self, mi):
         obj = self.model().object_data[mi.row()]
         can_mcr = user.has_right("mcr", self.id_channel)
-        if obj.object_type == "item" and self.mcr and self.mcr.isVisible() and can_mcr:
-            stat, res = query("cue", self.mcr.route, id_channel=self.id_channel, id_item=obj.id)
-            if not success(stat):
-                logging.error(res)
-            self.view.clearSelection()
+        if obj.object_type == "item" and self.parent().mcr and self.parent().mcr.isVisible() and can_mcr:
+            result = api.playout(action="cue", id_channel=self.id_channel, id_item=obj.id)
+
+            if result.is_error:
+                logging.error(result.message)
+            self.clearSelection()
         elif obj.object_type == "event" and has_right("scheduler_edit", self.id_channel):
-            if self.model().header_data[mi.column()] == "rundown_symbol":
-                obj["promoted"] = not obj["promoted"]
-                stat, res = query("set_events",
-                    id_channel=obj["id_channel"],
-                    events=[obj.meta]
-                    )
-                self.refresh()
-            else:
-                self.view.on_edit_event()
+            self.on_edit_event()
 

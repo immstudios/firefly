@@ -10,7 +10,7 @@ class BrowserModel(FireflyViewModel):
 
         self.object_data = []
         try:
-            self.header_data = config["views"][kwargs["view"]]["columns"]
+            self.header_data = config["views"][kwargs["id_view"]]["columns"]
         except KeyError:
             self.header_data = DEFAULT_HEADER_DATA
 
@@ -22,10 +22,8 @@ class BrowserModel(FireflyViewModel):
         else:
             if asset_cache.request(result.data):
                 self.object_data = [asset_cache[row[0]] for row in result.data]
-
         self.endResetModel()
         QApplication.restoreOverrideCursor()
-
 
     def flags(self,index):
         flags = super(BrowserModel, self).flags(index)
@@ -34,10 +32,8 @@ class BrowserModel(FireflyViewModel):
                 flags |= Qt.ItemIsDragEnabled
         return flags
 
-
     def mimeTypes(self):
         return ["application/nx.asset"]
-
 
     def mimeData(self, indices):
         rows = []
@@ -53,6 +49,9 @@ class BrowserModel(FireflyViewModel):
         urls = [QUrl.fromLocalFile(path) for path in paths]
 
         mimeData = QMimeData()
-        mimeData.setData("application/nx.asset", json.dumps(data).encode("ascii"))
+        mimeData.setData(
+                "application/nx.asset",
+                json.dumps(data).encode("ascii")
+            )
         mimeData.setUrls(urls)
         return mimeData

@@ -8,6 +8,10 @@ class BaseModule(QWidget):
         self.main_window = self.parent().parent()
 
     @property
+    def app_state(self):
+        return self.main_window.app_state
+
+    @property
     def id_channel(self):
         return self.main_window.id_channel
 

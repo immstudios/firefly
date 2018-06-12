@@ -18,8 +18,10 @@ class RundownModule(BaseModule):
         self.current_item = False
         self.cued_item = False
         self.last_search = ""
+        self.first_load = True
 
         self.view = RundownView(self)
+
         self.mcr = MCR(self)
         self.cg = CG(self)
 
@@ -56,7 +58,9 @@ class RundownModule(BaseModule):
             if kwargs["start_time"] != self.start_time:
                 do_update_header = True
                 self.start_time = kwargs["start_time"]
-        else:
+
+        if not self.start_time:
+            do_update_header = True
             self.start_time = day_start(time.time(), self.playout_config["day_start"])
 
 
@@ -66,6 +70,14 @@ class RundownModule(BaseModule):
         self.view.load()
         if do_update_header:
             self.update_header()
+
+        if self.first_load:
+            #TODO: Load from appstate
+            self.view.horizontalHeader().resizeSection(0, 300)
+            self.first_load = False
+
+
+
         if not "event" in kwargs:
             return
 
@@ -108,7 +120,7 @@ class RundownModule(BaseModule):
     #
 
     def set_channel(self, id_channel):
-        if self.id_channel != id_channel:
+        if self.id_channel != id_channel or self.first_load:
             self.id_channel = id_channel
             self.load()
             if self.cg:
@@ -153,6 +165,7 @@ class RundownModule(BaseModule):
             self.mcr.hide()
         else:
             self.mcr.show()
+            self.load()
 
     def toggle_cg(self):
         if self.cg.isVisible():
@@ -196,7 +209,7 @@ class RundownModule(BaseModule):
                 if idx.row() > start_row:
                     start_row = idx.row()
         start_row += 1
-        for i, row in enumerate(self.model.object_data[start_row:]):
+        for i, row in enumerate(self.view.model().object_data[start_row:]):
             for key in ["title", "identifier/main"]:
                 if str(row[key]).lower().find(search_string) > -1:
                     selection = QItemSelection()
@@ -210,7 +223,7 @@ class RundownModule(BaseModule):
                 continue
             break
         else:
-            logging.warnings("Not found: {}".format(self.last_search))
+            logging.warning("Not found: {}".format(self.last_search))
             self.view.clearSelection()
 
     #
@@ -228,7 +241,10 @@ class RundownModule(BaseModule):
 
             if message.data["cued_item"] != self.cued_item:
                 self.cued_item = message.data["cued_item"]
-                self.load()
+                if self.mcr.isVisible():
+                    self.load()
+                else:
+                    self.view.model().refresh_items([self.current_item])
 
             if self.mcr:
                 self.mcr.seismic_handler(message)

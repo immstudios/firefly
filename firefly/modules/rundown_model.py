@@ -5,17 +5,15 @@ from firefly.dialogs.rundown import *
 
 DEFAULT_COLUMNS = [
         "title",
-        "identifier/main",
+        "id/main",
         "duration",
+        "status",
         "run_mode",
         "rundown_scheduled",
         "rundown_broadcast",
         "rundown_difference",
-        "rundown_status",
         "mark_in",
         "mark_out",
-        "id_asset",
-        "id_object"
     ]
 
 

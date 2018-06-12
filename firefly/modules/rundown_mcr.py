@@ -81,6 +81,7 @@ class MCR(QWidget):
         self.btn_abort   = MCRButton(u"Abort",  self, self.on_abort)
 
         can_mcr = False # disable MCR by default
+        can_mcr = True
         self.btn_take.setEnabled(can_mcr)
         self.btn_freeze.setEnabled(can_mcr)
         self.btn_retake.setEnabled(can_mcr)
@@ -135,16 +136,16 @@ class MCR(QWidget):
         return self.parent().id_channel
 
     def on_take(self):
-        api.mcr(method="take", id_channel=self.id_channel)
+        api.playout(action="take", id_channel=self.id_channel)
 
     def on_freeze(self):
-        api.mcr(method="freeze", id_channel=self.id_channel)
+        api.playout(action="freeze", id_channel=self.id_channel)
 
     def on_retake(self):
-        api.mcr(method="retake", id_channel=self.id_channel)
+        api.playout(action="retake", id_channel=self.id_channel)
 
     def on_abort(self):
-        api.mcr(method="abort", id_channel=self.id_channel)
+        api.playout(action="abort", id_channel=self.id_channel)
 
     def seismic_handler(self, data):
         status = data.data
@@ -192,4 +193,6 @@ class MCR(QWidget):
         except ZeroDivisionError:
             return
 
-        self.progress_bar.setValue(ppos)
+        oldval = self.progress_bar.value()
+        if ppos > oldval or abs(oldval-ppos) > (PROGRESS_BAR_RESOLUTION/self.dur):
+            self.progress_bar.setValue(ppos)

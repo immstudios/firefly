@@ -113,7 +113,8 @@ class FireflyApplication(Application):
                     "playout_channels",
                     "ingest_channels",
                     "folders",
-                    "views"
+                    "views",
+                    "actions",
                 ]:
             ng = {}
             for id in config[config_group]:

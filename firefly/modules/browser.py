@@ -68,14 +68,17 @@ class BrowserModule(BaseModule):
     def __init__(self, parent):
         super(BrowserModule, self).__init__(parent)
 
-#TODO: defaults from appstate
+        id_view = self.app_state.get("id_view", min(config["views"]))
+        self.loading = False
+
         self.search_query = {
-                "id_view" : min(config["views"].keys())
+                "id_view" : id_view
             }
 
         self.search_box = SearchWidget(self)
-
+        self.first_load = True
         self.view = FireflyBrowserView(self)
+        self.view.horizontalHeader().sectionResized.connect(self.on_section_resize)
 
         action_clear = QAction(QIcon(pix_lib["search_clear"]), '&Clear search query', parent)
         action_clear.triggered.connect(self.on_clear)
@@ -107,6 +110,9 @@ class BrowserModule(BaseModule):
     def model(self):
         return self.view.model
 
+    @property
+    def id_view(self):
+        return self.search_query["id_view"]
 
     def load_view_menu(self):
         for id_view in sorted(
@@ -122,15 +128,51 @@ class BrowserModule(BaseModule):
             action.triggered.connect(functools.partial(self.set_view, id_view))
             self.action_search.addAction(action)
 
+    def on_section_resize(self, *args, **kwargs):
+        if self.loading:
+            return
+        if not "browser_view_sizes" in self.app_state:
+            self.app_state["browser_view_sizes"] = {}
+        if not "browser_default_sizes"in self.app_state:
+            self.app_state["browser_default_sizes"] = {}
+
+        data = {}
+        for i, h in enumerate(self.model.header_data):
+            w = self.view.horizontalHeader().sectionSize(i)
+            self.app_state["browser_default_sizes"][h] = w
+            data[h] = w
+        self.app_state["browser_view_sizes"][self.id_view] = data
+
 #
 # Do browse
 #
 
     def load(self, **kwargs):
+        self.loading = True
+        old_view = self.search_query.get("id_view", -1)
         search_string = self.search_box.text()
         self.search_query["fulltext"] = search_string
         self.search_query.update(kwargs)
         self.view.model.load(**self.search_query)
+
+        if self.first_load or self.id_view != old_view:
+            view_state = self.app_state.get("browser_view_sizes", {}).get(self.id_view, {})
+            default_sizes = self.app_state.get("browser_defaut_sizes", {})
+            for i, h in enumerate(self.model.header_data):
+                if h in view_state:
+                    w = view_state[h]
+                elif h in default_sizes:
+                    w = default_sizes[h]
+                elif h in ["title", "subtitle"]:
+                    w = 300
+                elif h in ["qc/state"]:
+                    w = 20
+                else:
+                    w = 120
+                self.view.horizontalHeader().resizeSection(i, w)
+            self.first_load = False
+        self.loading = False
+
 
     def refresh(self):
         self.load()
@@ -148,6 +190,8 @@ class BrowserModule(BaseModule):
                 action.setChecked(True)
             else:
                 action.setChecked(False)
+        self.app_state["id_view"] = id_view
+
 
     def contextMenuEvent(self, event):
         if not self.view.selected_objects:
@@ -190,12 +234,6 @@ class BrowserModule(BaseModule):
         action_send_to.setStatusTip('Create action for selected asset(s)')
         action_send_to.triggered.connect(self.on_send_to)
         menu.addAction(action_send_to)
-
-        if config["rights"]["is_admin"].lower() == "true":
-            action_batch = QAction('&Batch ops', self)
-            action_batch.setStatusTip('Batch operations')
-            action_batch.triggered.connect(self.on_batch)
-            menu.addAction(action_batch)
 
         menu.addSeparator()
 

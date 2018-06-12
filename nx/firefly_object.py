@@ -4,7 +4,7 @@ from nebulacore.base_objects import BaseObject
 __all__ = ["FireflyObject"]
 
 DEFAULT_TEXT_COLOR  = "#c0c0c0"
-RUNDOWN_EVENT_BACKGROUND_COLOR = "#000000";
+RUNDOWN_EVENT_BACKGROUND_COLOR = "#0f0f0f"
 
 STATUS_FG_COLORS = {
     OFFLINE  : "#dd0000",
@@ -13,7 +13,16 @@ STATUS_FG_COLORS = {
     TRASHED  : "#808080",
     ARCHIVED : "#808080",
     RESET    : "#dddd00",
+    REMOTE   : "#dddd00",
+    UNKNOWN  : "#909090",
+    AIRED    : "#646464",
+    ONAIR    : "#ff9090"
 }
+
+DEFAULT_FOLDER = {
+        "color" : 0xaaaaaa,
+        "title" : "-"
+    }
 
 class CellFormat(object):
     key = "none"
@@ -31,13 +40,6 @@ class CellFormat(object):
 
     def font(self, obj, **kwargs):
         pass
-
-
-DEFAULT_FOLDER = {
-        "color" : 0xaaaaaa,
-        "title" : "-"
-    }
-
 
 #
 # Cell formatters
@@ -69,39 +71,32 @@ class FormatPromoted(CellFormat):
         return ["star_disabled", "star_enabled"][int(obj[self.key])]
 
 
-class FormatRundownStatus(CellFormat):
-    key = "rundown_status"
+class FormatStatus(CellFormat):
+    key = "status"
     def display(self, obj, **kwargs):
+        if obj.object_type == "asset":
+            return obj.show("status")
+
         if obj.object_type != "item" or not obj["id_asset"]:
             return ""
 
-        if obj["rundown_transfer_progress"] and float(obj["rundown_transfer_progress"]) == -1:
-            return "PENDING"
+#        if obj["rundown_transfer_progress"] and float(obj["rundown_transfer_progress"]) == -1:
+#            return "PENDING"
+#
+#        elif obj["rundown_transfer_progress"] and float(obj["rundown_transfer_progress"]) > -1:
+#            return "{:0.2f}%".format(float(obj["rundown_transfer_progress"]))
 
-        elif obj["rundown_transfer_progress"] and float(obj["rundown_transfer_progress"]) > -1:
-            return "{:0.2f}%".format(float(obj["rundown_transfer_progress"]))
+        return obj.show("status")
 
-        return {
-                -2 : "PART AIRED",
-                -1 : "AIRED",
-                0 : "OFFLINE",
-                1 : "NOT SCHEDULED",
-                2 : "READY"
-                }.get(int(obj[self.key]), "UNKNOWN")
 
     def foreground(self, obj, **kwargs):
-        return None
-        if obj["rundown_transfer_progress"] and int(obj["rundown_transfer_progress"]) >= -1:
-            return NXColors[ASSET_FG_CREATING]
+#        if obj["rundown_transfer_progress"] and int(obj["rundown_transfer_progress"]) >= -1:
+#            return NXColors[ASSET_FG_CREATING]
 
-        if obj.object_type == "item" and self["rundown_status"] == -1:
-            return "#404040"
+        if obj.object_type in ["asset", "item"]:
+            return STATUS_FG_COLORS[obj["status"]]
 
-        if obj.object_type == "item":
-            return [NXColors[ASSET_FG_OFFLINE],
-                    NXColors[ASSET_FG_OFFLINE],
-                    DEFAULT_TEXT_COLOR
-                    ][int(obj[self.key])]
+
 
 
 class FormatRundownDifference(CellFormat):
@@ -185,7 +180,7 @@ format_helpers_list = [
         FormatFolder,
         FormatContentType,
         FormatPromoted,
-        FormatRundownStatus,
+        FormatStatus,
         FormatRundownDifference,
         FormatRunMode,
         FormatState,
