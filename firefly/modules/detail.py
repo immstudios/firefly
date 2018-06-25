@@ -384,8 +384,7 @@ class DetailModule(BaseModule):
         if self.asset and self.asset["id_folder"]:
             new_asset["id_folder"] = self.asset["id_folder"]
         else:
-            new_asset["id_folder"] = 0
-        self.asset = False
+            new_asset["id_folder"] = min(config["folders"])
         self.duration.set_value(0)
         self.focus([new_asset])
 

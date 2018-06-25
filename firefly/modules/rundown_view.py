@@ -184,10 +184,11 @@ class RundownView(FireflyView):
 
 
         if events or len(items) > 10:
-            ret = QMessageBox.question(self,
-                "Delete",
-                "Do you REALLY want to delete {} items and {} events?\nThis operation CANNOT be undone".format(len(items), len(events)),
-                QMessageBox.Yes | QMessageBox.No
+            ret = QMessageBox.question(
+                    self,
+                    "Delete",
+                    "Do you REALLY want to delete {} items and {} events?\nThis operation CANNOT be undone".format(len(items), len(events)),
+                    QMessageBox.Yes | QMessageBox.No
                 )
 
             if ret != QMessageBox.Yes:
@@ -196,12 +197,12 @@ class RundownView(FireflyView):
         if items:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            response = api.delete(object_type="item", objets=items)
+            response = api.delete(object_type="item", objects=items)
             QApplication.restoreOverrideCursor()
             if response.is_error:
                 logging.error(response.message)
             else:
-                logging.info("Item deleted: {}".format(res))
+                logging.info("Item deleted: {}".format(response.message))
 
         if events:
             QApplication.processEvents()
@@ -211,9 +212,8 @@ class RundownView(FireflyView):
             if response.is_error:
                 logging.error(response.message)
             else:
-                logging.info("Item deleted: {}".format(res))
+                logging.info("Item deleted: {}".format(response.message))
 
-        self.parent().refresh()
         self.selectionModel().clear()
 
 

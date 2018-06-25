@@ -71,7 +71,12 @@ class FireflyMainWidget(QWidget):
         if self.current_module == self.detail:
             self.detail.detail_tabs.on_switch()
         else:
-            self.detail.detail_tabs.on_switch(-1) # disable proxy loading if player is not focused
+            # Disable proxy loading if player is not focused
+            self.detail.detail_tabs.on_switch(-1)
+
+        if self.current_module == self.rundown:
+            # Refresh rundown on focus
+            self.rundown.load()
 
 
 class FireflyMainWindow(MainWindow):

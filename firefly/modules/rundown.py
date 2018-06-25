@@ -250,9 +250,8 @@ class RundownModule(BaseModule):
                 self.mcr.seismic_handler(message)
 
         elif message.method == "objects_changed" and message.data["object_type"] == "event":
-            my_name = self.parent().objectName()
-
             for id_event in message.data["objects"]:
                 if id_event in self.view.model().event_ids:
+                    logging.debug("Event id {} has been changed. Reloading rundown.".format(id_event))
                     self.load()
                     break
