@@ -14,6 +14,8 @@ class FireflyMainWidget(QWidget):
         self.tabs = QTabWidget(self)
         self.tabs.currentChanged.connect(self.on_switch_tab)
 
+        self.browser = self.detail = self.rundown = self.scheduler = False
+
         # MAM modules
 
         self.browser = BrowserModule(self)

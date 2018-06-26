@@ -10,6 +10,7 @@ class RundownView(FireflyView):
         self.activated.connect(self.on_activate)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setModel(RundownModel(self))
+        self.focus_enabled = True
 
     @property
     def id_channel(self):
@@ -207,12 +208,12 @@ class RundownView(FireflyView):
         if events:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            response = api.schedule(delete=events)
+            response = api.schedule(delete=events, id_channel=self.parent().id_channel)
             QApplication.restoreOverrideCursor()
             if response.is_error:
                 logging.error(response.message)
             else:
-                logging.info("Item deleted: {}".format(response.message))
+                logging.info("Event deleted: {}".format(response.message))
 
         self.selectionModel().clear()
 

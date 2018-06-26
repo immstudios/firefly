@@ -92,6 +92,8 @@ class SchedulerModule(BaseModule):
         self.load(self.calendar.week_start_time + (3600*24*7))
 
     def focus(self, objects):
+        #TODO
+        pass
         if self.action_show_runs.isChecked():
             asset_ids = [obj.id for obj in objects if obj.object_type == "asset"]
             if not asset_ids:

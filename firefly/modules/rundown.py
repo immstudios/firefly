@@ -48,26 +48,34 @@ class RundownModule(BaseModule):
         return user.has_right("scheduler_edit", self.id_channel)
 
     def load(self, **kwargs):
+        # Save current selection
         selection = []
-        #for idx in self.view.selectionModel().selectedIndexes():
-        #    if self.model.object_data[idx.row()].id:
-        #        selection.append([self.model.object_data[idx.row()].object_type, self.model.object_data[idx.row()].id])
+        for idx in self.view.selectionModel().selectedIndexes():
+            if self.view.model().object_data[idx.row()].id:
+                selection.append([
+                        self.view.model().object_data[idx.row()].object_type,
+                        self.view.model().object_data[idx.row()].id
+                    ])
+
 
         do_update_header = False
+        if "id_channel" in kwargs and kwargs["id_channel"] != self.id_channel:
+            do_update_header = True
+            self.id_channel = kwargs["id_channel"]
+
         if "start_time" in kwargs:
-            if kwargs["start_time"] != self.start_time:
+            new_start = day_start(kwargs["start_time"], self.playout_config["day_start"])
+            if new_start != self.start_time:
                 do_update_header = True
-                self.start_time = kwargs["start_time"]
+                self.start_time = new_start
 
         if not self.start_time:
             do_update_header = True
             self.start_time = day_start(time.time(), self.playout_config["day_start"])
 
 
-        if "id_channel" in kwargs and kwargs["id_channel"] != self.id_channel:
-            do_update_header = True
-            self.id_channel = kwargs["id_channel"]
         self.view.load()
+
         if do_update_header:
             self.update_header()
 
@@ -76,29 +84,27 @@ class RundownModule(BaseModule):
             self.view.horizontalHeader().resizeSection(0, 300)
             self.first_load = False
 
+        event = kwargs.get("event", False)
+        if event:
+            for i, r in enumerate(self.view.model().object_data):
+                if event.id == r.id and r.object_typei == "event":
+                    self.view.scrollTo(
+                            self.view.model().index(i, 0, QModelIndex()),
+                            QAbstractItemView.PositionAtTop
+                        )
+                    break
 
-
-        if not "event" in kwargs:
-            return
-
-        event = kwargs["event"]
-        for i, r in enumerate(self.view.model().object_data):
-            if event.id == r.id and r.object_typei == "event":
-                self.view.scrollTo(
-                        self.view.model().index(i, 0, QModelIndex()),
-                        QAbstractItemView.PositionAtTop
-                    )
-                break
-
-        #item_selection = QItemSelection()
-        #for i, row in enumerate(self.model.object_data):
-        #    if [row.object_type, row.id] in selection:
-        #       i1 = self.model.index(i, 0, QModelIndex())
-        #       i2 = self.model.index(i, len(self.model.header_data)-1, QModelIndex())
-        #       item_selection.select(i1,i2)
-        #self.view.focus_enabled = False
-        #self.view.selectionModel().select(item_selection, QItemSelectionModel.ClearAndSelect)
-        #self.view.focus_enabled = True
+        # Restore selection
+        if selection:
+            item_selection = QItemSelection()
+            for i, row in enumerate(self.view.model().object_data):
+                if [row.object_type, row.id] in selection:
+                   i1 = self.view.model().index(i, 0, QModelIndex())
+                   i2 = self.view.model().index(i, len(self.view.model().header_data)-1, QModelIndex())
+                   item_selection.select(i1,i2)
+            self.view.focus_enabled = False
+            self.view.selectionModel().select(item_selection, QItemSelectionModel.ClearAndSelect)
+        self.view.focus_enabled = True
 
 
     def update_header(self):
