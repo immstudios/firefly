@@ -23,12 +23,12 @@ class SeismicMessage(object):
     def __init__(self, packet):
         self.timestamp, self.site_name, self.host, self.method, self.data = packet
 
-
 class SeismicListener(QThread):
     def __init__(self, site_name, addr, port):
         QThread.__init__(self, None)
         self.site_name = site_name
         self.should_run = True
+        self.active = False
         self.last_msg = time.time()
         self.queue = []
         self.start()
@@ -47,17 +47,22 @@ class SeismicListener(QThread):
                     on_close = self.on_close
                 )
             self.ws.run_forever()
+            self.active = False
+            logging.warning("Listenner stopped", handlers=False)
 
         logging.debug("Listener halted", handlers=False)
         self.halted = True
 
 
     def on_message(self, ws, data):
+        if not self.active:
+            logging.goodnews("Listener connected", handlers=False)
+            self.active = True
         try:
             message = SeismicMessage(json.loads(data))
         except Exception:
             log_traceback(handlers=False)
-            logging.debug("Malformed seismic message detected: {}".format(data))
+            logging.debug("Malformed seismic message detected: {}".format(data), handlers=False)
             return
 
         if message.site_name != self.site_name:
@@ -87,6 +92,7 @@ class SeismicListener(QThread):
         logging.error(error, handlers=False)
 
     def on_close(self, ws):
+        self.active = False
         logging.warning("WS connection interrupted. Reconnecting", handlers=False)
 
     def halt(self):
