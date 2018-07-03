@@ -11,8 +11,8 @@ class FireflyMainWidget(QWidget):
     def __init__(self, main_window):
         super(FireflyMainWidget, self).__init__(main_window)
         self.main_window = main_window
+        current_tab = self.main_window.app_state.get("current_module",0)
         self.tabs = QTabWidget(self)
-        self.tabs.currentChanged.connect(self.on_switch_tab)
 
         self.browser = self.detail = self.rundown = self.scheduler = False
 
@@ -27,7 +27,7 @@ class FireflyMainWidget(QWidget):
 
         # Jobs modul
 
-        if True: #TODO: if existing actions
+        if config["actions"]:
             self.jobs = JobsModule(self)
             self.tabs.addTab(self.jobs, "JOBS")
             self.main_window.add_subscriber(self.jobs, ["job_progress"])
@@ -37,7 +37,7 @@ class FireflyMainWidget(QWidget):
         if config["playout_channels"]:
             self.scheduler = SchedulerModule(self)
             self.rundown = RundownModule(self)
-            #TODO: scheduler subscriber
+            self.main_window.add_subscriber(self.scheduler, ["objects_changed"])
             self.main_window.add_subscriber(self.rundown, ["objects_changed", "rundown_changed", "playout_status"])
 
             self.tabs.addTab(self.scheduler, "SCHEDULER")
@@ -54,7 +54,13 @@ class FireflyMainWidget(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.main_splitter)
         self.setLayout(layout)
-        self.on_switch_tab()
+
+        if current_tab:
+            self.switch_tab(current_tab)
+        else:
+            self.on_switch_tab()
+
+        self.tabs.currentChanged.connect(self.on_switch_tab)
 
     @property
     def app(self):
@@ -66,7 +72,8 @@ class FireflyMainWidget(QWidget):
 
     def switch_tab(self, module):
         for i in range(self.tabs.count()):
-            if self.tabs.widget(i) == module:
+            if (type(module) == int and module == i) or self.tabs.widget(i) == module:
+                logging.info("switching to module", i)
                 self.tabs.setCurrentIndex(i)
 
     def on_switch_tab(self, index=None):
@@ -79,6 +86,7 @@ class FireflyMainWidget(QWidget):
         if self.current_module == self.rundown:
             # Refresh rundown on focus
             self.rundown.load()
+        self.main_window.app_state["current_module"] = self.tabs.currentIndex()
 
 
 class FireflyMainWindow(MainWindow):
@@ -138,12 +146,13 @@ class FireflyMainWindow(MainWindow):
     #
 
     def new_asset(self):
-        pass
+        self.detail.new_asset()
 
     def clone_asset(self):
-        pass
+        self.detail.clone_asset()
 
     def logout(self):
+        #TODO
         pass
 
     def exit(self):
@@ -160,8 +169,8 @@ class FireflyMainWindow(MainWindow):
 
     def set_channel(self, id_channel):
         if config["playout_channels"]:
-            for action in self.menu_channel.actions():
-                if action.id_channel == id_channel:
+            for action in self.menu_scheduling.actions():
+                if hasattr(action, "id_channel") and action.id_channel == id_channel:
                     action.setChecked(True)
             self.scheduler.set_channel(id_channel)
             self.rundown.set_channel(id_channel)
@@ -186,6 +195,12 @@ class FireflyMainWindow(MainWindow):
         if config["playout_channels"]:
             self.rundown.load()
             self.scheduler.load()
+
+    def export_template(self):
+        self.scheduler.export_template()
+
+    def import_template(self):
+        self.scheduler.import_template()
 
     #
     # Messaging
