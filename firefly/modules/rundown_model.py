@@ -241,7 +241,7 @@ class RundownModel(FireflyViewModel):
         # Send order query
         #
 
-        sorted_items = [item for item in sorted_items if item["id_object"]]
+        sorted_items = [item for item in sorted_items]# if item["id_object"]]
 
         if sorted_items:
             QApplication.processEvents()
@@ -256,5 +256,5 @@ class RundownModel(FireflyViewModel):
                 logging.info("Bin order changed")
             else:
                 logging.error("Unable to change bin order: {}".format(result.message))
-            self.load()
+            self.load() #TODO: Reload using rundown_changed seismic message
         return True

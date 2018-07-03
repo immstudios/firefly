@@ -7,7 +7,7 @@ from firefly.dialogs.send_to import SendToDialog
 
 from .rundown_utils import *
 from .rundown_mcr import MCR
-from .rundown_cg import CG
+from .rundown_plugins import PlayoutPlugins
 from .rundown_view import RundownView
 
 
@@ -21,23 +21,31 @@ class RundownModule(BaseModule):
         self.first_load = True
 
         self.view = RundownView(self)
-
         self.mcr = MCR(self)
-        self.cg = CG(self)
+        self.plugins = PlayoutPlugins(self)
 
         self.toolbar = rundown_toolbar(self)
-        self.items_toolbar = items_toolbar(self)
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(0,0,0,0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(2)
         layout.addWidget(self.toolbar, 0)
-        layout.addWidget(self.items_toolbar, 0)
         layout.addWidget(self.mcr)
-        layout.addWidget(self.cg)
+        layout.addWidget(self.plugins)
         layout.addWidget(self.view, 1)
 
         self.setLayout(layout)
+
+        if self.app_state.get("show_mcr", False):
+            self.mcr.show()
+        else:
+            self.mcr.hide()
+
+        if self.app_state.get("show_plugins", False):
+            self.plugins.show()
+        else:
+            self.plugins.hide()
+
 
     @property
     def can_edit(self):
@@ -72,7 +80,6 @@ class RundownModule(BaseModule):
         if not self.start_time:
             do_update_header = True
             self.start_time = day_start(time.time(), self.playout_config["day_start"])
-
 
         self.view.load()
 
@@ -129,15 +136,14 @@ class RundownModule(BaseModule):
         if self.id_channel != id_channel or self.first_load:
             self.id_channel = id_channel
             self.load()
-            if self.cg:
-                self.cg.load_plugins(id_channel)
+            self.plugins.load()
 
-            if self.mcr:
-                can_mcr = has_right("mcr", self.id_channel)
-                self.mcr.btn_take.setEnabled(can_mcr)
-                self.mcr.btn_freeze.setEnabled(can_mcr)
-                self.mcr.btn_retake.setEnabled(can_mcr)
-                self.mcr.btn_abort.setEnabled(can_mcr)
+            can_mcr = has_right("mcr", self.id_channel)
+            self.mcr.btn_take.setEnabled(can_mcr)
+            self.mcr.btn_freeze.setEnabled(can_mcr)
+            self.mcr.btn_retake.setEnabled(can_mcr)
+            self.mcr.btn_abort.setEnabled(can_mcr)
+
 
     def go_day_prev(self):
         self.load(start_time=self.start_time - (3600*24))
@@ -169,21 +175,20 @@ class RundownModule(BaseModule):
     def toggle_mcr(self):
         if self.mcr.isVisible():
             self.mcr.hide()
+            self.app_state["show_mcr"] = False
         else:
             self.mcr.show()
+            self.app_state["show_mcr"] = True
             self.load()
 
-    def toggle_cg(self):
-        if self.cg.isVisible():
-            self.cg.hide()
+    def toggle_plugins(self):
+        if self.plugins.isVisible():
+            self.plugins.hide()
+            self.app_state["show_plugins"] = False
         else:
-            self.cg.show()
+            self.plugins.show()
+            self.app_state["show_plugins"] = True
 
-    def toggle_tools(self):
-        if self.items_toolbar.isVisible():
-            self.items_toolbar.hide()
-        else:
-            self.items_toolbar.show()
 
     #
     # Search rundown
@@ -193,7 +198,7 @@ class RundownModule(BaseModule):
         text, result = QInputDialog.getText(
                 self,
                 "Rundown search",
-                "Enter your blabla:",
+                "Search query:",
                 text=self.last_search
             )
         if result and text:
@@ -252,8 +257,7 @@ class RundownModule(BaseModule):
                 else:
                     self.view.model().refresh_items([self.current_item])
 
-            if self.mcr:
-                self.mcr.seismic_handler(message)
+            self.mcr.seismic_handler(message)
 
         elif message.method == "objects_changed" and message.data["object_type"] == "event":
             for id_event in message.data["objects"]:

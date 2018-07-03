@@ -47,7 +47,6 @@ class MCRLabel(QLabel):
                 font-weight: bold;
                 color : {};
                 width:160px;
-                text-overflow: ellipsis;
             """.format(tcolor))
 
     def set_text(self,text):

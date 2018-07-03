@@ -88,7 +88,7 @@ class ItemButton(QToolButton):
         mimeData = QMimeData()
         mimeData.setData(
            "application/nx.item",
-           json.dumps(item_data)
+           encode_if_py3(json.dumps(item_data))
            )
         drag.setMimeData(mimeData)
         if drag.exec_(Qt.CopyAction):
@@ -138,22 +138,23 @@ def rundown_toolbar(wnd):
 
     toolbar.addSeparator()
 
+    for btn_config in ITEM_BUTTONS:
+        toolbar.addWidget(ItemButton(wnd, btn_config))
+
+    toolbar.addSeparator()
+
     action_toggle_mcr = QAction(QIcon(pix_lib["onair"]), '&Playout controls', wnd)
     action_toggle_mcr.setStatusTip('Toggle playout controls')
     action_toggle_mcr.triggered.connect(wnd.toggle_mcr)
     toolbar.addAction(action_toggle_mcr)
 
-    action_toggle_cg = QAction(QIcon(pix_lib["cg"]), '&CG controls', wnd)
-    action_toggle_cg.setShortcut('F4')
-    action_toggle_cg.setStatusTip('Toggle CG controls')
-    action_toggle_cg.triggered.connect(wnd.toggle_cg)
-    toolbar.addAction(action_toggle_cg)
+    #TODO: change icon
+    action_toggle_plugins = QAction(QIcon(pix_lib["cg"]), '&Plugins controls', wnd)
+    action_toggle_plugins.setShortcut('F4')
+    action_toggle_plugins.setStatusTip('Toggle plugins controls')
+    action_toggle_plugins.triggered.connect(wnd.toggle_plugins)
+    toolbar.addAction(action_toggle_plugins)
 
-
-    action_toggle_tools = QAction(QIcon(pix_lib["tools"]), '&Rundown tools', wnd)
-    action_toggle_tools.setStatusTip('Toggle rundown tools')
-    action_toggle_tools.triggered.connect(wnd.toggle_tools)
-    toolbar.addAction(action_toggle_tools)
 
     toolbar.addWidget(ToolBarStretcher(wnd))
 
@@ -164,8 +165,3 @@ def rundown_toolbar(wnd):
 
 
 
-def items_toolbar(wnd):
-    toolbar = QToolBar(wnd)
-    for btn_config in ITEM_BUTTONS:
-        toolbar.addWidget(ItemButton(wnd, btn_config))
-    return toolbar
