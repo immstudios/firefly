@@ -3,7 +3,10 @@ import datetime
 from firefly import *
 
 from .scheduler_model import *
+from .scheduler_utils import dump_template
+
 from firefly.dialogs.event import EventDialog
+
 
 EMPTY_EVENT_DATA = '[{"id" : 0, "title" : "Empty event"}]'.encode("ascii")
 
@@ -77,6 +80,14 @@ class SchedulerModule(BaseModule):
 
         self.setLayout(layout)
 
+    def export_template(self):
+        data = dump_template(self.calendar)
+        print (data)
+
+    def import_template(self):
+        #TODO
+        pass
+
 
     def load(self, *args, **kwargs):
         self.calendar.load(*args, **kwargs)
@@ -103,21 +114,17 @@ class SchedulerModule(BaseModule):
                 self.calendar.focus_data = data["data"]
                 self.calendar.update()
 
-
     def open_rundown(self, ts, event=False):
         logging.info("TODO: Open rundown (scheduler.py)")
 
     def set_channel(self, id_channel):
         self.load()
 
-
     def seismic_handler(self, data):
        if data.method == "objects_changed" and data.data["object_type"] == "event":
-            my_name = self.parent().objectName()
-#            print (data.data)
-#            print (my_name)
-#            for id_event in data.data["objects"]:#
-#                if data.data["sender"] != my_name and id_event in self.model.event_ids :
-#                    self.refresh()
-#                    break
-        # TODO!
+            do_load = False
+            for id_event in data.data["objects"]:
+                if id_event in self.calendar.event_ids :
+                    do_load = True
+            if do_load:
+                self.load()

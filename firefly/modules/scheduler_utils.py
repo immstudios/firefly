@@ -5,17 +5,15 @@ COLOR_CALENDAR_BACKGROUND = QColor("#161616")
 COLOR_DAY_BACKGROUND = QColor("#323232")
 
 TIME_PENS = [
-        (60 , QPen( QColor("#999999"), 2 , Qt.SolidLine )),
-        (15 , QPen( QColor("#999999"), 1 , Qt.SolidLine )),
-        (5  , QPen( QColor("#444444"), 1 , Qt.SolidLine ))
+        (60 , QPen( QColor("#999999"), 2 , Qt.SolidLine)),
+        (15 , QPen( QColor("#999999"), 1 , Qt.SolidLine)),
+        (5  , QPen( QColor("#444444"), 1 , Qt.SolidLine))
     ]
-
 
 RUN_PENS = [
-    QPen( QColor("#dddd00"), 2 , Qt.SolidLine ),
-    QPen( QColor("#dd0000"), 2 , Qt.SolidLine )
+        QPen( QColor("#dddd00"), 2 , Qt.SolidLine),
+        QPen( QColor("#dd0000"), 2 , Qt.SolidLine)
     ]
-
 
 SECS_PER_DAY = 3600 * 24
 MINS_PER_DAY = 60 * 24
@@ -41,3 +39,32 @@ def text_shorten(text, font, target_width):
             r = exps.pop(0)
     return text[::-1]
 
+
+
+def dump_template(calendar):
+    result = """<?xml version="1.0" encoding="utf-8" standalone="yes"?>\n"""
+    result += "</template>\n"
+
+    DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    days = [[], [], [], [], [], [], []]
+    for event in calendar.events:
+        week_offset = event["start"] - calendar.week_start_time
+        day = int(week_offset / (3600*24))
+        days[day].append(event)
+
+    for i, day in enumerate(days):
+        result += "    <!-- {} -->\n".format(DAY_NAMES[i])
+        result += "    <day>\n"
+        for event in day:
+            clock = format_time(event["start"], "%H:%M")
+            result += "        <event time=\"{}\"> <!-- {} -->\n".format(clock, event["title"])
+            for key in event.meta:
+                if meta_types[key]["ns"] != "m":
+                    continue
+                result += "            <meta=\"{}\">{}</meta>\n".format(key, event[key])
+            result += "            {}\n".format(event)
+            result += "        </event>\n"
+        result += "    </day>\n"
+
+    result += "</template>"
+    return result

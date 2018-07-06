@@ -1,4 +1,3 @@
-import re
 import datetime
 
 from firefly import *
@@ -396,10 +395,9 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                     if result.is_error:
                         logging.error(result.message)
 
-
         self.calendar.drag_source = False
         self.calendar.dragging = False
-        self.calendar.load()
+        #self.calendar.load() #TODO: Check if correctly handled by seismic
 
 
     def contextMenuEvent(self, event):
@@ -633,6 +631,10 @@ class SchedulerCalendar(QWidget):
     @property
     def day_start(self):
         return self.playout_config["day_start"]
+
+    @property
+    def event_ids(self):
+        return [event.id for event in self.events]
 
     def load(self, ts=False):
         if not self.week_start_time and not ts:
