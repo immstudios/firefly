@@ -113,8 +113,6 @@ class FormatRundownDifference(CellFormat):
 class FormatRunMode(CellFormat):
     key = "run_mode"
     def display(self, obj, **kwargs):
-        if obj.object_type == "item" and not obj["id_asset"]:
-            return
         if obj[self.key] == 1:
             return "MANUAL"
         if obj[self.key] == 2:
@@ -126,6 +124,9 @@ class FormatRunMode(CellFormat):
 
 class FormatState(CellFormat):
     key = "qc/state"
+    def display(self, obj, **kwargs):
+        return ""
+
     def decoration(self, obj, **kwargs):
         return {
                 0 : "qc_new",
