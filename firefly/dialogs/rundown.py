@@ -3,8 +3,15 @@ from firefly import *
 __all__ = ["PlaceholderDialog", "SubclipSelectDialog"]
 
 ITEM_ROLES = {
-    "studio" : [["title", "Studio"], ["duration", 300], ["article", ""]],
-    "placeholder" : [["title", "Placeholder"], ["duration", 3600] ],
+    "studio" : [
+            ["title", "Studio"],
+            ["duration", 300],
+            ["article", ""]
+        ],
+    "placeholder" : [
+            ["title", "Placeholder"],
+            ["duration", 3600]
+        ],
 }
 
 
@@ -34,7 +41,6 @@ class PlaceholderDialog(QDialog):
         self.setLayout(layout)
 
         self.setModal(True)
-        self.setStyleSheet(base_css)
         self.setMinimumWidth(400)
 
     @property
@@ -51,7 +57,6 @@ class SubclipSelectDialog(QDialog):
     def __init__(self,  parent, asset):
         super(SubclipSelectDialog, self).__init__(parent)
         self.setModal(True)
-        self.setStyleSheet(base_css)
         self.setWindowTitle("Select {} subclip to use".format(asset))
         self.ok = False
 

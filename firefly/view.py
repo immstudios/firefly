@@ -62,7 +62,7 @@ class FireflyViewModel(QAbstractTableModel):
         elif role == Qt.ToolTipRole:
             r = pformat(obj.meta)
             if obj.object_type == "item":
-                r += "\n\n" + pformat(obj.asset.meta)
+                r += "\n\n" + pformat(obj.asset.meta) if obj.asset else ""
             return r
         return None
 

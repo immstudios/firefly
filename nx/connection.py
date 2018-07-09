@@ -33,7 +33,8 @@ class NebulaAPI(object):
                     }
             result = json.loads(response.text)
         except Exception:
-            return {"response" : 500, "message" : log_traceback()}
+            log_traceback()
+            return {"response" : 500, "message" : "Connection failed"}
         if not result["user"]:
             return {"response" : 403, "message" : "Unable to log-in"}
         return {"response" : 200, "data" : result["user"]}

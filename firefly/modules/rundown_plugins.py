@@ -34,6 +34,8 @@ class PlayoutPlugin(QWidget):
             if slot_type == "text":
                 self.slots[slot_name] = FireflyString(self)
             elif slot_type == "select":
+                if not slot["values"]:
+                    continue
                 self.slots[slot_name] = FireflySelect(self, data=slot["values"])
                 self.slots[slot_name].set_value(min([r[0] for r in slot["values"]]))
             else:
@@ -86,7 +88,6 @@ class PlayoutPlugins(QTabWidget):
             logging.error("Unable to load playout plugins:\n{}".format(response.message))
             return
 
-        print (response.data)
         for plugin in response.data:
             self.plugins.append(PlayoutPlugin(self, plugin))
             self.addTab(self.plugins[-1], plugin["title"])

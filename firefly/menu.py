@@ -59,7 +59,7 @@ def create_menu(wnd):
 #
 
     if config["playout_channels"]:
-        wnd.menu_channel = menubar.addMenu('&Channel')
+        wnd.menu_scheduling = menubar.addMenu('&Scheduling')
         ag = QActionGroup(wnd, exclusive=True)
 
         for id_channel in sorted(config["playout_channels"]):
@@ -71,15 +71,20 @@ def create_menu(wnd):
                     ))
             a.id_channel = id_channel
             a.triggered.connect(partial(wnd.set_channel, id_channel))
-            wnd.menu_channel.addAction(a)
+            wnd.menu_scheduling.addAction(a)
 
-#
-# WINDOW
-#
+        wnd.menu_scheduling.addSeparator()
 
+        action_export_template = QAction('Export', wnd)
+        action_export_template.setStatusTip('Export current week as template')
+        action_export_template.triggered.connect(wnd.export_template)
+        wnd.menu_scheduling.addAction(action_export_template)
 
-    if config["playout_channels"]:
-        menu_rundown = menubar.addMenu('&Scheduling')
+        action_import_template = QAction('Import', wnd)
+        action_import_template.setStatusTip('Import week template')
+        action_import_template.triggered.connect(wnd.import_template)
+        wnd.menu_scheduling.addAction(action_import_template)
+
 
 
 
