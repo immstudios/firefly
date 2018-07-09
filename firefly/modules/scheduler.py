@@ -14,7 +14,7 @@ class EmptyEventButton(QToolButton):
     def __init__(self, parent):
         super(EmptyEventButton, self).__init__()
         self.pressed.connect(self.startDrag)
-        self.setIcon(QIcon(pix_lib["empty_event"]))
+        self.setIcon(QIcon(pix_lib["empty-event"]))
         self.setToolTip("Drag this to scheduler to create empty event.")
 
     def startDrag(self):
@@ -32,7 +32,7 @@ class EmptyEventButton(QToolButton):
 def scheduler_toolbar(wnd):
     toolbar = QToolBar(wnd)
 
-    action_week_prev = QAction(QIcon(pix_lib["back"]), '&Previous week', wnd)
+    action_week_prev = QAction(QIcon(pix_lib["previous"]), '&Previous week', wnd)
     action_week_prev.setStatusTip('Go to previous week')
     action_week_prev.triggered.connect(wnd.on_week_prev)
     toolbar.addAction(action_week_prev)
@@ -49,7 +49,7 @@ def scheduler_toolbar(wnd):
 
     toolbar.addSeparator()
 
-    wnd.action_show_runs = QAction(QIcon(pix_lib["repeat"]), '&Show runs', wnd)
+    wnd.action_show_runs = QAction(QIcon(pix_lib["show-runs"]), '&Show runs', wnd)
     wnd.action_show_runs.setStatusTip('Show runs')
     wnd.action_show_runs.setCheckable(True)
     toolbar.addAction(wnd.action_show_runs)

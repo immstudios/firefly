@@ -30,7 +30,7 @@ class JobsModule(BaseModule):
 
         self.view = FireflyJobsView(self)
 
-        action_clear = QAction(QIcon(pix_lib["search_clear"]), '&Clear search query', parent)
+        action_clear = QAction(QIcon(pix_lib["cancel"]), '&Clear search query', parent)
         action_clear.triggered.connect(self.on_clear)
 
         self.action_search = QMenu("Views")

@@ -3,14 +3,20 @@ from firefly import *
 __all__ = ["PlaceholderDialog", "SubclipSelectDialog"]
 
 ITEM_ROLES = {
-    "studio" : [
-            ["title", "Studio"],
+    "live" : [
+            ["title", "Live"],
             ["duration", 300],
             ["article", ""]
         ],
     "placeholder" : [
             ["title", "Placeholder"],
             ["duration", 3600]
+        ],
+    "lead_in" : [
+            ["title", "Lead-In"],
+        ],
+    "lead_out" : [
+            ["title", "Lead-Out"],
         ],
 }
 

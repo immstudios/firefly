@@ -13,21 +13,21 @@ ITEM_BUTTONS = [
     },
 
     {
-        "icon"      : "talking_head",
-        "title"     : "Studio",
-        "tooltip"   : "Drag this to rundown to create studio placeholder",
-        "item_role" : "studio",
+        "icon"      : "live",
+        "title"     : "Live",
+        "tooltip"   : "Drag this to rundown to create live item",
+        "item_role" : "live",
     },
 
     {
-        "icon"      : "mark_in",
+        "icon"      : "lead-in",
         "title"     : "Lead-in",
         "tooltip"   : "Drag this to rundown to create Lead-in",
         "item_role" : "lead_in",
     },
 
     {
-        "icon"      : "mark_out",
+        "icon"      : "lead-out",
         "title"     : "Lead-out",
         "tooltip"   : "Drag this to rundown to create Lead-out",
         "item_role" : "lead_out",
@@ -108,7 +108,7 @@ def rundown_toolbar(wnd):
 
     toolbar = QToolBar(wnd)
 
-    action_day_prev = QAction(QIcon(pix_lib["back"]), '&Previous day', wnd)
+    action_day_prev = QAction(QIcon(pix_lib["previous"]), '&Previous day', wnd)
     action_day_prev.setShortcut('Alt+Left')
     action_day_prev.setStatusTip('Go to previous day')
     action_day_prev.triggered.connect(wnd.go_day_prev)
@@ -143,13 +143,13 @@ def rundown_toolbar(wnd):
 
     toolbar.addSeparator()
 
-    action_toggle_mcr = QAction(QIcon(pix_lib["onair"]), '&Playout controls', wnd)
+    action_toggle_mcr = QAction(QIcon(pix_lib["mcr"]), '&Playout controls', wnd)
     action_toggle_mcr.setStatusTip('Toggle playout controls')
     action_toggle_mcr.triggered.connect(wnd.toggle_mcr)
     toolbar.addAction(action_toggle_mcr)
 
     #TODO: change icon
-    action_toggle_plugins = QAction(QIcon(pix_lib["cg"]), '&Plugins controls', wnd)
+    action_toggle_plugins = QAction(QIcon(pix_lib["plugins"]), '&Plugins controls', wnd)
     action_toggle_plugins.setShortcut('F4')
     action_toggle_plugins.setStatusTip('Toggle plugins controls')
     action_toggle_plugins.triggered.connect(wnd.toggle_plugins)
