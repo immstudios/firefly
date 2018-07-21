@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
-import rex
+try:
+    import rex
+except ImportError:
+    # Freezed application does not need package manager
+    pass
 
 from firefly.application import FireflyApplication
 
