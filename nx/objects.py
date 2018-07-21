@@ -14,8 +14,6 @@ __all__ = ["Asset", "Item", "Bin", "Event", "User", "asset_cache"]
 class Asset(AssetMixIn, FireflyObject):
     pass
 
-
-
 class AssetCache(object):
     def __init__(self):
         self.data = {}
@@ -53,20 +51,24 @@ class AssetCache(object):
     def load(self):
         if not os.path.exists(self.cache_path):
             return
+        start_time = time.time()
         try:
             data = json.load(open(self.cache_path))
         except:
             log_traceback("Corrupted cache file '{}'".format(self.cache_path))
             return
+
         for meta in data:
             self.data[int(meta["id"])] = Asset(meta=meta)
-        logging.debug("Loaded {} assets from cache".format(len(self.data)))
+        logging.debug("Loaded {} assets from cache in {:.03f}s".format(len(self.data), time.time() - start_time))
 
     def save(self):
         logging.info("Saving {} assets to local cache".format(len(self.data)))
+        start_time = time.time()
         data = [asset.meta for asset in self.data.values()]
         with open(self.cache_path, "w") as f:
             json.dump(data, f)
+        logging.debug("Cache updated in {:.03f}s".format(time.time() - start_time))
 
 asset_cache = AssetCache()
 
