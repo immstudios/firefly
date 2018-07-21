@@ -160,11 +160,13 @@ class FormatTitle(CellFormat):
             if obj["id_folder"]:
                 return "folder_" + str(obj["id_folder"])
             elif obj["item_role"] == "lead_in":
-                return "mark_in"
+                return "lead-in"
             elif obj["item_role"] == "lead_out":
-                return "mark_out"
-            elif obj["item_role"] == "studio":
-                return "talking_head"
+                return "lead-out"
+            elif obj["item_role"] == "live":
+                return "live"
+            elif obj["item_role"] == "placeholder":
+                return "placeholder"
 
     def foreground(self, obj, **kwargs):
         if obj.object_type in ["asset", "item"]:
@@ -226,7 +228,7 @@ class FireflyObject(BaseObject):
             elif model.current_item == self.id:
                 return "#900505"
             elif not self["id_asset"]:
-                return "#121240"
+                return "#303030"
         return None
 
     def format_decoration(self, key, **kwargs):
