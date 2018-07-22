@@ -165,7 +165,7 @@ class RundownModel(FireflyViewModel):
                 return False
             else:
                 for obj in items:
-                    if not obj.get("id", False) and obj.get("item_role", False):
+                    if not obj.get("id", False) and obj.get("item_role", False) in ["live", "placeholder"]:
                         dlg = PlaceholderDialog(self.parent(), obj["item_role"])
                         dlg.exec_()
                         if not dlg.ok:

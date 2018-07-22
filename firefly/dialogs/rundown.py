@@ -8,15 +8,10 @@ ITEM_ROLES = {
             ["duration", 300],
             ["article", ""]
         ],
+
     "placeholder" : [
             ["title", "Placeholder"],
             ["duration", 3600]
-        ],
-    "lead_in" : [
-            ["title", "Lead-In"],
-        ],
-    "lead_out" : [
-            ["title", "Lead-Out"],
         ],
 }
 
@@ -25,6 +20,9 @@ class PlaceholderDialog(QDialog):
     def __init__(self,  parent, item_role):
         super(PlaceholderDialog, self).__init__(parent)
         self.setWindowTitle("Rundown placeholder")
+
+        if not item_role in ITEM_ROLES:
+            self.close()
 
         self.ok = False
 

@@ -94,7 +94,7 @@ class RundownModule(BaseModule):
         event = kwargs.get("event", False)
         if event:
             for i, r in enumerate(self.view.model().object_data):
-                if event.id == r.id and r.object_typei == "event":
+                if event.id == r.id and r.object_type == "event":
                     self.view.scrollTo(
                             self.view.model().index(i, 0, QModelIndex()),
                             QAbstractItemView.PositionAtTop
