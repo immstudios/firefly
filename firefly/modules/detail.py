@@ -11,7 +11,6 @@ except OSError:
     has_player = False
 
 
-
 class DetailTabMain(QWidget):
     def __init__(self, parent):
         super(DetailTabMain, self).__init__(parent)
@@ -202,9 +201,10 @@ class DetailTabs(QTabWidget):
         self.tabs = [
                 self.tab_main,
                 self.tab_extended,
-                self.tab_technical,
-                self.tab_preview,
+                self.tab_technical
             ]
+        if has_player:
+            self.tabs.append(self.tab_preview)
 
     def on_switch(self, *args):
         try:

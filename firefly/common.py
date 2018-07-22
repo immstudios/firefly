@@ -5,7 +5,9 @@ from .version import FIREFLY_VERSION
 from nx import *
 
 DEBUG, INFO, WARNING, ERROR, GOOD_NEWS = range(5)
-logging.user = "Firefly"
+
+logging.user = ""
+logging.handlers = []
 
 #
 # pix library
