@@ -115,7 +115,9 @@ class SchedulerModule(BaseModule):
                 self.calendar.update()
 
     def open_rundown(self, ts, event=False):
-        logging.info("TODO: Open rundown (scheduler.py)")
+        self.main_window.main_widget.rundown.load(start_time=ts, event=event)
+        self.main_window.main_widget.switch_tab(self.main_window.main_widget.rundown)
+
 
     def set_channel(self, id_channel):
         self.load()

@@ -549,7 +549,7 @@ class SchedulerDayHeaderWidget(QLabel):
         menu.exec_(event.globalPos())
 
     def on_open_rundown(self):
-        self.calendar.open_rundown(self.start_time)
+        self.parent().open_rundown(self.start_time)
 
     def on_solve(self):
         dlg = DramaticaDialog(self)
