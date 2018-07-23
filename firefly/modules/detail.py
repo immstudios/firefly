@@ -14,7 +14,7 @@ except OSError:
 class DetailTabMain(QWidget):
     def __init__(self, parent):
         super(DetailTabMain, self).__init__(parent)
-        self.tags = []
+        self.keys = []
         self.widgets = {}
         self.layout = QVBoxLayout()
         self.form = False
@@ -41,9 +41,9 @@ class DetailTabMain(QWidget):
         id_folder = kwargs.get("id_folder", asset["id_folder"])
         if id_folder != self.id_folder:
             if not id_folder:
-                self.tags = []
+                self.keys = []
             else:
-                self.tags = config["folders"][id_folder]["meta_set"]
+                self.keys = config["folders"][id_folder]["meta_set"]
 
             if self.form:
                 # SRSLY. I've no idea what I'm doing here
@@ -56,15 +56,16 @@ class DetailTabMain(QWidget):
             for i in reversed(range(self.layout.count())):
                 self.layout.itemAt(i).widget().deleteLater()
 
-            self.form = MetaEditor(self, self.tags)
+            self.form = MetaEditor(self, self.keys)
             self.layout.addWidget(self.form)
             self.id_folder = id_folder
             self.status = asset["status"]
 
         if self.form:
-            for tag, conf in self.tags:
-                self.form[tag] = asset[tag]
-                asset[tag] = self.form[tag]
+            for key, conf in self.keys:
+                if meta_types[key]["class"] == SELECT:
+                   self.form.inputs[key].set_data([[k["value"], k["alias"]] for k in asset.show(key, full=True)])
+                self.form[key] = asset[key]
             self.form.set_defaults()
 
         if self.form:

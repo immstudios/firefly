@@ -15,11 +15,9 @@ class ToolBarStretcher(QWidget):
         super(ToolBarStretcher, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
 
-
 #
 # Metadata editor widgets
 #
-
 
 class FireflyNotImplementedEditor(QLabel):
     def __init__(self, parent, **kwargs):
@@ -35,8 +33,6 @@ class FireflyNotImplementedEditor(QLabel):
 
     def setReadOnly(self, *args, **kwargs):
         pass
-
-
 
 
 class FireflyString(QLineEdit):
@@ -60,6 +56,7 @@ class FireflyText(QTextEdit):
         fixed_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         fixed_font.setStyleHint(QFont.Monospace);
         self.setCurrentFont(fixed_font)
+        self.setTabChangesFocus(True)
         self.default = self.get_value()
 
     def set_value(self, value):
@@ -168,17 +165,15 @@ class FireflySelect(QComboBox):
     def __init__(self, parent, **kwargs):
         super(FireflySelect, self).__init__(parent)
         self.cdata = []
-
         if kwargs.get("data", []):
             self.set_data(kwargs["data"])
-        elif kwargs.get("cs", False):
-            pass
         self.default = self.get_value()
 
     def setReadOnly(self, val):
         self.setEnabled(not val)
 
     def set_data(self, data):
+        self.clear()
         for i, row in enumerate(sorted(data)):
             value, label = row
             if not label:
@@ -260,9 +255,21 @@ class FireflyRadio(QWidget):
             w.setEnabled(not val)
 
 
+class FireflyBoolean(QCheckBox):
+    def __init__(self, parent, **kwargs):
+        super(FireflyBoolean, self).__init__(parent)
+        self.default = self.get_value()
+
+    def setReadOnly(self, val):
+        self.setEnabled(not val)
+
+    def set_value(self, value):
+        self.setChecked(bool(value))
+
+    def get_value(self):
+        return self.isChecked()
+
 #TODO
-class FireflyBoolean(FireflyNotImplementedEditor):
-    pass
 
 class FireflyRegions(FireflyNotImplementedEditor):
     pass
@@ -306,7 +313,10 @@ class MetaEditor(QWidget):
             key_settings = meta_types[key].settings
             key_settings.update(conf)
 
-            self.inputs[key] = meta_editors.get(key_class, FireflyNotImplementedEditor)(self, **key_settings)
+            self.inputs[key] = meta_editors.get(
+                    key_class,
+                    FireflyNotImplementedEditor
+                )(self, **key_settings)
 
             layout.addRow(key_label, self.inputs[key])
         self.setLayout(layout)

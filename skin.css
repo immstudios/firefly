@@ -119,9 +119,23 @@ QSpinBox {
     min-height: 30px;
 }
 
+
+QCheckBox {
+    color: #009fbc;
+}
+
+QLineEdit:focus,
+QTextEdit:focus,
+QComboBox:focus,
+QPushButton:focus,
+QSpinBox:focus {
+    border: 1px solid #009fbc;
+}
+
 QLineEdit:!enabled,
 QTextEdit:!enabled,
 QComboBox:!enabled,
+QCheckBox::indicator:!enabled,
 QPushButton:!enabled {
     color : #646464;
 }
