@@ -46,11 +46,10 @@ class MCRLabel(QLabel):
                 font:16px;
                 font-weight: bold;
                 color : {};
-                width:160px;
             """.format(tcolor))
 
     def set_text(self,text):
-       self.setText("{}: {}".format(self.head, text))
+        self.setText(self.head + ": " + text)
 
 
 class MCR(QWidget):
@@ -65,6 +64,8 @@ class MCR(QWidget):
         self.paused = False
         self.stopped = True
         self.local_request_time = time.time()
+        self.updating = False
+        self.first_update = True
 
         self.fps = 25.0
 
@@ -81,6 +82,7 @@ class MCR(QWidget):
         self.btn_abort   = MCRButton(u"Abort",  self, self.on_abort)
 
         can_mcr = False # disable MCR by default
+        #TODO: ACL
         can_mcr = True
         self.btn_take.setEnabled(can_mcr)
         self.btn_freeze.setEnabled(can_mcr)
@@ -104,6 +106,7 @@ class MCR(QWidget):
 
         self.display_rem     = MCRLabel("REM","(unknown)")
         self.display_dur     = MCRLabel("DUR", "--:--:--:--")
+
 
         info_layout = QGridLayout()
         info_layout.setContentsMargins(0,0,0,0)
@@ -169,7 +172,8 @@ class MCR(QWidget):
 
 
     def update_display(self):
-        adv = time.time() - self.local_request_time
+        now = time.time()
+        adv = now - self.local_request_time
 
         rtime = self.request_time+adv
         rpos = self.pos
@@ -192,7 +196,15 @@ class MCR(QWidget):
             ppos = int((rpos/self.dur) * PROGRESS_BAR_RESOLUTION)
         except ZeroDivisionError:
             return
+        else:
+            oldval = self.progress_bar.value()
+            if ppos > oldval or abs(oldval-ppos) > (PROGRESS_BAR_RESOLUTION/self.dur):
+                self.progress_bar.setValue(ppos)
 
-        oldval = self.progress_bar.value()
-        if ppos > oldval or abs(oldval-ppos) > (PROGRESS_BAR_RESOLUTION/self.dur):
-            self.progress_bar.setValue(ppos)
+        if self.first_update:
+            QApplication.processEvents()
+            self.display_clock.setFixedSize(self.display_clock.size())
+            self.display_pos.setFixedSize(self.display_clock.size())
+            self.display_rem.setFixedSize(self.display_clock.size())
+            self.display_dur.setFixedSize(self.display_clock.size())
+            self.first_update = False
