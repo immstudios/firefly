@@ -34,7 +34,6 @@ class JobsModule(BaseModule):
         action_clear.triggered.connect(self.on_clear)
 
         self.action_search = QMenu("Views")
-        #self.action_search.setStyleSheet(app_skin)
         self.action_search.menuAction().setIcon(QIcon(pix_lib["search"]))
         self.action_search.menuAction().triggered.connect(self.load)
         self.load_view_menu()
@@ -49,13 +48,13 @@ class JobsModule(BaseModule):
         layout.addWidget(toolbar, 0)
         layout.addWidget(self.view, 1)
         self.setLayout(layout)
-        self.load()
+        self.set_view("active")
 
     def load_view_menu(self):
         for title, status in [
-                    ["Active", 0],
-                    ["Finished", 1],
-                    ["Failed", 2],
+                    ["Active", "active"],
+                    ["Finished", "finished"],
+                    ["Failed", "failed"],
                 ]:
             action = QAction(title, self, checkable=True)
             action.id_view = status
@@ -71,7 +70,6 @@ class JobsModule(BaseModule):
 #
 
     def load(self, **kwargs):
-        print ("jobs>> load")
         self.view.model.load(**kwargs)
 
     def refresh(self):
@@ -81,7 +79,7 @@ class JobsModule(BaseModule):
         self.search_box.setText("")
         self.load(fulltext="")
 
-    def set_view(self, id_view):
+    def set_view(self, id_view="active"):
         self.load(id_view=id_view)
         for action in self.action_search.actions():
             if not hasattr(action, "id_view"):

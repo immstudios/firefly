@@ -36,7 +36,7 @@ class MCRButton(QPushButton):
 
 
 class MCRLabel(QLabel):
-    def __init__(self,head, default, parent=None, tcolor="#eeeeee"):
+    def __init__(self, head, default, parent=None, tcolor="#eeeeee"):
         super(MCRLabel,self).__init__(parent)
         self.head = head
         self.setStyleSheet("""
@@ -47,6 +47,7 @@ class MCRLabel(QLabel):
                 font-weight: bold;
                 color : {};
             """.format(tcolor))
+        self.set_text(default)
 
     def set_text(self,text):
         self.setText(self.head + ": " + text)
@@ -158,7 +159,10 @@ class MCR(QWidget):
         self.stopped = status["stopped"]
         self.local_request_time = time.time()
 
-        if self.dur !=  status["duration"]:
+        if status["fps"] != self.fps:
+            self.fps = status["fps"]
+
+        if self.dur != status["duration"]:
             self.dur = status["duration"]
             self.display_dur.set_text(f2tc(self.dur, self.fps))
 

@@ -253,11 +253,10 @@ class BrowserModule(BaseModule):
         objects = [obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED, RESET]],
         if not objects:
             return
-        stat, res = query(
-                "set_meta",
+        response = api.set(
                 objects=objects,
                 data={"status" : RESET}
-                )
+            )
 
     def on_trash(self):
         objects = [obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED]]
@@ -269,16 +268,23 @@ class BrowserModule(BaseModule):
                 QMessageBox.Yes | QMessageBox.No
             )
         if ret == QMessageBox.Yes:
-            stat, res = query(
-                    "trash",
-                    objects=objects
+            response = api.set(
+                    objects=objects,
+                    data={"status" : TRASHED}
                 )
+        if response.is_error:
+            logging.error("Unable to trash:\n\n" + response.message)
 
     def on_untrash(self):
         objects = [obj.id for obj in self.view.selected_objects if obj["status"] in [TRASHED]]
         if not objects:
             return
-        stat, res = query("untrash", objects=objects)
+        response = api.set(
+                objects=objects,
+                data={"status" : CREATING}
+            )
+        if response.is_error:
+            logging.error("Unable to untrash:\n\n" + response.message)
 
     def on_archive(self):
         objects = [obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED]]
@@ -290,16 +296,23 @@ class BrowserModule(BaseModule):
                 QMessageBox.Yes | QMessageBox.No
             )
         if ret == QMessageBox.Yes:
-            stat, res = query(
-                    "archive",
-                    objects=objects
+            response = api.set(
+                    objects=objects,
+                    data={"status" : ARCHIVED}
                 )
+        if response.is_error:
+            logging.error("Unable to archive:\n\n" + response.message)
 
     def on_unarchive(self):
         objects = [obj.id for obj in self.view.selected_objects if obj["status"] in [ARCHIVED]]
         if not objects:
             return
-        stat, res = query("unarchive", objects=objs)
+        response = api.set(
+                objects=objects,
+                data={"status" : CREATING}
+            )
+        if response.is_error:
+            logging.error("Unable to unarchive:\n\n" + response.message)
 
     def on_batch(self):
         dlg = BatchDialog(self, self.view.selected_objects)

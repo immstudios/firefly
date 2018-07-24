@@ -429,5 +429,4 @@ class DetailModule(BaseModule):
     def seismic_handler(self, data):
         if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.asset:
             if self.asset.id in data.data["objects"] and self.asset.id:
-                print("OPENING", asset_cache[self.asset.id].meta)
                 self.focus(asset_cache[self.asset.id], silent=True)

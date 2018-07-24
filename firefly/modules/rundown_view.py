@@ -272,4 +272,5 @@ class RundownView(FireflyView):
             self.clearSelection()
         elif obj.object_type == "event" and has_right("scheduler_edit", self.id_channel):
             self.on_edit_event()
+        self.clearSelection()
 

@@ -85,7 +85,7 @@ class JobsModel(FireflyViewModel):
         self.beginResetModel()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self.object_data = []
-        result = api.jobs()
+        result = api.jobs(view=kwargs.get("id_view", "all"))
         if result.is_error:
             logging.error(result.message)
         else:
