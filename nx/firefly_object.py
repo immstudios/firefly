@@ -150,23 +150,23 @@ class FormatTitle(CellFormat):
     key = "title"
     def decoration(self, obj, **kwargs):
         if obj.object_type == "event":
-            return ["star_disabled", "star_enabled"][int(obj["promoted"])]
+            return ["unstar-sm", "unstar-sm"][int(obj["promoted"])]
         elif obj["status"] == ARCHIVED:
-            return "archive"
+            return "archive-sm"
         elif obj["status"] == TRASHED:
-            return "trash"
+            return "trash-sm"
 
         if obj.object_type == "item":
             if obj["id_folder"]:
                 return "folder_" + str(obj["id_folder"])
             elif obj["item_role"] == "lead_in":
-                return "lead-in"
+                return "lead-in-sm"
             elif obj["item_role"] == "lead_out":
-                return "lead-out"
+                return "lead-out-sm"
             elif obj["item_role"] == "live":
-                return "live"
+                return "live-sm"
             elif obj["item_role"] == "placeholder":
-                return "placeholder"
+                return "placeholder-sm"
 
     def foreground(self, obj, **kwargs):
         if obj.object_type in ["asset", "item"]:
