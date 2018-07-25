@@ -61,7 +61,7 @@ class PlayoutPlugin(QWidget):
                 data=json.dumps(data)
             )
         if response.is_error:
-            logging.error(response.message)
+            logging.error("Plugin error {}\n\n{}".format(response.response, response.message))
         else:
             logging.info("{} action '{}' executed succesfully.".format(self.title, name))
 
