@@ -40,7 +40,6 @@ def create_menu(wnd):
     action_refresh.triggered.connect(wnd.refresh)
     menu_file.addAction(action_refresh)
 
-
     menu_file.addSeparator()
 
     action_logout = QAction('L&ogout', wnd)
@@ -55,11 +54,11 @@ def create_menu(wnd):
     menu_file.addAction(action_exit)
 
 #
-# CHANNEL
+# Scheduling
 #
 
     if config["playout_channels"]:
-        wnd.menu_scheduling = menubar.addMenu('&Scheduling')
+        wnd.menu_scheduler = menubar.addMenu('&Scheduler')
         ag = QActionGroup(wnd, exclusive=True)
 
         for id_channel in sorted(config["playout_channels"]):
@@ -71,22 +70,23 @@ def create_menu(wnd):
                     ))
             a.id_channel = id_channel
             a.triggered.connect(partial(wnd.set_channel, id_channel))
-            wnd.menu_scheduling.addAction(a)
+            wnd.menu_scheduler.addAction(a)
 
-        wnd.menu_scheduling.addSeparator()
-
-        action_export_template = QAction('Export', wnd)
-        action_export_template.setStatusTip('Export current week as template')
-        action_export_template.triggered.connect(wnd.export_template)
-        wnd.menu_scheduling.addAction(action_export_template)
+        wnd.menu_scheduler.addSeparator()
 
         action_import_template = QAction('Import', wnd)
         action_import_template.setStatusTip('Import week template')
         action_import_template.triggered.connect(wnd.import_template)
-        wnd.menu_scheduling.addAction(action_import_template)
+        wnd.menu_scheduler.addAction(action_import_template)
 
+        action_export_template = QAction('Export', wnd)
+        action_export_template.setStatusTip('Export current week as template')
+        action_export_template.triggered.connect(wnd.export_template)
+        wnd.menu_scheduler.addAction(action_export_template)
 
-
+#
+# Rundown
+#
 
         menu_rundown = menubar.addMenu('&Rundown')
 
@@ -97,7 +97,12 @@ def create_menu(wnd):
         action_now.triggered.connect(wnd.now)
         menu_rundown.addAction(action_now)
 
+        menu_rundown.addSeparator()
 
+        action_refresh_plugins = QAction('Refresh plugins', wnd)
+        action_refresh_plugins.setStatusTip('Refresh rundown plugins')
+        action_refresh_plugins.triggered.connect(wnd.refresh_plugins)
+        menu_rundown.addAction(action_refresh_plugins)
 
 
 #

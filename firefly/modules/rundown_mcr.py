@@ -66,7 +66,7 @@ class MCR(QWidget):
         self.stopped = True
         self.local_request_time = time.time()
         self.updating = False
-        self.first_update = True
+        self.first_update = False
 
         self.fps = 25.0
 

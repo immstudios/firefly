@@ -129,7 +129,6 @@ class FireflyMainWindow(MainWindow):
     @property
     def rundown(self):
         return self.main_widget.rundown
-
     @property
     def detail(self):
         return self.main_widget.detail
@@ -167,9 +166,12 @@ class FireflyMainWindow(MainWindow):
             self.show_rundown()
             self.rundown.go_now()
 
+    def refresh_plugins(self):
+        self.rundown.plugins.load()
+
     def set_channel(self, id_channel):
         if config["playout_channels"]:
-            for action in self.menu_scheduling.actions():
+            for action in self.menu_scheduler.actions():
                 if hasattr(action, "id_channel") and action.id_channel == id_channel:
                     action.setChecked(True)
             self.scheduler.set_channel(id_channel)
