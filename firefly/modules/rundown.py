@@ -179,7 +179,6 @@ class RundownModule(BaseModule):
         else:
             self.mcr.show()
             self.app_state["show_mcr"] = True
-            self.mcr.first_update = True
             self.load()
 
     def toggle_plugins(self):

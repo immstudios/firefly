@@ -66,7 +66,7 @@ class MCR(QWidget):
         self.stopped = True
         self.local_request_time = time.time()
         self.updating = False
-        self.first_update = False
+        self.request_display_resize = False
 
         self.fps = 25.0
 
@@ -174,6 +174,10 @@ class MCR(QWidget):
             self.cued = status["cued_title"]
             self.display_cued.set_text(self.cued)
 
+    def show(self, *args, **kwargs):
+        super(MCR, self).show(*args, **kwargs)
+        self.request_display_resize = True
+
 
     def update_display(self):
         now = time.time()
@@ -205,10 +209,10 @@ class MCR(QWidget):
             if ppos > oldval or abs(oldval-ppos) > (PROGRESS_BAR_RESOLUTION/self.dur):
                 self.progress_bar.setValue(ppos)
 
-        if self.first_update:
+        if self.request_display_resize:
             QApplication.processEvents()
             self.display_clock.setFixedSize(self.display_clock.size())
             self.display_pos.setFixedSize(self.display_clock.size())
             self.display_rem.setFixedSize(self.display_clock.size())
             self.display_dur.setFixedSize(self.display_clock.size())
-            self.first_update = False
+            self.request_display_resize = False
