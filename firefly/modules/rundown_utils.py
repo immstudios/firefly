@@ -8,29 +8,31 @@ ITEM_BUTTONS = [
     {
         "icon"      : "placeholder",
         "title"     : "Placeholder",
-        "tooltip"   : "Drag this to rundown to create placeholder",
+        "duration"  : 3600,
         "item_role" : "placeholder",
+        "tooltip"   : "Drag this to rundown to create placeholder",
     },
 
     {
         "icon"      : "live",
         "title"     : "Live",
-        "tooltip"   : "Drag this to rundown to create live item",
+        "duration"  : 3600,
         "item_role" : "live",
+        "tooltip"   : "Drag this to rundown to create live item",
     },
 
     {
         "icon"      : "lead-in",
         "title"     : "Lead-in",
-        "tooltip"   : "Drag this to rundown to create Lead-in",
         "item_role" : "lead_in",
+        "tooltip"   : "Drag this to rundown to create Lead-in",
     },
 
     {
         "icon"      : "lead-out",
         "title"     : "Lead-out",
-        "tooltip"   : "Drag this to rundown to create Lead-out",
         "item_role" : "lead_out",
+        "tooltip"   : "Drag this to rundown to create Lead-out",
     }
 ]
 
@@ -80,15 +82,15 @@ class ItemButton(QToolButton):
         self.setToolTip(self.button_config["tooltip"])
 
     def startDrag(self):
-        item_data = [{
-            "title" : self.button_config["title"],
-            "item_role" : self.button_config["item_role"]
-            }]
+        item_data = {}
+        for key in self.button_config:
+            if key not in ["tooltip", "icon"]:
+                item_data[key] = self.button_config[key]
         drag = QDrag(self);
         mimeData = QMimeData()
         mimeData.setData(
            "application/nx.item",
-           encode_if_py3(json.dumps(item_data))
+           encode_if_py3(json.dumps([item_data]))
            )
         drag.setMimeData(mimeData)
         if drag.exec_(Qt.CopyAction):

@@ -166,10 +166,10 @@ class RundownModel(FireflyViewModel):
             else:
                 for obj in items:
                     if not obj.get("id", False) and obj.get("item_role", False) in ["live", "placeholder"]:
-                        dlg = PlaceholderDialog(self.parent(), obj["item_role"])
+                        dlg = PlaceholderDialog(self.parent(), obj)
                         dlg.exec_()
                         if not dlg.ok:
-                            return
+                            return False
                         for key in dlg.meta:
                             obj[key] = dlg.meta[key]
                     drop_objects.append(Item(meta=obj))

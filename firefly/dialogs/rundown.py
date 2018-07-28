@@ -2,27 +2,12 @@ from firefly import *
 
 __all__ = ["PlaceholderDialog", "SubclipSelectDialog"]
 
-ITEM_ROLES = {
-    "live" : [
-            ["title", "Live"],
-            ["duration", 300],
-            ["article", ""]
-        ],
-
-    "placeholder" : [
-            ["title", "Placeholder"],
-            ["duration", 3600]
-        ],
-}
-
 
 class PlaceholderDialog(QDialog):
-    def __init__(self,  parent, item_role):
+    def __init__(self,  parent, meta):
         super(PlaceholderDialog, self).__init__(parent)
         self.setWindowTitle("Rundown placeholder")
-
-        if not item_role in ITEM_ROLES:
-            self.close()
+        item_role = meta.get("item_role", "placeholder")
 
         self.ok = False
 
@@ -36,8 +21,18 @@ class PlaceholderDialog(QDialog):
         action_accept.triggered.connect(self.on_accept)
         toolbar.addAction(action_accept)
 
-        keys =  [[key, {"default":default}] for key, default in ITEM_ROLES[item_role]]
+        #keys =  [[key, {"default":default}] for key, default in ITEM_ROLES[item_role]]
+        keys = []
+        for k in ["title", "subtitle", "description", "color", "duration"]: #TODO
+            if k in meta:
+                keys.append([k, {"default": meta[k]}])
+
+
         self.form = MetaEditor(parent, keys)
+        for k in keys:
+            k = k[0]
+            self.form[k] = meta[k]
+
 
         layout = QVBoxLayout()
         layout.addWidget(toolbar, 0)
