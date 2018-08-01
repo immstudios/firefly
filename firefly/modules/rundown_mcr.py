@@ -165,14 +165,17 @@ class MCR(QWidget):
         if self.dur != status["duration"]:
             self.dur = status["duration"]
             self.display_dur.set_text(f2tc(self.dur, self.fps))
+            self.request_display_resize = False
 
         if self.current != status["current_title"]:
             self.current = status["current_title"]
             self.display_current.set_text(self.current)
+            self.request_display_resize = False
 
         if self.cued != status["cued_title"]:
             self.cued = status["cued_title"]
             self.display_cued.set_text(self.cued)
+            self.request_display_resize = False
 
     def show(self, *args, **kwargs):
         super(MCR, self).show(*args, **kwargs)
@@ -216,3 +219,4 @@ class MCR(QWidget):
             self.display_rem.setFixedSize(self.display_clock.size())
             self.display_dur.setFixedSize(self.display_clock.size())
             self.request_display_resize = False
+            logging.info("displays resized")

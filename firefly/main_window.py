@@ -84,8 +84,11 @@ class FireflyMainWidget(QWidget):
             self.detail.detail_tabs.on_switch(-1)
 
         if self.current_module == self.rundown:
+            if self.rundown.mcr.isVisible():
+                self.rundown.mcr.request_display_resize = True
             # Refresh rundown on focus
             self.rundown.load()
+
         self.main_window.app_state["current_module"] = self.tabs.currentIndex()
 
 
