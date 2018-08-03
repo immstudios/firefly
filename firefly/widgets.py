@@ -27,6 +27,7 @@ class FireflyNotImplementedEditor(QLabel):
     def set_value(self, value):
         self.setText(str(value))
         self.val = value
+        self.default = value
 
     def get_value(self):
         return self.val
@@ -341,10 +342,11 @@ class MetaEditor(QWidget):
 
     @property
     def changed(self):
+        keys = []
         for key in self.keys():
             if self[key] != self.defaults.get(key, None):
-                return True
-        return False
+                keys.append(key)
+        return keys
 
     def set_defaults(self):
         self.defaults = {}

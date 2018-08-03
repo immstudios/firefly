@@ -378,7 +378,10 @@ class DetailModule(BaseModule):
             self.focus(self._load_queue)
 
     def on_folder_changed(self):
+        data = {key: self.form[key] for key in self.form.changed}
         self.detail_tabs.load(self.asset, id_folder=self.folder_select.get_value())
+        for key in data:
+            self.form[key] = data[key]
 
     def new_asset(self):
         new_asset = Asset()
@@ -405,11 +408,16 @@ class DetailModule(BaseModule):
     def on_apply(self):
         if not self.form:
             return
-        data = {"id_folder" : self.folder_select.get_value()}
-        for key in self.form.inputs:
-            data[key] = self.form[key]
-        if self.duration.isEnabled():
+        data = {}
+
+        if self.asset["id_folder"] != self.folder_select.get_value() and self.folder_select.isEnabled():
+            data["id_folder"] = self.folder_select.get_value()
+        if self.asset["duration"] != self.duration.get_value() and self.duration.isEnabled():
             data["duration"] = self.duration.get_value()
+
+        for key in self.form.changed:
+            data[key] = self.form[key]
+
         response = api.set(objects=[self.asset.id], data=data)
         if response.is_error:
             logging.error(response.message)
