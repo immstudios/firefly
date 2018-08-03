@@ -23,7 +23,8 @@ class NebulaAPI(object):
             response = requests.post(
                     self._settings["hub"] + "/ping",
                     cookies=self._cookies,
-                    headers=headers
+                    headers=headers,
+                    timeout=config.get("timeout", 10)
                 )
             self._cookies = response.cookies
             if response.status_code >= 400:
