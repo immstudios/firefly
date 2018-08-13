@@ -71,13 +71,6 @@ class RundownView(FireflyView):
         obj_set = list(set([itm.object_type for itm in self.selected_objects]))
         menu = QMenu(self)
 
-        if len(obj_set) > 0:
-            action_focus = QAction('&Focus', self)
-            action_focus.setStatusTip('Focus selected object')
-            action_focus.triggered.connect(self.on_focus)
-            menu.addAction(action_focus)
-            menu.addSeparator()
-
         if len(obj_set) == 1:
             if obj_set[0] == "item" and self.selected_objects[0]["id_asset"]:
 
@@ -165,12 +158,7 @@ class RundownView(FireflyView):
         QApplication.restoreOverrideCursor()
         if result.is_error:
             logging.error(result.message)
-        self.parent().refresh()
-        self.selectionModel().clear()
-        return
 
-    def on_focus(self):
-        pass
 
     def on_delete(self):
         items = list(set([obj.id for obj in self.selected_objects if obj.object_type == "item"]))
