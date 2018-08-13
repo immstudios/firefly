@@ -33,6 +33,7 @@ def scheduler_toolbar(wnd):
     toolbar = QToolBar(wnd)
 
     action_week_prev = QAction(QIcon(pix_lib["previous"]), '&Previous week', wnd)
+    action_week_prev.setShortcut('Alt+Left')
     action_week_prev.setStatusTip('Go to previous week')
     action_week_prev.triggered.connect(wnd.on_week_prev)
     toolbar.addAction(action_week_prev)
@@ -43,6 +44,7 @@ def scheduler_toolbar(wnd):
     toolbar.addAction(action_refresh)
 
     action_week_next = QAction(QIcon(pix_lib["next"]), '&Next week', wnd)
+    action_week_next.setShortcut('Alt+Right')
     action_week_next.setStatusTip('Go to next week')
     action_week_next.triggered.connect(wnd.on_week_next)
     toolbar.addAction(action_week_next)
