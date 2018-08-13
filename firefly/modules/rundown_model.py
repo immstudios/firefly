@@ -14,6 +14,7 @@ DEFAULT_COLUMNS = [
         "rundown_difference",
         "mark_in",
         "mark_out",
+        "id_asset"
     ]
 
 
