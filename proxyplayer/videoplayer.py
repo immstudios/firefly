@@ -6,19 +6,10 @@ import functools
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5.QtGui  import *
 
 from .mpv import MPV
 from nxtools import *
-
-
-CHR_PLAY = "\u25B6"
-CHR_PAUSE = "\u23F8"
-CHR_PREV = "\u29CF"
-CHR_NEXT = "\u29D0"
-CHR_GO_IN = "\u291D"
-CHR_GO_OUT = "\u291E"
-CHR_MARK = "\u2B25"
-CHR_CLEAR = "\u2B26"
 
 
 class TimecodeWindow(QLineEdit):
@@ -33,73 +24,92 @@ class TimecodeWindow(QLineEdit):
         self.setMaximumWidth(w)
 
 
+class ToolBarStretcher(QWidget):
+    def __init__(self, parent):
+        super(ToolBarStretcher, self).__init__(parent)
+        self.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
 
 
 def get_navbar(wnd):
     toolbar = QToolBar(wnd)
 
-    wnd.action_frame_prev5 = QAction('Previous 5 frames', wnd)
-    wnd.action_frame_prev5.setShortcut('1')
-    wnd.action_frame_prev5.triggered.connect(wnd.on_5_prev)
-    wnd.addAction(wnd.action_frame_prev5)
-
-    wnd.action_frame_next5 = QAction('Next 5 frames', wnd)
-    wnd.action_frame_next5.setShortcut('2')
-    wnd.action_frame_next5.triggered.connect(wnd.on_5_next)
-    wnd.addAction(wnd.action_frame_next5)
+    #
+    # Invisible actions
+    #
 
 
-    wnd.action_clear_in = QAction(CHR_CLEAR, wnd)
+
+    #
+    # Buttons
+    #
+
+    wnd.action_clear_in = QAction(QIcon(wnd.pixlib["clear-in"]), "Clear In", wnd)
     wnd.action_clear_in.setShortcut('d')
-    wnd.action_clear_in.setStatusTip('Clear IN')
+    wnd.action_clear_in.setStatusTip('Clear in')
     wnd.action_clear_in.triggered.connect(wnd.on_clear_in)
     toolbar.addAction(wnd.action_clear_in)
 
-    wnd.action_mark_in = QAction(CHR_MARK, wnd)
-    wnd.action_mark_in.setShortcut('E')
-    wnd.action_mark_in.setStatusTip('Mark IN')
+    wnd.action_mark_in = QAction(QIcon(wnd.pixlib["mark-in"]), "Mark in", wnd)
+    wnd.action_mark_in.setShortcut('e')
+    wnd.action_mark_in.setStatusTip('Mark in')
     wnd.action_mark_in.triggered.connect(wnd.on_mark_in)
     toolbar.addAction(wnd.action_mark_in)
 
-    wnd.action_goto_in = QAction(CHR_GO_IN, wnd)
-    wnd.action_goto_in.setShortcut('Q')
+    wnd.action_goto_in = QAction(QIcon(wnd.pixlib["goto-in"]), "Go to in", wnd)
+    wnd.action_goto_in.setShortcut('q')
     wnd.action_mark_in.setStatusTip('Go to selection start')
     wnd.action_goto_in.triggered.connect(wnd.on_go_in)
     toolbar.addAction(wnd.action_goto_in)
 
-    wnd.action_frame_prev = QAction(CHR_PREV, wnd)
+    toolbar.addWidget(ToolBarStretcher(wnd))
+
+    wnd.action_frame_prev5 = QAction(QIcon(wnd.pixlib["previous-more"]), 'Previous 5 frames', wnd)
+    wnd.action_frame_prev5.setShortcut('1')
+    wnd.action_frame_prev5.triggered.connect(wnd.on_5_prev)
+    wnd.addAction(wnd.action_frame_prev5)
+    toolbar.addAction(wnd.action_frame_prev5)
+
+    wnd.action_frame_prev = QAction(QIcon(wnd.pixlib["previous"]), "Previous frame", wnd)
     wnd.action_frame_prev.setShortcut('3')
     wnd.action_frame_prev.setStatusTip('Go to previous frame')
     wnd.action_frame_prev.triggered.connect(wnd.on_frame_prev)
     toolbar.addAction(wnd.action_frame_prev)
 
-    wnd.action_play = QAction(CHR_PLAY, wnd)
+    wnd.action_play = QAction(QIcon(wnd.pixlib["play"]), "Play", wnd)
     wnd.action_play.setShortcut('Space')
     wnd.action_play.setStatusTip('Play/Pause')
     wnd.action_play.triggered.connect(wnd.on_pause)
     toolbar.addAction(wnd.action_play)
 
-    wnd.action_frame_next = QAction(CHR_NEXT, wnd)
+    wnd.action_frame_next = QAction(QIcon(wnd.pixlib["next"]), "Next frame", wnd)
     wnd.action_frame_next.setShortcut('4')
     wnd.action_frame_next.setStatusTip('Go to next frame')
     wnd.action_frame_next.triggered.connect(wnd.on_frame_next)
     toolbar.addAction(wnd.action_frame_next)
 
-    wnd.action_goto_out = QAction(CHR_GO_OUT, wnd)
+    wnd.action_frame_next5 = QAction(QIcon(wnd.pixlib["next-more"]), 'Next 5 frames', wnd)
+    wnd.action_frame_next5.setShortcut('2')
+    wnd.action_frame_next5.triggered.connect(wnd.on_5_next)
+    wnd.addAction(wnd.action_frame_next5)
+    toolbar.addAction(wnd.action_frame_next5)
+
+    toolbar.addWidget(ToolBarStretcher(wnd))
+
+    wnd.action_goto_out = QAction(QIcon(wnd.pixlib["goto-out"]), "Go to out", wnd)
     wnd.action_goto_out.setShortcut('W')
     wnd.action_goto_out.setStatusTip('Go to selection end')
     wnd.action_goto_out.triggered.connect(wnd.on_go_out)
     toolbar.addAction(wnd.action_goto_out)
 
-    wnd.action_mark_out = QAction(CHR_NEXT, wnd)
+    wnd.action_mark_out = QAction(QIcon(wnd.pixlib["mark-out"]), "Mark out", wnd)
     wnd.action_mark_out.setShortcut('R')
-    wnd.action_mark_out.setStatusTip('Mark OUT')
+    wnd.action_mark_out.setStatusTip('Mark out')
     wnd.action_mark_out.triggered.connect(wnd.on_mark_out)
     toolbar.addAction(wnd.action_mark_out)
 
-    wnd.action_clear_out = QAction(CHR_CLEAR, wnd)
+    wnd.action_clear_out = QAction(QIcon(wnd.pixlib["clear-out"]), "Clear out",wnd)
     wnd.action_clear_out.setShortcut('f')
-    wnd.action_clear_out.setStatusTip('Clear OUT')
+    wnd.action_clear_out.setStatusTip('Clear out')
     wnd.action_clear_out.triggered.connect(wnd.on_clear_out)
     toolbar.addAction(wnd.action_clear_out)
 
@@ -112,8 +122,10 @@ def get_navbar(wnd):
 
 
 class VideoPlayer(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, pixlib=None):
         super(VideoPlayer, self).__init__(parent)
+
+        self.pixlib = pixlib
 
         self.video_window = QWidget(self)
         self.video_window.setStyleSheet("background-color: #161616;")
@@ -186,9 +198,9 @@ class VideoPlayer(QWidget):
         top_bar.addWidget(self.mark_out_display, 0)
 
         bottom_bar.addWidget(self.position_display, 0)
-        bottom_bar.addStretch(1)
-        bottom_bar.addWidget(self.navbar, 0)
-        bottom_bar.addStretch(1)
+        #bottom_bar.addStretch(1)
+        bottom_bar.addWidget(self.navbar, 1)
+        #bottom_bar.addStretch(1)
         bottom_bar.addWidget(self.duration_display, 0)
 
         layout = QVBoxLayout()

@@ -607,10 +607,14 @@ class SchedulerCalendar(QWidget):
         self.scroll_area.setContentsMargins(0, 0, 0, 0)
         self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
+
+        zoomlevel = self.parent().app_state.get("scheduler_zoom", 0)
         self.zoom = QSlider(Qt.Horizontal)
         self.zoom.setMinimum(0)
         self.zoom.setMaximum(10000)
         self.zoom.valueChanged.connect(self.on_zoom)
+        logging.debug("Setting scheduler zoom level to", zoomlevel)
+        self.zoom.setValue(zoomlevel)
 
         layout = QVBoxLayout()
         layout.addLayout(header_layout)
@@ -637,6 +641,9 @@ class SchedulerCalendar(QWidget):
         return [event.id for event in self.events]
 
     def load(self, ts=False):
+        zoomlevel = self.parent().app_state.get("scheduler_zoom", 0)
+        logging.debug("Setting scheduler zoom level to", zoomlevel)
+        self.zoom.setValue(zoomlevel)
         if not self.week_start_time and not ts:
             ts = time.time()
 
@@ -691,6 +698,8 @@ class SchedulerCalendar(QWidget):
         pos = self.scroll_area.verticalScrollBar().value() / self.scroll_widget.height()
         self.scroll_widget.setMinimumHeight(h)
         self.scroll_area.verticalScrollBar().setValue(pos * h)
+        self.parent().app_state["scheduler_zoom"] = self.zoom.value()
+        logging.debug("Saving scheduler zoom level to", self.zoom.value())
 
     def resizeEvent(self, evt):
         self.zoom.setMinimum(self.scroll_area.height())

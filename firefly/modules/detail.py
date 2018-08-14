@@ -153,7 +153,7 @@ class DetailTabPreview(QWidget):
     def __init__(self, parent):
         super(DetailTabPreview, self).__init__(parent)
         layout = QVBoxLayout()
-        self.player = VideoPlayer(self)
+        self.player = VideoPlayer(self, pixlib)
         layout.addWidget(self.player)
         self.setLayout(layout)
         self.current_asset = False
