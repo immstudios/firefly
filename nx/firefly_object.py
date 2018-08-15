@@ -121,6 +121,20 @@ class FormatRunMode(CellFormat):
             return "HARD"
         return "AUTO"
 
+class FormatMarkIn(CellFormat):
+    key = "mark_in"
+    def display(self, obj, **kwargs):
+        if obj[self.key]:
+            return obj.show(self.key)
+        return ""
+
+class FormatMarkOut(CellFormat):
+    key = "mark_out"
+    def display(self, obj, **kwargs):
+        if obj[self.key]:
+            return obj.show(self.key)
+        return ""
+
 
 class FormatState(CellFormat):
     key = "qc/state"
@@ -187,7 +201,9 @@ format_helpers_list = [
         FormatRundownDifference,
         FormatRunMode,
         FormatState,
-        FormatTitle
+        FormatTitle,
+        FormatMarkIn,
+        FormatMarkOut,
     ]
 
 format_helpers = {}

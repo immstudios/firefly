@@ -2,8 +2,7 @@ import math
 import functools
 
 from firefly import *
-#from firefly.dialogs.send_to import SendToDialog
-#from firefly.dialogs.batch import BatchDialog
+from firefly.dialogs.send_to import send_to
 
 from .browser_model import *
 
@@ -198,25 +197,33 @@ class BrowserModule(BaseModule):
             return
         menu = QMenu(self)
 
-        statuses = [obj["status"] for obj in self.view.selected_objects ]
+        statuses = []
+        for obj in self.view.selected_objects:
+            status = obj["status"]
+            if not status in statuses:
+                statuses.append(status)
+        allstat = -1
+        if len(statuses) == 1:
+            allstat = statuses[0]
 
-        if len(statuses) == 1 and statuses[0] == TRASHED:
+        if allstat == TRASHED:
             action_untrash = QAction('Untrash', self)
             action_untrash.setStatusTip('Take selected asset(s) from trash')
             action_untrash.triggered.connect(self.on_untrash)
             menu.addAction(action_untrash)
-        else:
+
+        elif allstat == ARCHIVED:
+            action_unarchive = QAction('Unarchive', self)
+            action_unarchive.setStatusTip('Take selected asset(s) from archive')
+            action_unarchive.triggered.connect(self.on_unarchive)
+            menu.addAction(action_unarchive)
+
+        elif allstat in [ONLINE, CREATING, OFFLINE]:
             action_move_to_trash = QAction('Move to trash', self)
             action_move_to_trash.setStatusTip('Move selected asset(s) to trash')
             action_move_to_trash.triggered.connect(self.on_trash)
             menu.addAction(action_move_to_trash)
 
-        if len(statuses) == 1 and statuses[0] == ARCHIVED:
-            action_unarchive = QAction('Unarchive', self)
-            action_unarchive.setStatusTip('Take selected asset(s) from archive')
-            action_unarchive.triggered.connect(self.on_unarchive)
-            menu.addAction(action_unarchive)
-        else:
             action_move_to_archive = QAction('Move to archive', self)
             action_move_to_archive.setStatusTip('Move selected asset(s) to archive')
             action_move_to_archive.triggered.connect(self.on_archive)
@@ -246,8 +253,7 @@ class BrowserModule(BaseModule):
 
 
     def on_send_to(self):
-        dlg = SendTo(self, self.view.selected_objects)
-        dlg.exec_()
+        send_to(self, self.view.selected_objects)
 
     def on_reset(self):
         objects = [obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED, RESET]],
@@ -314,9 +320,6 @@ class BrowserModule(BaseModule):
         if response.is_error:
             logging.error("Unable to unarchive:\n\n" + response.message)
 
-    def on_batch(self):
-        dlg = BatchDialog(self, self.view.selected_objects)
-        dlg.exec_()
 
     def on_choose_columns(self):
         pass #TODO

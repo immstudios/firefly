@@ -232,6 +232,8 @@ def detail_toolbar(wnd):
         fdata.append([id_folder, config["folders"][id_folder]["title"]])
 
     wnd.folder_select = FireflySelect(wnd, data=fdata)
+    for i, fd in enumerate(fdata):
+        wnd.folder_select.setItemIcon(i, QIcon(pix_lib["folder_"+str(fd[0])]))
     wnd.folder_select.currentIndexChanged.connect(wnd.on_folder_changed)
     wnd.folder_select.setEnabled(False)
     toolbar.addWidget(wnd.folder_select)
@@ -390,7 +392,7 @@ class DetailModule(BaseModule):
         else:
             new_asset["id_folder"] = min(config["folders"])
         self.duration.set_value(0)
-        self.focus([new_asset])
+        self.focus(new_asset)
 
     def clone_asset(self):
         new_asset = Asset()
@@ -401,7 +403,7 @@ class DetailModule(BaseModule):
                 if self.duration.isEnabled():
                    new_asset["duration"] = self.duration.get_value()
         else:
-            new_asset["id_folder"] = 0
+            new_asset["id_folder"] = min(config["folders"])
         self.asset = False
         self.focus(new_asset)
 
@@ -410,13 +412,19 @@ class DetailModule(BaseModule):
             return
         data = {}
 
-        if self.asset["id_folder"] != self.folder_select.get_value() and self.folder_select.isEnabled():
-            data["id_folder"] = self.folder_select.get_value()
-        if self.asset["duration"] != self.duration.get_value() and self.duration.isEnabled():
-            data["duration"] = self.duration.get_value()
+        if self.asset.id:
+            if self.asset["id_folder"] != self.folder_select.get_value() and self.folder_select.isEnabled():
+                data["id_folder"] = self.folder_select.get_value()
+            if self.asset["duration"] != self.duration.get_value() and self.duration.isEnabled():
+                data["duration"] = self.duration.get_value()
 
-        for key in self.form.changed:
-            data[key] = self.form[key]
+            for key in self.form.changed:
+                data[key] = self.form[key]
+        else:
+            data["id_folder"] = self.folder_select.get_value()
+            data["duration"] = self.duration.get_value()
+            for key in self.form.keys():
+                data[key] = self.form[key]
 
         response = api.set(objects=[self.asset.id], data=data)
         if response.is_error:
@@ -424,6 +432,12 @@ class DetailModule(BaseModule):
             self.form.setEnabled(False) # reenable on seismic message with new data
         else:
             logging.debug("[DETAIL] Set method responded", response.response)
+            if not self.asset.id:
+                aid = response.data[0]
+                asset_cache.request([[aid, 0]])
+                self.focus(asset_cache[aid], silent=True)
+
+
 
     def on_revert(self):
         if self.asset:

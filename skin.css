@@ -215,13 +215,21 @@ QScrollBar:vertical {
     padding-bottom:24px;
 }
 
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+  background: none;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+  background: none;
+}
+
 QScrollBar::handle:horizontal {
-    background: #50595b;
+    background: gray;
     min-width: 64px;
 }
 
 QScrollBar::handle:vertical {
-    background: #50595b;
+    background: gray;
     min-height: 64px;
  }
 

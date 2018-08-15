@@ -12,8 +12,8 @@ class LoginDialog(QDialog):
         self.btn_login.clicked.connect(self.handleLogin)
 
         #for debug
-        self.login.setText("demo")
-        self.password.setText("demo")
+        self.login.setText("")
+        self.password.setText("")
 
         layout = QFormLayout(self)
         layout.addRow("Login", self.login)

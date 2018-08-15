@@ -9,7 +9,6 @@ class SendToDialog(QDialog):
         super(SendToDialog, self).__init__(parent)
         self.objects = list(objects)
         self.setModal(True)
-        self.setStyleSheet(base_css)
 
         if len(self.objects) == 1:
             what = self.objects[0]["title"]
@@ -57,3 +56,8 @@ class SendToDialog(QDialog):
 
     def handle_query(self, msg):
         QApplication.processEvents()
+
+
+def send_to(parent, objects):
+    dlg = SendToDialog(parent, objects)
+    dlg._exec()
