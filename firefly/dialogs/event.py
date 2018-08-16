@@ -47,7 +47,7 @@ class EventDialog(QDialog):
 
         if "asset" in self.kwargs:
             asset = self.kwargs["asset"]
-            for key in [k for k in meta_types if k["ns"] == "m"]:
+            for key in [k for k in meta_types if meta_types[k]["ns"] == "m"]:
                 if not key in asset.meta:
                     continue
                 self.event[key] = asset[key]
