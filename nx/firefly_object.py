@@ -121,6 +121,18 @@ class FormatRunMode(CellFormat):
             return "HARD"
         return "AUTO"
 
+class FormatDuration(CellFormat):
+    key = "duration"
+    def display(self, obj, **kwargs):
+        if obj.object_type in ["asset", "item"]:
+            return s2time(obj.duration)
+        else:
+            return ""
+
+    def foreground(self, obj, **kwargs):
+        if obj["mark_in"] or obj["mark_out"]:
+            return "#00ccaa"
+
 class FormatMarkIn(CellFormat):
     key = "mark_in"
     def display(self, obj, **kwargs):
@@ -202,6 +214,7 @@ format_helpers_list = [
         FormatRunMode,
         FormatState,
         FormatTitle,
+        FormatDuration,
         FormatMarkIn,
         FormatMarkOut,
     ]
