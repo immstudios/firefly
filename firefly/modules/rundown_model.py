@@ -166,13 +166,16 @@ class RundownModel(FireflyViewModel):
                 return False
             else:
                 for obj in items:
-                    if not obj.get("id", False) and obj.get("item_role", False) in ["live", "placeholder"]:
-                        dlg = PlaceholderDialog(self.parent(), obj)
-                        dlg.exec_()
-                        if not dlg.ok:
-                            return False
-                        for key in dlg.meta:
-                            obj[key] = dlg.meta[key]
+                    if not obj.get("id", False):
+                        if obj.get("item_role", False) in ["live", "placeholder"]:
+                            dlg = PlaceholderDialog(self.parent(), obj)
+                            dlg.exec_()
+                            if not dlg.ok:
+                                return False
+                            for key in dlg.meta:
+                                obj[key] = dlg.meta[key]
+                        else:
+                            continue
                     drop_objects.append(Item(meta=obj))
 
         elif data.hasFormat("application/nx.asset"):
@@ -195,7 +198,8 @@ class RundownModel(FireflyViewModel):
                 break
             p_item = current_object.id
             if not p_item in [item.id for item in drop_objects]:
-                sorted_items.append({"object_type" : "item", "id_object" : p_item, "meta" : {}})
+                if p_item:
+                    sorted_items.append({"object_type" : "item", "id_object" : p_item, "meta" : {}})
             i-=1
         sorted_items.reverse()
 
@@ -235,7 +239,8 @@ class RundownModel(FireflyViewModel):
                 break
             p_item = current_object.id
             if not p_item in [item.id for item in drop_objects]:
-                sorted_items.append({"object_type" : "item", "id_object" : p_item, "meta" : {}})
+                if p_item:
+                    sorted_items.append({"object_type" : "item", "id_object" : p_item, "meta" : {}})
             i+=1
 
         #
