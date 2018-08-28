@@ -148,21 +148,58 @@ class DetailTabTechnical(MetaList):
 
         self.setText(data)
 
+def preview_toolbar(wnd):
+    toolbar = QToolBar(wnd)
+
+    action_set_poster = QAction(QIcon(pix_lib["set-poster"]), 'Set poster frame', wnd)
+    action_set_poster.setStatusTip('Set poster frame')
+    action_set_poster.triggered.connect(wnd.set_poster)
+    toolbar.addAction(action_set_poster)
+
+    action_save_marks = QAction(QIcon(pix_lib["save-marks"]), 'Save marks', wnd)
+    action_save_marks.setStatusTip('Save marks')
+    action_save_marks.triggered.connect(wnd.save_marks)
+    toolbar.addAction(action_save_marks)
+
+    action_restore_marks = QAction(QIcon(pix_lib["restore-marks"]), 'Restore marks', wnd)
+    action_restore_marks.setStatusTip('Restore marks')
+    action_restore_marks.triggered.connect(wnd.restore_marks)
+    toolbar.addAction(action_restore_marks)
+
+    action_create_subclip = QAction(QIcon(pix_lib["create-subclip"]), 'Create subclip', wnd)
+    action_create_subclip.setStatusTip('Create subclip')
+    action_create_subclip.triggered.connect(wnd.create_subclip)
+    toolbar.addAction(action_create_subclip)
+
+    action_manage_subclips = QAction(QIcon(pix_lib["manage-subclips"]), 'Manage subclips', wnd)
+    action_manage_subclips.setStatusTip('Manage subclips')
+    action_manage_subclips.triggered.connect(wnd.manage_subclips)
+    toolbar.addAction(action_manage_subclips)
+
+    return toolbar
+
 
 class DetailTabPreview(QWidget):
     def __init__(self, parent):
         super(DetailTabPreview, self).__init__(parent)
         layout = QVBoxLayout()
         self.player = VideoPlayer(self, pixlib)
+        toolbar = preview_toolbar(self)
+
+        layout.addWidget(toolbar, 0)
         layout.addWidget(self.player)
         self.setLayout(layout)
-        self.current_asset = False
         self.has_focus = False
         self.loaded = False
+        self.changes = {}
+
+    @property
+    def current_asset(self):
+        return self.parent().parent().parent().asset
 
     def load(self, asset, **kwargs):
-        self.current_asset = asset
         self.loaded = False
+        self.changes = {}
         if self.has_focus:
             self.load_video()
 
@@ -173,12 +210,34 @@ class DetailTabPreview(QWidget):
                     config["hub"] + "/proxy/{:04d}/{}.mp4".format(
                         int(self.current_asset.id/1000),
                         self.current_asset.id
-                    )
+                    ),
+                    mark_in=self.current_asset["mark_in"],
+                    mark_out=self.current_asset["mark_out"]
                 )
             self.loaded = True
 
     def on_focus(self):
         self.load_video()
+
+    def set_poster(self):
+        self.changes["poster_frame"] = self.player.position
+
+    def save_marks(self):
+        if self.player.mark_in and self.player.mark_out and self.player.mark_in > self.player.mark_out:
+            logging.error("Unable to save marks. In point must precede out point")
+        else:
+            self.changes["mark_in"] = self.player.mark_in
+            self.changes["mark_out"] = self.player.mark_out
+
+    def restore_marks(self):
+        pass
+
+    def create_subclip(self):
+        pass
+
+    def manage_subclips(self):
+        pass
+
 
 
 class DetailTabs(QTabWidget):
@@ -277,8 +336,6 @@ def detail_toolbar(wnd):
     toolbar.addAction(wnd.action_apply)
 
     return toolbar
-
-
 
 
 
@@ -425,6 +482,11 @@ class DetailModule(BaseModule):
             data["duration"] = self.duration.get_value()
             for key in self.form.keys():
                 data[key] = self.form[key]
+
+        if has_player and self.detail_tabs.tab_preview.changes:
+            data.update(self.detail_tabs.tab_preview.changes)
+
+        print(data)
 
         response = api.set(objects=[self.asset.id], data=data)
         if response.is_error:

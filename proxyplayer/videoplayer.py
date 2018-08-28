@@ -34,8 +34,7 @@ class RegionBar(QWidget):
     def __init__(self,parent):
         super(RegionBar, self).__init__(parent)
         self.marks_color = QColor("#009fbc")
-        self.in_color = QColor("#009f00")
-        self.out_color = QColor("#9f0000")
+        self.bad_marks_color = QColor("#9f0000")
         self.setFixedHeight(6)
         self.show()
 
@@ -65,13 +64,11 @@ class RegionBar(QWidget):
         x1 = (float(w) / self.duration) * (self.mark_in)
         x2 = (float(w) / self.duration) * (self.mark_out - self.mark_in)
         qp.setPen(Qt.NoPen)
-        qp.setBrush(self.marks_color)
+        if self.mark_in and self.mark_out and self.mark_in > self.mark_out:
+            qp.setBrush(self.bad_marks_color)
+        else:
+            qp.setBrush(self.marks_color)
         qp.drawRect(x1, 1, x2, h-4)
-
-        qp.setBrush(self.in_color)
-        qp.drawRect(x1,      0, 2, 3)
-        qp.setBrush(self.out_color)
-        qp.drawRect(x1+x2  , 3, 2, 3)
 
 
 def get_navbar(wnd):
@@ -254,9 +251,7 @@ class VideoPlayer(QWidget):
         top_bar.addWidget(self.mark_out_display, 0)
 
         bottom_bar.addWidget(self.position_display, 0)
-        #bottom_bar.addStretch(1)
         bottom_bar.addWidget(self.navbar, 1)
-        #bottom_bar.addStretch(1)
         bottom_bar.addWidget(self.duration_display, 0)
 
         layout = QVBoxLayout()
@@ -283,8 +278,11 @@ class VideoPlayer(QWidget):
     def load(self, path, mark_in=0, mark_out=0):
         self.player["pause"] = True
         self.player.play(path)
+        self.prev_mark_in  = 0
+        self.prev_mark_out = 0
         self.mark_in = mark_in
         self.mark_out = mark_out
+        self.update_marks()
 
     def on_time_change(self, value):
         self.position = value
@@ -292,10 +290,8 @@ class VideoPlayer(QWidget):
     def on_duration_change(self, value):
         if value:
             self.duration = value
-            self.mark_out = self.mark_out or value - self.frame_dur
         else:
             self.duration = 0
-            self.mark_out = 0
         self.region_bar.update()
 
     def on_timeline_seek(self):
@@ -324,7 +320,7 @@ class VideoPlayer(QWidget):
         self.seek(self.mark_in)
 
     def on_go_out(self):
-        self.seek(self.mark_out)
+        self.seek(self.mark_out or self.duration)
 
     def on_mark_in(self):
         self.mark_in = self.position
@@ -339,7 +335,7 @@ class VideoPlayer(QWidget):
         self.region_bar.update()
 
     def on_clear_out(self):
-        self.mark_out = self.duration
+        self.mark_out = 0
         self.region_bar.update()
 
     def seek(self, position):
@@ -347,6 +343,19 @@ class VideoPlayer(QWidget):
 
     def on_pause(self):
         self.player["pause"] = not self.player["pause"]
+
+    def update_marks(self):
+        i = self.mark_in
+        o = self.mark_out or self.duration
+        self.mark_in_display.setText(s2tc(i))
+        self.mark_out_display.setText(s2tc(o))
+        io = o - i + self.frame_dur
+        if io > 0:
+            self.io_display.setText(s2tc(io))
+        else:
+            self.io_display.setText("<font color='red'>00:00:00:00</font>")
+        self.prev_mark_in = self.mark_in
+        self.prev_mark_out = self.mark_out
 
     def on_display_timer(self):
         if self.position != self.prev_position and self.position is not None:
@@ -360,11 +369,7 @@ class VideoPlayer(QWidget):
             self.prev_duration = self.duration
 
         if self.mark_in != self.prev_mark_in or self.mark_out != self.prev_mark_out:
-            self.mark_in_display.setText(s2tc(self.mark_in))
-            self.mark_out_display.setText(s2tc(self.mark_out))
-            self.io_display.setText(s2tc(self.mark_out - self.mark_in + self.frame_dur))
-            self.prev_mark_in = self.mark_in
-            self.prev_mark_out = self.mark_out
+            self.update_marks()
 
 
 
