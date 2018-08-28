@@ -318,6 +318,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
 
     def dropEvent(self, evt):
         drop_ts = max(self.start_time, self.round_ts(self.cursor_time - self.calendar.drag_offset))
+        do_reload = False
 
         if not user.has_right("channel_edit", self.id_channel):
             logging.error("You are not allowed to modify schedule of this channel.")
@@ -352,6 +353,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 QApplication.restoreOverrideCursor()
                 if result.is_error:
                     logging.error(result.message)
+            do_reload = True
 
 
         elif type(self.calendar.dragging) == Event:
@@ -383,6 +385,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                             start=drop_ts
                         )
                     dlg.exec_()
+                    do_reload = True
                 else:
                     # Just dragging events around. Instant save
                     QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -396,7 +399,8 @@ class SchedulerDayWidget(SchedulerVerticalBar):
 
         self.calendar.drag_source = False
         self.calendar.dragging = False
-        #self.calendar.load() #TODO: Check if correctly handled by seismic
+        if do_reload:
+            self.calendar.load()
 
 
     def contextMenuEvent(self, event):

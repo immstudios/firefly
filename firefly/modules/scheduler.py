@@ -87,8 +87,46 @@ class SchedulerModule(BaseModule):
         print (data)
 
     def import_template(self):
-        #TODO
-        pass
+        data = xml(open("template.xml").read())
+        ch, cm = self.calendar.day_start
+        events = []
+        try:
+            for day_index, day in enumerate(data.findall("day")):
+                day_start = self.calendar.week_start_time + (3600*24*day_index)
+                print ("---", format_time(day_start))
+                for event_data in day.findall("event"):
+                    hh, mm = [int(x) for x in event_data.attrib["time"].split(":")]
+
+                    clock_offset = (hh*3600) + (mm*60) - (ch*3600) - (cm*60)
+
+                    start_time = day_start + clock_offset
+
+                    event = Event(meta={"start" : start_time})
+                    for m in event_data.findall("meta"):
+                        key = m.attrib["key"]
+                        value = m.text
+                        if value:
+                            event[key] = value
+#                    event.meta["_items"]
+                    events.append(event.meta)
+
+        except Exception:
+            log_traceback("Unable to parse template:")
+            return
+
+        print (events)
+        if not events:
+            return
+
+        response = api.schedule(
+                id_channel=self.id_channel,
+                events=events
+            )
+        if response.is_error:
+            logging.error(response.message)
+        else:
+            logging.info(response.message)
+        self.load()
 
 
     def load(self, *args, **kwargs):
@@ -128,7 +166,7 @@ class SchedulerModule(BaseModule):
        if data.method == "objects_changed" and data.data["object_type"] == "event":
             do_load = False
             for id_event in data.data["objects"]:
-                if id_event in self.calendar.event_ids :
+                if id_event in self.calendar.event_ids:
                     do_load = True
             if do_load:
                 self.load()
