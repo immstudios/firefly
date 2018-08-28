@@ -124,12 +124,8 @@ class RundownView(FireflyView):
             action_send_to.triggered.connect(self.on_send_to)
             menu.addAction(action_send_to)
 
-
         if "event" in obj_set:
-            action_solve = QAction('Solve', self)
-            action_solve.setStatusTip('Solve selected event')
-            action_solve.triggered.connect(self.on_solve_event)
-            menu.addAction(action_solve)
+            pass
 
         if len(obj_set) > 0:
             menu.addSeparator()
@@ -220,33 +216,6 @@ class RundownView(FireflyView):
         dlg = EventDialog(self, event=objs[0])
         if dlg.exec_() == QDialog.Accepted:
             self.refresh()
-
-
-    def on_solve_event(self):
-        if not self.parent().can_edit:
-            logging.error("You are not allowed to modify this rundown")
-            return
-
-        ret = QMessageBox.question(self,
-            "Solve event",
-            "Do you really want to (re)solve {}?\nThis operation cannot be undone.".format(self.selected_objects[0]),
-            QMessageBox.Yes | QMessageBox.No
-            )
-
-        if ret == QMessageBox.Yes:
-            QApplication.processEvents()
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            stat, res = query("dramatica",
-                handler=self.parent().handle_message,
-                id_channel=self.parent().id_channel,
-                date=time.strftime("%Y-%m-%d", time.localtime(self.parent().start_time)),
-                id_event =self.selected_objects[0].id,
-                solve=True
-                )
-            QApplication.restoreOverrideCursor()
-            if not success(stat):
-                logging.error(res)
-            self.parent().refresh()
 
 
     def on_activate(self, mi):

@@ -18,18 +18,20 @@ class SendToDialog(QDialog):
         self.setWindowTitle("Send {} to...".format(what))
 
         self.actions = []
-        res, data = query("actions", assets=self.assets)
-        if success(res):
-
+        response = api.actions(ids=self.assets)
+        if response.is_error:
+            logging.error(response.message)
+            self.close()
+        else:
             layout = QVBoxLayout()
-            for id_action, title in data:
+            for id_action, title in response.data:
                 btn_send = SendToButton(title)
                 btn_send.clicked.connect(functools.partial(self.on_send, id_action))
                 layout.addWidget(btn_send,1)
 
             self.restart = QCheckBox('Restart existing actions', self)
             self.restart.setChecked(True)
-            layout.addWidget(self.restart,0)
+            layout.addWidget(self.restart, 0)
 
             self.setLayout(layout)
             self.setMinimumWidth(400)
@@ -47,10 +49,10 @@ class SendToDialog(QDialog):
     def on_send(self, id_action):
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        res, status = query("send_to", handler=self.handle_query, id_action=id_action, objects=self.assets, settings={}, restart_existing=self.restart.isChecked())
+        response = api.send(id_action=id_action, ids=self.assets, restart_existing=self.restart.isChecked())
         QApplication.restoreOverrideCursor()
-        if failed(res):
-            logging.error(status)
+        if response.is_error:
+            logging.error(response.message)
         else:
             self.close()
 
@@ -60,4 +62,4 @@ class SendToDialog(QDialog):
 
 def send_to(parent, objects):
     dlg = SendToDialog(parent, objects)
-    dlg._exec()
+    dlg.exec_()

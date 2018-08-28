@@ -3,7 +3,6 @@ import datetime
 from firefly import *
 from firefly.modules.scheduler_utils import *
 from firefly.dialogs.event import EventDialog
-from firefly.dialogs.dramatica import DramaticaDialog
 
 __all__ = ["SchedulerCalendar"]
 
@@ -417,10 +416,6 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         action_edit_event.triggered.connect(self.on_edit_event)
         menu.addAction(action_edit_event)
 
-        action_solve_event = QAction('Solve', self)
-        action_solve_event.triggered.connect(self.on_solve_event)
-        menu.addAction(action_solve_event)
-
         menu.addSeparator()
 
         action_delete_event = QAction('Delete event', self)
@@ -439,21 +434,6 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         dlg = EventDialog(self, event=self.cursor_event)
         if dlg.exec_() == QDialog.Accepted:
             self.calendar.load()
-
-    def on_solve_event(self):
-        cursor_event = self.cursor_event
-        ret = QMessageBox.question(self,
-            "Solve event",
-            "Do you really want to (re)solve {}?\nThis operation cannot be undone.".format(cursor_event),
-            QMessageBox.Yes | QMessageBox.No
-            )
-        if ret == QMessageBox.Yes:
-            QApplication.processEvents()
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            #TODO
-            QApplication.restoreOverrideCursor()
-            self.calendar.load()
-
 
     def on_delete_event(self):
         cursor_event = self.cursor_event
@@ -540,29 +520,10 @@ class SchedulerDayHeaderWidget(QLabel):
         action_open_rundown.triggered.connect(self.on_open_rundown)
         menu.addAction(action_open_rundown)
 
-        menu.addSeparator()
-
-        action_solve = QAction('Dramatica', self)
-        action_solve.triggered.connect(self.on_solve)
-        menu.addAction(action_solve)
-
         menu.exec_(event.globalPos())
 
     def on_open_rundown(self):
         self.parent().open_rundown(self.start_time)
-
-    def on_solve(self):
-        dlg = DramaticaDialog(self)
-        dlg.exec_()
-        if dlg.result:
-            QApplication.processEvents()
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            #TODO
-            QApplication.restoreOverrideCursor()
-            if not success(stat):
-                loggine.error(res)
-            self.parent().load()
-
 
 
 
