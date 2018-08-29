@@ -102,12 +102,28 @@ class FormatStatus(CellFormat):
 class FormatRundownDifference(CellFormat):
     key = "rundown_difference"
     def display(self, obj, **kwargs):
-        return s2tc(abs(obj[self.key]))
+        if obj[self.key]:
+            return s2tc(abs(obj[self.key]))
+        return ""
 
     def foreground(self, obj, **kwargs):
         if obj["rundown_broadcast"] and obj["rundown_scheduled"]:
             diff = obj["rundown_broadcast"] - obj["rundown_scheduled"]
             return ["#ff0000", "#00ff00"][diff >= 0]
+
+class FormatRundownScheduled(CellFormat):
+    key = "rundown_scheduled"
+    def display(self, obj, **kwargs):
+        if obj.id:
+            return obj.show(self.key)
+        return ""
+
+class FormatRundownBroadcast(CellFormat):
+    key = "rundown_broadcast"
+    def display(self, obj, **kwargs):
+        if obj.id:
+            return obj.show(self.key)
+        return ""
 
 
 class FormatRunMode(CellFormat):
@@ -119,12 +135,14 @@ class FormatRunMode(CellFormat):
             return "SOFT"
         elif obj[self.key] == 3:
             return "HARD"
-        return "AUTO"
+        if obj.id:
+            return "AUTO"
+        return ""
 
 class FormatDuration(CellFormat):
     key = "duration"
     def display(self, obj, **kwargs):
-        if obj.object_type in ["asset", "item"]:
+        if obj.object_type in ["asset", "item"] and obj["duration"]:
             return s2time(obj.duration)
         else:
             return ""
@@ -211,6 +229,8 @@ format_helpers_list = [
         FormatPromoted,
         FormatStatus,
         FormatRundownDifference,
+        FormatRundownScheduled,
+        FormatRundownBroadcast,
         FormatRunMode,
         FormatState,
         FormatTitle,
