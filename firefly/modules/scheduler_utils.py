@@ -43,7 +43,7 @@ def text_shorten(text, font, target_width):
 
 def dump_template(calendar):
     result = """<?xml version="1.0" encoding="utf-8" standalone="yes"?>\n"""
-    result += "</template>\n"
+    result += "<template>\n"
 
     DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     days = [[], [], [], [], [], [], []]
@@ -61,7 +61,7 @@ def dump_template(calendar):
             for key in event.meta:
                 if meta_types[key]["ns"] != "m":
                     continue
-                result += "            <meta=\"{}\">{}</meta>\n".format(key, event[key])
+                result += "            <meta key=\"{}\">{}</meta>\n".format(key, event[key])
             result += "        </event>\n"
         result += "    </day>\n"
 

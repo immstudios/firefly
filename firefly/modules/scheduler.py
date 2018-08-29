@@ -84,20 +84,57 @@ class SchedulerModule(BaseModule):
 
     def export_template(self):
         data = dump_template(self.calendar)
-        print (data)
+        try:
+            if not os.path.exists("templates"):
+                os.makedirs("templates")
+        except Exception:
+            log_traceback()
+        save_file_path = QFileDialog.getSaveFileName(
+                    self,
+                    'Save scheduler template',
+                    os.path.abspath("templates"),
+                    "Templates (*.xml)"
+                )[0]
+        if os.path.splitext(save_file_path)[1].lower() != ".xml":
+            save_file_path += ".xml"
+        try:
+            save_file = open(save_file_path, 'w')
+            save_file.write(data)
+            save_file.close()
+        except Exception:
+            log_traceback()
 
     def import_template(self):
-        data = xml(open("template.xml").read())
+        try:
+            if not os.path.exists("templates"):
+                os.makedirs("templates")
+        except Exception:
+            log_traceback()
+        file_path = QFileDialog.getOpenFileName(
+                self,
+                "Open template",
+                os.path.abspath("templates"),
+                "Templates (*.xml)"
+            )[0]
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        try:
+            data = xml(open(file_path).read())
+        except Exception:
+            QApplication.restoreOverrideCursor()
+            log_traceback()
+            return
         ch, cm = self.calendar.day_start
         events = []
         try:
             for day_index, day in enumerate(data.findall("day")):
                 day_start = self.calendar.week_start_time + (3600*24*day_index)
-                print ("---", format_time(day_start))
                 for event_data in day.findall("event"):
                     hh, mm = [int(x) for x in event_data.attrib["time"].split(":")]
 
                     clock_offset = (hh*3600) + (mm*60) - (ch*3600) - (cm*60)
+                    if (hh*3600) + (mm*60) < (ch*3600) - (cm*60):
+                        clock_offset += 24*3600
 
                     start_time = day_start + clock_offset
 
@@ -109,19 +146,18 @@ class SchedulerModule(BaseModule):
                             event[key] = value
 #                    event.meta["_items"]
                     events.append(event.meta)
-
         except Exception:
+            QApplication.restoreOverrideCursor()
             log_traceback("Unable to parse template:")
             return
-
-        print (events)
         if not events:
+            QApplication.restoreOverrideCursor()
             return
-
         response = api.schedule(
                 id_channel=self.id_channel,
                 events=events
             )
+        QApplication.restoreOverrideCursor()
         if response.is_error:
             logging.error(response.message)
         else:
