@@ -315,7 +315,7 @@ class BrowserModule(BaseModule):
             return
         response = api.set(
                 objects=objects,
-                data={"status" : CREATING}
+                data={"status" : RETRIEVING}
             )
         if response.is_error:
             logging.error("Unable to unarchive:\n\n" + response.message)

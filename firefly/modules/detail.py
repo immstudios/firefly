@@ -416,7 +416,7 @@ class DetailModule(BaseModule):
 
         self.duration.set_value(self.asset.duration)
         self.duration.show()
-        if self.asset["status"] == OFFLINE:
+        if self.asset["status"] == OFFLINE or not self.asset.id:
             self.duration.setEnabled(True)
         else:
             self.duration.setEnabled(False)
@@ -457,10 +457,11 @@ class DetailModule(BaseModule):
             new_asset["id_folder"] = self.asset["id_folder"]
             for key in self.form.inputs:
                 new_asset[key] = self.form[key]
-                if self.duration.isEnabled():
-                   new_asset["duration"] = self.duration.get_value()
+                new_asset["duration"] = self.duration.get_value()
         else:
             new_asset["id_folder"] = min(config["folders"])
+        new_asset["media_type"] = self.asset["media_type"]
+        new_asset["content_type"] = self.asset["content_type"]
         self.asset = False
         self.focus(new_asset)
 
@@ -472,7 +473,7 @@ class DetailModule(BaseModule):
         if self.asset.id:
             if self.asset["id_folder"] != self.folder_select.get_value() and self.folder_select.isEnabled():
                 data["id_folder"] = self.folder_select.get_value()
-            if self.asset["duration"] != self.duration.get_value() and self.duration.isEnabled():
+            if self.asset["True"] != self.duration.get_value() and self.duration.isEnabled():
                 data["duration"] = self.duration.get_value()
 
             for key in self.form.changed:
@@ -486,12 +487,11 @@ class DetailModule(BaseModule):
         if has_player and self.detail_tabs.tab_preview.changes:
             data.update(self.detail_tabs.tab_preview.changes)
 
-        print(data)
-
+        self.form.setEnabled(False) # reenable on seismic message with new data
         response = api.set(objects=[self.asset.id], data=data)
         if response.is_error:
             logging.error(response.message)
-            self.form.setEnabled(False) # reenable on seismic message with new data
+            self.form.setEnabled(True) # reenable on seismic message with new data
         else:
             logging.debug("[DETAIL] Set method responded", response.response)
             if not self.asset.id:
