@@ -12,7 +12,6 @@ DEFAULT_HEADER_DATA = [
         "stime",
         "etime",
         "progress",
-        "message"
     ]
 
 def job_format(data, key):
@@ -31,7 +30,18 @@ def job_format(data, key):
     elif key == "id":
         return str(data["id"])
     elif key == "progress":
-        return str(data["progress"])
+        if data["status"] == 1:
+            return "{:.02f}%".format(data["progress"])
+        else:
+            return({
+                    0 : "Pending",
+                    1 : "In progress",
+                    2 : "Completed",
+                    3 : "Failed",
+                    4 : "Aborted",
+                    5 : "Restarted",
+                    6 : "Skipped"
+                }[data["status"]])
     return "-"
 
 
@@ -44,7 +54,6 @@ header_format = {
             "stime" : "Started",
             "etime" : "Ended",
             "progress" : "Progress",
-            "message" : "Message"
         }
 
 colw = {
@@ -55,8 +64,7 @@ colw = {
         "ctime" : 150,
         "stime" : 150,
         "etime" : 150,
-        "progress" : 65,
-        "message" : 200
+        "progress" : 150,
     }
 
 class JobsModel(FireflyViewModel):
@@ -75,7 +83,7 @@ class JobsModel(FireflyViewModel):
         if role == Qt.DisplayRole:
             return job_format(obj, key)
         elif role == Qt.ToolTipRole:
-            return asset_cache[obj["id_asset"]]
+            return "{}\n\n{}".format(obj["message"], asset_cache[obj["id_asset"]])
 
         return None
 

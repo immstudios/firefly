@@ -145,9 +145,23 @@ class JobsModule(BaseModule):
 
 
     def seismic_handler(self, message):
+        d = message.data
+
+        do_reload = False
+        for row in self.view.model.object_data:
+            if row["id"] == d.get("id", False):
+                #TODO: emit change row instead reset model
+                self.view.model.beginResetModel()
+                row["message"] = d["message"]
+                row["progress"] = d["progress"]
+                self.view.model.endResetModel()
+                if row["status"] != d["status"]:
+                    do_reload = True
+                break
+        else:
+            do_reload = True
+
+        if do_reload:
+            self.view.model.load()
+
         return
-#        if message.method == "objects_changed" and message.data["object_type"] == "asset":
-#            for row, obj in enumerate(self.model.object_data):
-#                if obj.id in message.data["objects"]:
-#                    self.model.object_data[row] = asset_cache[obj.id]
-#                    self.model.dataChanged.emit(self.model.index(row, 0), self.model.index(row, len(self.model.header_data)-1))
