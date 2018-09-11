@@ -242,6 +242,9 @@ class RundownModule(BaseModule):
     #
 
     def seismic_handler(self, message):
+        if self.main_window.current_module != self.main_window.rundown:
+            return
+
         if message.method == "playout_status":
             if message.data["id_channel"] != self.id_channel:
                 return

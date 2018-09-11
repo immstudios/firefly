@@ -46,15 +46,15 @@ def job_format(data, key):
 
 
 header_format = {
-            "id" : "#",
-            "title" : "Title",
-            "action" : "Action",
-            "service" : "Service",
-            "ctime" : "Created",
-            "stime" : "Started",
-            "etime" : "Ended",
-            "progress" : "Progress",
-        }
+        "id" : "#",
+        "title" : "Title",
+        "action" : "Action",
+        "service" : "Service",
+        "ctime" : "Created",
+        "stime" : "Started",
+        "etime" : "Ended",
+        "progress" : "Progress",
+    }
 
 colw = {
         "id" : 50,
@@ -67,7 +67,23 @@ colw = {
         "progress" : 150,
     }
 
+colors = {
+        PENDING     : QColor("#cccccc"),
+        IN_PROGRESS : QColor("#ffffff"),
+        COMPLETED   : QColor("#109410"),
+        FAILED      : QColor("#941010"),
+        ABORTED     : QColor("#646464"),
+        RESTART     : QColor("#cccccc"),
+        SKIPPED     : QColor("#646464"),
+    }
+
+
 class JobsModel(FireflyViewModel):
+    def __init__(self, *args, **kwargs):
+        super(JobsModel, self).__init__(*args, **kwargs)
+        self.request_data = {
+                    "view" : "active"
+                }
     def headerData(self, col, orientation=Qt.Horizontal, role=Qt.DisplayRole):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return header_format[self.header_data[col]]
@@ -84,16 +100,19 @@ class JobsModel(FireflyViewModel):
             return job_format(obj, key)
         elif role == Qt.ToolTipRole:
             return "{}\n\n{}".format(obj["message"], asset_cache[obj["id_asset"]])
+        elif role == Qt.ForegroundRole:
+            return colors[obj["status"]]
 
         return None
 
 
     def load(self, **kwargs):
+        self.request_data.update(kwargs)
         start_time = time.time()
         self.beginResetModel()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         self.object_data = []
-        result = api.jobs(view=kwargs.get("id_view", "all"))
+        result = api.jobs(**self.request_data)
         if result.is_error:
             logging.error(result.message)
         else:

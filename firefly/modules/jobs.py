@@ -72,15 +72,13 @@ class JobsModule(BaseModule):
     def load(self, **kwargs):
         self.view.model.load(**kwargs)
 
-    def refresh(self):
-        self.load()
-
     def on_clear(self):
         self.search_box.setText("")
         self.load(fulltext="")
 
     def set_view(self, id_view="active"):
-        self.load(id_view=id_view)
+        self.id_view = id_view
+        self.load(view=id_view)
         for action in self.action_search.actions():
             if not hasattr(action, "id_view"):
                 continue
@@ -145,6 +143,12 @@ class JobsModule(BaseModule):
 
 
     def seismic_handler(self, message):
+        if self.main_window.current_module != self.main_window.jobs:
+            return
+
+        if self.id_view != "active":
+            return
+
         d = message.data
 
         do_reload = False
@@ -163,5 +167,3 @@ class JobsModule(BaseModule):
 
         if do_reload:
             self.view.model.load()
-
-        return

@@ -60,10 +60,11 @@ class FireflyViewModel(QAbstractTableModel):
             if font in self.fonts:
                 return self.fonts[font]
         elif role == Qt.ToolTipRole:
-            r = pformat(obj.meta)
-            if obj.object_type == "item":
-                r += "\n\n" + pformat(obj.asset.meta) if obj.asset else ""
-            return r
+            if config.get("debug", False):
+                r = pformat(obj.meta)
+                if obj.object_type == "item":
+                    r += "\n\n" + pformat(obj.asset.meta) if obj.asset else ""
+                return r
         return None
 
 

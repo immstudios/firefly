@@ -90,7 +90,6 @@ class FireflyApplication(Application):
             i+=1
         sys.exit(0)
 
-
     def splash_message(self, msg):
         self.splash.showMessage(
                 msg,

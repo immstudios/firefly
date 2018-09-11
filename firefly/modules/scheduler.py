@@ -98,9 +98,8 @@ class SchedulerModule(BaseModule):
         if os.path.splitext(save_file_path)[1].lower() != ".xml":
             save_file_path += ".xml"
         try:
-            save_file = open(save_file_path, 'w')
-            save_file.write(data)
-            save_file.close()
+            with open(save_file_path, 'wb') as save_file:
+                save_file.write(encode_if_py3(data))
         except Exception:
             log_traceback()
 
@@ -119,7 +118,8 @@ class SchedulerModule(BaseModule):
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         try:
-            data = xml(open(file_path).read())
+            feed = decode_if_py3(open(file_path, "rb").read())
+            data = xml(feed)
         except Exception:
             QApplication.restoreOverrideCursor()
             log_traceback()
@@ -164,7 +164,6 @@ class SchedulerModule(BaseModule):
             logging.info(response.message)
         self.load()
 
-
     def load(self, *args, **kwargs):
         self.calendar.load(*args, **kwargs)
         date = datetime.date.fromtimestamp(self.calendar.week_start_time)
@@ -179,8 +178,8 @@ class SchedulerModule(BaseModule):
         self.load(self.calendar.week_start_time + (3600*24*7))
 
     def focus(self, objects):
+        return
         #TODO
-        pass
         if self.action_show_runs.isChecked():
             asset_ids = [obj.id for obj in objects if obj.object_type == "asset"]
             if not asset_ids:
@@ -193,7 +192,6 @@ class SchedulerModule(BaseModule):
     def open_rundown(self, ts, event=False):
         self.main_window.main_widget.rundown.load(start_time=ts, event=event)
         self.main_window.main_widget.switch_tab(self.main_window.main_widget.rundown)
-
 
     def set_channel(self, id_channel):
         self.load()

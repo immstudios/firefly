@@ -78,6 +78,11 @@ def get_navbar(wnd):
     # Invisible actions
     #
 
+    wnd.action_clear_marks = QAction(wnd)
+    wnd.action_clear_marks.setShortcuts(['g'])
+    wnd.action_clear_marks.setStatusTip('Clear both marks')
+    wnd.action_clear_marks.triggered.connect(wnd.on_clear_marks)
+    toolbar.addAction(wnd.action_clear_marks)
 
 
     #
@@ -336,6 +341,10 @@ class VideoPlayer(QWidget):
 
     def on_clear_out(self):
         self.mark_out = 0
+        self.region_bar.update()
+
+    def on_clear_marks(self):
+        self.mark_out = self.mark_in = 0
         self.region_bar.update()
 
     def seek(self, position):

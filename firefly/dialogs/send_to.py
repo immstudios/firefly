@@ -29,9 +29,13 @@ class SendToDialog(QDialog):
                 btn_send.clicked.connect(functools.partial(self.on_send, id_action))
                 layout.addWidget(btn_send,1)
 
-            self.restart = QCheckBox('Restart existing actions', self)
-            self.restart.setChecked(True)
-            layout.addWidget(self.restart, 0)
+            self.restart_existing = QCheckBox('Restart existing actions', self)
+            self.restart_existing.setChecked(True)
+            layout.addWidget(self.restart_existing, 0)
+
+            self.restart_running = QCheckBox('Restart running actions', self)
+            self.restart_running.setChecked(False)
+            layout.addWidget(self.restart_running, 0)
 
             self.setLayout(layout)
             self.setMinimumWidth(400)
@@ -49,7 +53,12 @@ class SendToDialog(QDialog):
     def on_send(self, id_action):
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        response = api.send(id_action=id_action, ids=self.assets, restart_existing=self.restart.isChecked())
+        response = api.send(
+                id_action=id_action,
+                ids=self.assets,
+                restart_existing=self.restart_existing.isChecked(),
+                restart_running=self.restart_running.isChecked()
+            )
         QApplication.restoreOverrideCursor()
         if response.is_error:
             logging.error(response.message)

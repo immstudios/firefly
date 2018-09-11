@@ -1,5 +1,3 @@
-import pprint
-
 from .common import *
 from .modules import *
 from .menu import create_menu
@@ -89,14 +87,17 @@ class FireflyMainWidget(QWidget):
             # Refresh rundown on focus
             self.rundown.load()
 
+        if self.current_module == self.jobs:
+            self.jobs.load()
+
         self.main_window.app_state["current_module"] = self.tabs.currentIndex()
 
 
 class FireflyMainWindow(MainWindow):
     def __init__(self, parent, MainWidgetClass):
         self.subscribers = []
-
         super(FireflyMainWindow, self).__init__(parent, MainWidgetClass)
+        self.setWindowIcon(QIcon(get_pix("icon")))
 
         logging.handlers = [self.log_handler]
         self.listener = SeismicListener(
@@ -122,6 +123,10 @@ class FireflyMainWindow(MainWindow):
         self.main_widget.main_splitter.setSizes([one_third, one_third*2])
 
     @property
+    def current_module(self):
+        return self.main_widget.current_module
+
+    @property
     def browser(self):
         return self.main_widget.browser
 
@@ -132,9 +137,14 @@ class FireflyMainWindow(MainWindow):
     @property
     def rundown(self):
         return self.main_widget.rundown
+
     @property
     def detail(self):
         return self.main_widget.detail
+
+    @property
+    def jobs(self):
+        return self.main_widget.jobs
 
     def focus(self, obj):
         if type(obj) == list:
@@ -142,6 +152,8 @@ class FireflyMainWindow(MainWindow):
         if obj.object_type == "item":
             obj = obj.asset
         self.detail.focus(obj)
+        if self.scheduler:
+            self.scheduler.focus(obj)
 
     #
     # Menu actions

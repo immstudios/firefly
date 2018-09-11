@@ -16,7 +16,8 @@ STATUS_FG_COLORS = {
     REMOTE   : "#dddd00",
     UNKNOWN  : "#909090",
     AIRED    : "#646464",
-    ONAIR    : "#ff9090"
+    ONAIR    : "#ff9090",
+    RETRIEVING  : "#dddd00"
 }
 
 DEFAULT_FOLDER = {
@@ -39,7 +40,7 @@ class CellFormat(object):
         return None
 
     def font(self, obj, **kwargs):
-        pass
+        return None
 
 #
 # Cell formatters
