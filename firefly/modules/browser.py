@@ -322,7 +322,9 @@ class BrowserModule(BaseModule):
 
 
     def on_choose_columns(self):
-        pass #TODO
+        #TODO
+        logging.error("Not implemented")
+
 
     def on_copy_result(self):
         result = ""

@@ -159,7 +159,7 @@ class JobsModule(BaseModule):
                 row["message"] = d["message"]
                 row["progress"] = d["progress"]
                 self.view.model.endResetModel()
-                if row["status"] != d["status"]:
+                if row["status"] != d.get("status", False):
                     do_reload = True
                 break
         else:

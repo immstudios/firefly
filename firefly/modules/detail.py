@@ -233,10 +233,12 @@ class DetailTabPreview(QWidget):
         pass
 
     def create_subclip(self):
-        pass
+        #TODO
+        logging.error("Not implemented")
 
     def manage_subclips(self):
-        pass
+        #TODO
+        logging.error("Not implemented")
 
 
 
