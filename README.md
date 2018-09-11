@@ -8,6 +8,15 @@ Configuration
 
 Edit **settings.json** file to set your server address and site name.
 
+```json
+{
+    "sites"  : [{
+        "site_name" : "demo",
+        "hub" : "https://demo.nebulabroadcast.com"
+    }]
+}
+```
+
 
 Installation
 ------------
