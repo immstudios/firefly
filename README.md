@@ -25,7 +25,7 @@ For Linux, install python3 and python3-pip packages and then install requiered l
 following command
 
 ```
-sudo pip install requests PyQT5 websockets-client
+sudo pip install requests PyQT5 websocket-client
 ```
 
 For video playback, you will also need **libmpv1** package.

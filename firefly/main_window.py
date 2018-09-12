@@ -71,7 +71,6 @@ class FireflyMainWidget(QWidget):
     def switch_tab(self, module):
         for i in range(self.tabs.count()):
             if (type(module) == int and module == i) or self.tabs.widget(i) == module:
-                logging.info("switching to module", i)
                 self.tabs.setCurrentIndex(i)
 
     def on_switch_tab(self, index=None):
@@ -166,8 +165,8 @@ class FireflyMainWindow(MainWindow):
         self.detail.clone_asset()
 
     def logout(self):
-        #TODO
-        pass
+        api.logout()
+        self.close()
 
     def exit(self):
         self.close()

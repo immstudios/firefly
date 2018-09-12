@@ -26,12 +26,11 @@ class JobsModule(BaseModule):
         super(JobsModule, self).__init__(parent)
         self.search_query = {}
 
-        self.search_box = SearchWidget(self)
-
         self.view = FireflyJobsView(self)
 
-        action_clear = QAction(QIcon(pix_lib["cancel"]), '&Clear search query', parent)
-        action_clear.triggered.connect(self.on_clear)
+        #self.search_box = SearchWidget(self)
+        #action_clear = QAction(QIcon(pix_lib["cancel"]), '&Clear search query', parent)
+        #action_clear.triggered.connect(self.on_clear)
 
         self.action_search = QMenu("Views")
         self.action_search.menuAction().setIcon(QIcon(pix_lib["search"]))
@@ -39,8 +38,9 @@ class JobsModule(BaseModule):
         self.load_view_menu()
 
         toolbar = QToolBar()
-        toolbar.addWidget(self.search_box)
-        toolbar.addAction(action_clear)
+        toolbar.addWidget(ToolBarStretcher(self))
+        #toolbar.addWidget(self.search_box)
+        #toolbar.addAction(action_clear)
         toolbar.addAction(self.action_search.menuAction())
 
         layout = QVBoxLayout()

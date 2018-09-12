@@ -58,6 +58,13 @@ class NebulaAPI(object):
         data = json.loads(response.text)
         return NebulaResponse(**data)
 
+    def logout(self):
+        data = {"api" : 1}
+        response = requests.post(self._settings["hub"] + "/logout", data, headers=headers)
+        self._cookies = response.cookies
+        data = json.loads(response.text)
+        return NebulaResponse(**data)
+
     def run(self, method, **kwargs):
         response = requests.post(
                 self._settings["hub"] + "/api/" + method,
