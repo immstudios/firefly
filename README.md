@@ -1,8 +1,21 @@
 Firefly
 =======
 
-Firefly is a desktop client application for **Nebula** broadcast automation system.
+Firefly is a desktop client application for [Nebula](https://github.com/nebulabroadcast/nebula) broadcast automation system.
 
+Configuration
+-------------
+
+Edit **settings.json** file to set your server address and site name.
+
+```json
+{
+    "sites"  : [{
+        "site_name" : "demo",
+        "hub" : "https://demo.nebulabroadcast.com"
+    }]
+}
+```
 
 
 Installation
