@@ -21,3 +21,4 @@ auth.key
 .vscode/
 _res/
 _old/
+templates/
