@@ -3,6 +3,13 @@ import datetime
 
 from firefly import *
 
+default_meta_set = [
+        ["start", {}],
+        ["title", {}],
+        ["subtitle", {}],
+        ["description", {}]
+    ]
+
 def event_toolbar(wnd):
     toolbar = QToolBar(wnd)
     toolbar.setMovable(False)
@@ -31,19 +38,13 @@ class EventDialog(QDialog):
         self.setStyleSheet(app_skin)
         self.toolbar = event_toolbar(self)
 
-        default_keys = [
-                ["start", {}],
-                ["title", {}],
-                ["subtitle", {}],
-                ["description", {}]
-            ]
-        keys = default_keys #TODO: config
-
         self.event = kwargs.get("event", Event())
 
         for key in ["start", "id_channel"]:
             if kwargs.get(key, False):
                 self.event[key] = kwargs[key]
+
+        keys = config["playout_channels"][self.event["id_channel"]].get("meta_set", default_meta_set)
 
         if "asset" in self.kwargs:
             asset = self.kwargs["asset"]
