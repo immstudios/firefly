@@ -2,6 +2,8 @@ import functools
 
 from firefly import *
 
+__all__ = ["SiteSelectDialog"]
+
 class SiteSelectButton(QPushButton):
     pass
 

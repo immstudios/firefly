@@ -12,9 +12,10 @@ build
 # Settings
 
 settings.json
-firefly.appstate
+*.appstate
 cache*
 auth.key
+templates/
 
 # Other
 

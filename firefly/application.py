@@ -38,11 +38,13 @@ class FireflyApplication(Application):
         i = 0
         if "sites" in config:
             if len(config["sites"]) > 1:
-                dlg = SiteSelect(None, config["sites"])
+                dlg = SiteSelectDialog(None, config["sites"])
                 i = dlg.exec_()
             else:
                 i = 0
         config.update(config["sites"][i])
+
+        self.app_state_path = os.path.join(app_dir, "{}-{}.appstate".format(app_settings["name"], config["site_name"]))
 
         # Login
 

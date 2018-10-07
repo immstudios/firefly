@@ -278,6 +278,8 @@ class BrowserModule(BaseModule):
                     objects=objects,
                     data={"status" : TRASHED}
                 )
+        else:
+            return
         if response.is_error:
             logging.error("Unable to trash:\n\n" + response.message)
 
@@ -306,6 +308,8 @@ class BrowserModule(BaseModule):
                     objects=objects,
                     data={"status" : ARCHIVED}
                 )
+        else:
+            return
         if response.is_error:
             logging.error("Unable to archive:\n\n" + response.message)
 
