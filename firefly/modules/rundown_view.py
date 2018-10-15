@@ -231,3 +231,4 @@ class RundownView(FireflyView):
             self.on_edit_event()
         self.clearSelection()
 
+

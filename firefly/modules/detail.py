@@ -173,6 +173,7 @@ class DetailTabPreview(QWidget):
         self.changed = {}
         if self.has_focus:
             self.load_video()
+        self.subclips.load()
 
     def load_video(self):
         if self.current_asset and not self.loaded:
@@ -204,8 +205,7 @@ class DetailTabPreview(QWidget):
         pass
 
     def create_subclip(self):
-        #TODO
-        logging.error("Not implemented")
+        self.subclips.create_subclip(self.player.mark_in, self.player.mark_out)
 
     def manage_subclips(self):
         if self.subclips.isVisible():

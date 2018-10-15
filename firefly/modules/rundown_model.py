@@ -180,8 +180,9 @@ class RundownModel(FireflyViewModel):
         elif data.hasFormat("application/nx.asset"):
             d = data.data("application/nx.asset").data()
             items = json.loads(d.decode("ascii"))
-            for obj in items:
-                drop_objects.append(Asset(meta=obj))
+            for asset_data in items:
+                asset = Asset(meta=asset_data)
+                drop_objects.append(asset)
         else:
             return False
 
@@ -209,25 +210,24 @@ class RundownModel(FireflyViewModel):
                 sorted_items.append({"object_type" : "item", "id_object" : obj.id, "meta" : obj.meta})
 
             elif data.hasFormat("application/nx.asset"):
-                mark_in = mark_out = False
-                meta = {}
-
+                metas = []
                 if obj["subclips"]:
                     dlg = SubclipSelectDialog(self.parent(), obj)
                     dlg.exec_()
                     if dlg.ok:
-                        mark_in, mark_out = dlg.marks
-                        if dlg.clip:
-                            meta["title"] = "{} ({})".format(obj["title"], dlg.clip)
-                else:
-                    mark_in  = obj["mark_in"]
-                    mark_out = obj["mark_out"]
+                        for meta in dlg.result:
+                            sorted_items.append({"object_type" : "asset", "id_object" : obj.id, "meta" : meta})
 
-                if mark_in:
-                    meta["mark_in"]  = mark_in
-                if mark_out:
-                    meta["mark_out"] = mark_out
-                sorted_items.append({"object_type" : "asset", "id_object" : obj.id, "meta" : meta})
+
+                else: # Asset does not have subclips
+                    meta = {}
+                    if obj["mark_in"]:
+                        meta["mark_in"] = obj["mark_in"]
+                        meta["mark_out"] = obj["mark_out"]
+
+                    sorted_items.append({"object_type" : "asset", "id_object" : obj.id, "meta" : meta})
+
+
 
         # Append trailing items
 

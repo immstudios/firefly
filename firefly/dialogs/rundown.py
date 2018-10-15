@@ -58,25 +58,55 @@ class SubclipSelectDialog(QDialog):
         self.setModal(True)
         self.setWindowTitle("Select {} subclip to use".format(asset))
         self.ok = False
+        self.asset = asset
+        self.subclips = asset.meta.get("subclips", [])
+        self.subclips.sort(key=lambda x: x["mark_in"])
 
         layout = QVBoxLayout()
 
         btn = QPushButton("Entire clip")
-        btn.clicked.connect(functools.partial(self.on_submit, "", [asset["mark_in"],asset["mark_out"]]))
+        btn.clicked.connect(functools.partial(self.on_submit, -1 ))
         layout.addWidget(btn)
 
-        subclips = asset.meta.get("subclips", {})
-        for subclip in sorted(subclips):
-            marks = subclips[subclip]
-            btn = QPushButton(subclip)
-            btn.clicked.connect(functools.partial(self.on_submit, subclip, marks))
+        btn = QPushButton("All subclips")
+        btn.clicked.connect(functools.partial(self.on_submit, -2 ))
+        layout.addWidget(btn)
+
+        for i, subclip in enumerate(self.subclips):
+            btn = QPushButton("[{} - {}] {}".format(
+                    s2tc(subclip["mark_in"]),
+                    s2tc(subclip["mark_out"]),
+                    subclip["title"],
+                ))
+            btn.setStyleSheet("font: monospace; text-align: left;")
+            btn.clicked.connect(functools.partial(self.on_submit, i))
             layout.addWidget(btn)
 
         self.setLayout(layout)
 
 
-    def on_submit(self, clip, marks):
-        self.marks = [float(mark) for mark in marks]
-        self.clip = clip
+    def on_submit(self, subclip):
+        self.result = []
+
+        if subclip == -1:
+            self.result = [{
+                    "mark_in" : self.asset["mark_in"],
+                    "mark_out" : self.asset["mark_out"],
+                }]
+
+        elif subclip == -2:
+            for sdata in self.subclips:
+                self.result.append({
+                        "mark_in" : sdata["mark_in"],
+                        "mark_out" : sdata["mark_out"],
+                        "title" : "{} ({})".format(self.asset["title"], sdata["title"])
+                    })
+
+        elif subclip >= 0:
+            self.result = [{
+                    "mark_in" : self.subclips[subclip]["mark_in"],
+                    "mark_out" : self.subclips[subclip]["mark_out"],
+                    "title" : "{} ({})".format(self.asset["title"], self.subclips["title"])
+                }]
         self.ok = True
         self.close()
