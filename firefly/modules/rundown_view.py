@@ -3,6 +3,7 @@ from firefly import *
 
 from .rundown_model import RundownModel
 from firefly.dialogs.event import EventDialog
+from firefly.dialogs.send_to import send_to
 
 class RundownView(FireflyView):
     def __init__(self, parent):
@@ -204,11 +205,7 @@ class RundownView(FireflyView):
 
     def on_send_to(self):
         objs = set([obj for obj in self.selected_objects if obj.object_type == "item"])
-        if not objs:
-            logging.warning("No rundown item selected")
-            return
-        dlg = SendToDialog(self, objs)
-        dlg.exec_()
+        send_to(self, objs)
 
 
     def on_edit_event(self):
