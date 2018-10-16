@@ -106,7 +106,7 @@ class SubclipSelectDialog(QDialog):
             self.result = [{
                     "mark_in" : self.subclips[subclip]["mark_in"],
                     "mark_out" : self.subclips[subclip]["mark_out"],
-                    "title" : "{} ({})".format(self.asset["title"], self.subclips["title"])
+                    "title" : "{} ({})".format(self.asset["title"], self.subclips[subclip]["title"])
                 }]
         self.ok = True
         self.close()
