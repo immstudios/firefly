@@ -205,6 +205,8 @@ class DetailTabPreview(QWidget):
         pass
 
     def create_subclip(self):
+        if not self.subclips.isVisible():
+            self.subclips.show()
         self.subclips.create_subclip(self.player.mark_in, self.player.mark_out)
 
     def manage_subclips(self):
@@ -212,7 +214,6 @@ class DetailTabPreview(QWidget):
             self.subclips.hide()
         else:
             self.subclips.show()
-            self.subclips.load()
 
 
 
