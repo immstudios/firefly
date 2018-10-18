@@ -32,16 +32,38 @@ class JobsModule(BaseModule):
         #action_clear = QAction(QIcon(pix_lib["cancel"]), '&Clear search query', parent)
         #action_clear.triggered.connect(self.on_clear)
 
-        self.action_search = QMenu("Views")
-        self.action_search.menuAction().setIcon(QIcon(pix_lib["search"]))
-        self.action_search.menuAction().triggered.connect(self.load)
-        self.load_view_menu()
-
         toolbar = QToolBar()
+
+        btn_active = QPushButton("ACTIVE")
+        btn_active.setCheckable(True)
+        btn_active.setChecked(True)
+        btn_active.setAutoExclusive(True)
+        btn_active.clicked.connect(functools.partial(self.set_view, "active"))
+        toolbar.addWidget(btn_active)
+
+        btn_finished = QPushButton("FINISHED")
+        btn_finished.setCheckable(True)
+        btn_finished.setAutoExclusive(True)
+        btn_finished.clicked.connect(functools.partial(self.set_view, "finished"))
+        toolbar.addWidget(btn_finished)
+
+        btn_failed = QPushButton("FAILED")
+        btn_failed.setCheckable(True)
+        btn_failed.setAutoExclusive(True)
+        btn_failed.clicked.connect(functools.partial(self.set_view, "failed"))
+        toolbar.addWidget(btn_failed)
+
+
         toolbar.addWidget(ToolBarStretcher(self))
+
+        #self.action_search = QMenu("Views")
+        #self.action_search.menuAction().setIcon(QIcon(pix_lib["search"]))
+        #self.action_search.menuAction().triggered.connect(self.load)
+        #self.load_view_menu()
+
         #toolbar.addWidget(self.search_box)
         #toolbar.addAction(action_clear)
-        toolbar.addAction(self.action_search.menuAction())
+        #toolbar.addAction(self.action_search.menuAction())
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
@@ -50,16 +72,6 @@ class JobsModule(BaseModule):
         self.setLayout(layout)
         self.set_view("active")
 
-    def load_view_menu(self):
-        for title, status in [
-                    ["Active", "active"],
-                    ["Finished", "finished"],
-                    ["Failed", "failed"],
-                ]:
-            action = QAction(title, self, checkable=True)
-            action.id_view = status
-            action.triggered.connect(functools.partial(self.set_view, status))
-            self.action_search.addAction(action)
 
     @property
     def model(self):
@@ -72,20 +84,9 @@ class JobsModule(BaseModule):
     def load(self, **kwargs):
         self.view.model.load(**kwargs)
 
-    def on_clear(self):
-        self.search_box.setText("")
-        self.load(fulltext="")
-
     def set_view(self, id_view="active"):
         self.id_view = id_view
         self.load(view=id_view)
-        for action in self.action_search.actions():
-            if not hasattr(action, "id_view"):
-                continue
-            if action.id_view == id_view:
-                action.setChecked(True)
-            else:
-                action.setChecked(False)
 
     def contextMenuEvent(self, event):
         return

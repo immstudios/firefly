@@ -1,6 +1,8 @@
 import sys
 import locale
 
+from pprint import pprint
+
 from .common import *
 
 from .dialogs.site_select import SiteSelectDialog
@@ -116,6 +118,7 @@ class FireflyApplication(Application):
                     "folders",
                     "views",
                     "actions",
+                    "services",
                 ]:
             ng = {}
             for id in config[config_group]:

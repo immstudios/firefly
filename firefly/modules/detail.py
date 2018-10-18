@@ -372,7 +372,11 @@ class DetailModule(BaseModule):
         data = {key: self.form[key] for key in self.form.changed}
         self.detail_tabs.load(self.asset, id_folder=self.folder_select.get_value())
         for key in data:
-            self.form[key] = data[key]
+            if key in self.form.inputs:
+                self.form[key] = data[key]
+            else:
+                pass #TODO: Delete from metadata? How?
+
 
     def new_asset(self):
         new_asset = Asset()

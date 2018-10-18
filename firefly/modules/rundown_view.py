@@ -3,6 +3,7 @@ from firefly import *
 
 from .rundown_model import RundownModel
 from firefly.dialogs.event import EventDialog
+from firefly.dialogs.rundown import PlaceholderDialog
 from firefly.dialogs.send_to import send_to
 
 class RundownView(FireflyView):
@@ -16,6 +17,10 @@ class RundownView(FireflyView):
     @property
     def id_channel(self):
         return self.parent().id_channel
+
+    @property
+    def playout_config(self):
+        return config["playout_channels"][self.id_channel]
 
     @property
     def start_time(self):
@@ -54,25 +59,36 @@ class RundownView(FireflyView):
                 times = len([obj for obj in self.model().object_data if obj.object_type == "item" and obj["id_asset"] == asset.id])
                 logging.info("{} is scheduled {}x in this rundown".format(asset, times))
             if len(self.selected_objects) > 1 and tot_dur:
-                logging.info("{} objects selected. Total duration {}".format(len(self.selected_objects), s2time(tot_dur) ))
+                logging.info("{} objects selected. Total duration {}".format(len(self.selected_objects), s2time(tot_dur)))
 
         super(FireflyView, self).selectionChanged(selected, deselected)
 
+    #
+    # Rundown actions
+    #
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:
             self.on_delete()
         FireflyView.keyPressEvent(self, event)
 
-    #
-    # Rundown actions
-    #
 
     def contextMenuEvent(self, event):
         obj_set = list(set([itm.object_type for itm in self.selected_objects]))
         menu = QMenu(self)
 
         if len(obj_set) == 1:
+            if len(self.selected_objects) == 1 and self.selected_objects[0]["item_role"] == "placeholder":
+                #solvers = config["playout_channels"][self.id_channel].get("solvers", [])
+                solvers = self.playout_config.get("solvers", [])
+                if solvers:
+                    solver_menu = menu.addMenu("Solve using...")
+                    for solver in solvers:
+                        action_solve = QAction(solver.capitalize(), self)
+                        action_solve.setStatusTip("Solve this placeholder using {}".format(solver))
+                        action_solve.triggered.connect(functools.partial(self.on_solve, solver))
+                        solver_menu.addAction(action_solve)
+
             if obj_set[0] == "item" and self.selected_objects[0]["id_asset"]:
 
                 mode_menu = menu.addMenu("Run mode")
@@ -156,6 +172,11 @@ class RundownView(FireflyView):
         if result.is_error:
             logging.error(result.message)
 
+    def on_solve(self, solver):
+        response = api.solve(id_item=self.selected_objects[0]["id"])
+        if response.is_error:
+            logging.error(response.message)
+        self.load()
 
     def on_delete(self):
         items = list(set([obj.id for obj in self.selected_objects if obj.object_type == "item"]))
@@ -199,7 +220,6 @@ class RundownView(FireflyView):
                 logging.error(response.message)
             else:
                 logging.info("Event deleted: {}".format(response.message))
-
         self.selectionModel().clear()
 
 
@@ -218,14 +238,35 @@ class RundownView(FireflyView):
     def on_activate(self, mi):
         obj = self.model().object_data[mi.row()]
         can_mcr = user.has_right("mcr", self.id_channel)
-        if obj.object_type == "item" and self.parent().mcr and self.parent().mcr.isVisible() and can_mcr:
-            result = api.playout(action="cue", id_channel=self.id_channel, id_item=obj.id)
+        if obj.object_type == "item":
 
-            if result.is_error:
-                logging.error(result.message)
-            self.clearSelection()
+            # Playout cue
+            if obj.id and self.parent().mcr and self.parent().mcr.isVisible() and can_mcr:
+                result = api.playout(action="cue", id_channel=self.id_channel, id_item=obj.id)
+                if result.is_error:
+                    logging.error(result.message)
+                self.clearSelection()
+
+            # Virtual item edit
+            elif obj["item_role"] in ["placeholder", "live"]:
+                dlg = PlaceholderDialog(self, obj.meta)
+                dlg.exec_()
+                if not dlg.ok:
+                    return False
+                data = {}
+                for key in dlg.meta:
+                    if dlg.meta[key] != obj[key]:
+                        data[key] = dlg.meta[key]
+                if data:
+                    response = api.set(
+                            object_type=obj.object_type,
+                            objects=[obj.id],
+                            data=data
+                        )
+                    if response.is_error:
+                        logging.error(response.message)
+
+        # Event edit
         elif obj.object_type == "event" and has_right("scheduler_edit", self.id_channel):
             self.on_edit_event()
         self.clearSelection()
-
-

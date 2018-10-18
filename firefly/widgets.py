@@ -3,6 +3,8 @@ import functools
 
 from nx import *
 
+from nebulacore.meta_format import format_select
+
 from .common import *
 from .dialogs.text_editor import TextEditorDialog
 
@@ -172,6 +174,10 @@ class FireflySelect(QComboBox):
 
     def setReadOnly(self, val):
         self.setEnabled(not val)
+
+    def auto_data(self, key):
+        data = [[k["value"], k["alias"]] for k in format_select(key, -1, full=True)]
+        self.set_data(data)
 
     def set_data(self, data):
         self.clear()

@@ -21,18 +21,17 @@ class PlaceholderDialog(QDialog):
         action_accept.triggered.connect(self.on_accept)
         toolbar.addAction(action_accept)
 
-        #keys =  [[key, {"default":default}] for key, default in ITEM_ROLES[item_role]]
         keys = []
         for k in ["title", "subtitle", "description", "color", "duration"]: #TODO
             if k in meta:
                 keys.append([k, {"default": meta[k]}])
 
-
         self.form = MetaEditor(parent, keys)
         for k in keys:
+            if meta_types[k[0]]["class"] == SELECT:
+                self.form.inputs[k[0]].auto_data(meta_types[k[0]])
             k = k[0]
             self.form[k] = meta[k]
-
 
         layout = QVBoxLayout()
         layout.addWidget(toolbar, 0)
@@ -49,7 +48,6 @@ class PlaceholderDialog(QDialog):
     def on_accept(self):
         self.ok = True
         self.close()
-
 
 
 class SubclipSelectDialog(QDialog):
