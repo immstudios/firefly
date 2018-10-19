@@ -19,8 +19,6 @@ class SearchWidget(QLineEdit):
         QLineEdit.keyPressEvent(self, event)
 
 
-
-
 class JobsModule(BaseModule):
     def __init__(self, parent):
         super(JobsModule, self).__init__(parent)
@@ -57,7 +55,6 @@ class JobsModule(BaseModule):
         self.setLayout(layout)
         self.set_view("active")
 
-
     @property
     def model(self):
         return self.view.model
@@ -72,20 +69,19 @@ class JobsModule(BaseModule):
     def seismic_handler(self, message):
         if self.main_window.current_module != self.main_window.jobs:
             return
-
         if self.id_view != "active":
             return
 
         d = message.data
-
         do_reload = False
-        for row in self.view.model.object_data:
+        for i, row in enumerate(self.view.model.object_data):
             if row["id"] == d.get("id", False):
-                #TODO: emit change row instead reset model
-                self.view.model.beginResetModel()
-                row["message"] = d["message"]
-                row["progress"] = d["progress"]
-                self.view.model.endResetModel()
+                row["message"] = d.get("message", "")
+                row["progress"] = d.get("progress", 0)
+                self.view.model.dataChanged.emit(
+                        self.view.model.index(i, 0),
+                        self.view.model.index(i, len(self.view.model.header_data) - 1)
+                    )
                 if row["status"] != d.get("status", False):
                     do_reload = True
                 break

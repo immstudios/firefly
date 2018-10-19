@@ -69,7 +69,7 @@ class DetailTabMain(QWidget):
             self.form.set_defaults()
 
         if self.form:
-            enabled = True#has_right("asset_edit", id_folder)
+            enabled = has_right("asset_edit", id_folder)
             self.form.setEnabled(enabled)
 
     def on_focus(self):

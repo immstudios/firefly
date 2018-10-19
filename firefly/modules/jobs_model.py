@@ -151,26 +151,27 @@ class FireflyJobsView(FireflyView):
         return result
 
     def contextMenuEvent(self, event):
-        if not self.selected_jobs:
+        jobs = [k["id"] for k in self.selected_jobs]
+        if not jobs:
             return
 
         menu = QMenu(self)
 
         action_restart = QAction('Restart', self)
         action_restart.setStatusTip('Restart selected jobs')
-        action_restart.triggered.connect(self.on_restart)
+        action_restart.triggered.connect(functools.partial(self.on_restart, jobs))
         menu.addAction(action_restart)
 
         action_abort = QAction('Abort', self)
         action_abort.setStatusTip('Abort selected jobs')
-        action_abort.triggered.connect(self.on_abort)
+        action_abort.triggered.connect(functools.partial(self.on_abort, jobs))
         menu.addAction(action_abort)
 
         menu.exec_(event.globalPos())
 
 
-    def on_restart(self):
-        result = api.jobs(restart=[k["id"] for k in self.selected_jobs])
+    def on_restart(self, jobs):
+        result = api.jobs(restart=jobs)
         if result.is_error:
             logging.error(result.message)
         else:
@@ -178,8 +179,8 @@ class FireflyJobsView(FireflyView):
         self.model.load()
 
 
-    def on_abort(self):
-        result = api.jobs(abort=[k["id"] for k in self.selected_jobs])
+    def on_abort(self, jobs):
+        result = api.jobs(abort=jobs)
         if result.is_error:
             logging.error(result.message)
         else:

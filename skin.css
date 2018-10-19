@@ -4,7 +4,7 @@ QWidget,
 QToolBar {
     background-color : #2a2e30;
     color : #c0c0c0;
-    padding-top: 3px;
+    padding-top: 2px;
     padding-left: 0;
 }
 
@@ -20,10 +20,6 @@ a {
 
 QToolBar::separator{
     width: 30px;
-}
-
-QToolButton{
-    font-size: 24px;
 }
 
 /* MENU */
@@ -162,7 +158,9 @@ QProgressBar {
     background: #161616;
     border:0;
     border-radius:0;
-    height: 4px
+    max-height: 8px;
+    padding : 0;
+    margin : 4px;
 }
 
 QProgressBar::chunk{
