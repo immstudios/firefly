@@ -5,8 +5,6 @@ from firefly import *
 from .scheduler_model import *
 from .scheduler_utils import dump_template
 
-from firefly.dialogs.event import EventDialog
-
 
 EMPTY_EVENT_DATA = '[{"id" : 0, "title" : "Empty event"}]'.encode("ascii")
 

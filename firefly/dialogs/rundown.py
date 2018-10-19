@@ -11,16 +11,6 @@ class PlaceholderDialog(QDialog):
 
         self.ok = False
 
-        toolbar = QToolBar(self)
-        toolbar.setMovable(False)
-        toolbar.setFloatable(False)
-        toolbar.addWidget(ToolBarStretcher(toolbar))
-
-        action_accept = QAction(QIcon(pix_lib["accept"]), 'Accept changes', self)
-        action_accept.setShortcut('Ctrl+S')
-        action_accept.triggered.connect(self.on_accept)
-        toolbar.addAction(action_accept)
-
         keys = []
         for k in ["title", "subtitle", "description", "color", "duration"]: #TODO
             if k in meta:
@@ -33,9 +23,15 @@ class PlaceholderDialog(QDialog):
             k = k[0]
             self.form[k] = meta[k]
 
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            Qt.Horizontal, self)
+        buttons.accepted.connect(self.on_accept)
+        buttons.rejected.connect(self.on_cancel)
+
         layout = QVBoxLayout()
-        layout.addWidget(toolbar, 0)
         layout.addWidget(self.form, 1)
+        layout.addWidget(buttons, 0)
         self.setLayout(layout)
 
         self.setModal(True)
@@ -44,6 +40,9 @@ class PlaceholderDialog(QDialog):
     @property
     def meta(self):
         return self.form.meta
+
+    def on_cancel(self):
+        self.close()
 
     def on_accept(self):
         self.ok = True
@@ -71,7 +70,7 @@ class SubclipSelectDialog(QDialog):
         layout.addWidget(btn)
 
         for i, subclip in enumerate(self.subclips):
-            btn = QPushButton("[{} - {}] {}".format(
+            btn = QPushButton("[{} - {}]  :  {}".format(
                     s2tc(subclip["mark_in"]),
                     s2tc(subclip["mark_out"]),
                     subclip["title"],

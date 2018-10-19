@@ -2,9 +2,10 @@ import functools
 from firefly import *
 
 from .rundown_model import RundownModel
-from firefly.dialogs.event import EventDialog
-from firefly.dialogs.rundown import PlaceholderDialog
-from firefly.dialogs.send_to import send_to
+
+from firefly.dialogs.event import *
+from firefly.dialogs.rundown import *
+from firefly.dialogs.send_to import *
 
 class RundownView(FireflyView):
     def __init__(self, parent):
@@ -173,7 +174,7 @@ class RundownView(FireflyView):
             logging.error(result.message)
 
     def on_solve(self, solver):
-        response = api.solve(id_item=self.selected_objects[0]["id"])
+        response = api.solve(id_item=self.selected_objects[0]["id"], solver=solver)
         if response.is_error:
             logging.error(response.message)
         self.load()
@@ -225,15 +226,13 @@ class RundownView(FireflyView):
 
     def on_send_to(self):
         objs = set([obj for obj in self.selected_objects if obj.object_type == "item"])
-        send_to(self, objs)
+        send_to_dialog(objs)
 
 
     def on_edit_event(self):
         objs = [obj for obj in self.selected_objects if obj.object_type == "event"]
-        dlg = EventDialog(self, event=objs[0])
-        if dlg.exec_() == QDialog.Accepted:
+        if event_dialog(event=objs[0]):
             self.refresh()
-
 
     def on_activate(self, mi):
         obj = self.model().object_data[mi.row()]

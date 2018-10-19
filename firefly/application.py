@@ -5,8 +5,8 @@ from pprint import pprint
 
 from .common import *
 
-from .dialogs.site_select import SiteSelectDialog
-from .dialogs.login import LoginDialog
+from .dialogs.login import *
+from .dialogs.site_select import *
 
 from .main_window import FireflyMainWindow, FireflyMainWidget
 
@@ -23,9 +23,7 @@ def check_login(wnd):
                 data["message"]
             )
         return False
-    dlg = LoginDialog()
-    dlg.exec_()
-    return dlg.result
+    return login_dialog()
 
 
 class FireflyApplication(Application):
@@ -40,8 +38,7 @@ class FireflyApplication(Application):
         i = 0
         if "sites" in config:
             if len(config["sites"]) > 1:
-                dlg = SiteSelectDialog(None, config["sites"])
-                i = dlg.exec_()
+                i = site_select_dialog()
             else:
                 i = 0
         config.update(config["sites"][i])

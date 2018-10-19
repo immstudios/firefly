@@ -3,6 +3,9 @@ import datetime
 
 from firefly import *
 
+__all__ = ["event_dialog"]
+
+
 default_meta_set = [
         ["start", {}],
         ["title", {}],
@@ -10,35 +13,15 @@ default_meta_set = [
         ["description", {}]
     ]
 
-def event_toolbar(wnd):
-    toolbar = QToolBar(wnd)
-    toolbar.setMovable(False)
-    toolbar.setFloatable(False)
-
-    toolbar.addWidget(ToolBarStretcher(toolbar))
-
-    action_accept = QAction(QIcon(pix_lib["accept"]), 'Accept changes', wnd)
-    action_accept.setShortcut('Ctrl+S')
-    action_accept.triggered.connect(wnd.on_accept)
-    toolbar.addAction(action_accept)
-
-    action_cancel = QAction(QIcon(pix_lib["cancel"]), 'Cancel', wnd)
-    action_cancel.setShortcut('ESC')
-    action_cancel.triggered.connect(wnd.on_cancel)
-    toolbar.addAction(action_cancel)
-
-    return toolbar
-
-
 class EventDialog(QDialog):
     def __init__(self,  parent, **kwargs):
         super(EventDialog, self).__init__(parent)
         self.setWindowTitle("Scheduler")
         self.kwargs = kwargs
         self.setStyleSheet(app_skin)
-        self.toolbar = event_toolbar(self)
 
         self.event = kwargs.get("event", Event())
+        self.accepted = False
 
         for key in ["start", "id_channel"]:
             if kwargs.get(key, False):
@@ -58,12 +41,16 @@ class EventDialog(QDialog):
             if self.event[key]:
                 self.form[key] = self.event[key]
 
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0,0,0,0)
-        layout.setSpacing(5)
 
-        layout.addWidget(self.toolbar, 1)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            Qt.Horizontal, self)
+        buttons.accepted.connect(self.on_accept)
+        buttons.rejected.connect(self.on_cancel)
+
+        layout = QVBoxLayout()
         layout.addWidget(self.form, 2)
+        layout.addWidget(buttons)
         self.setLayout(layout)
 
 
@@ -88,4 +75,13 @@ class EventDialog(QDialog):
         if result.is_error:
             logging.error(result.message)
 
+        self.accepted = True
         self.close()
+
+
+
+def event_dialog(**kwargs):
+    dlg = EventDialog(None, **kwargs)
+    dlg.exec_()
+    return dlg.accepted
+
