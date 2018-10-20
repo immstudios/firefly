@@ -17,8 +17,8 @@ STATUS_FG_COLORS = {
     REMOTE   : COLOR_TEXT_YELLOW,
     UNKNOWN  : COLOR_TEXT_RED,
     AIRED    : COLOR_TEXT_FADED,
-    ONAIR    : "#ff9090",
-    RETRIEVING  : "#dddd00"
+    ONAIR    : COLOR_TEXT_RED,
+    RETRIEVING  : COLOR_TEXT_YELLOW
 }
 
 DEFAULT_FOLDER = {
@@ -70,7 +70,7 @@ class FormatPromoted(CellFormat):
         return ""
 
     def decoration(self, obj, **kwargs):
-        return ["star_disabled", "star_enabled"][int(obj[self.key])]
+        return ["unstar", "star"][int(obj[self.key])]
 
 
 class FormatStatus(CellFormat):
@@ -196,7 +196,7 @@ class FormatTitle(CellFormat):
     key = "title"
     def decoration(self, obj, **kwargs):
         if obj.object_type == "event":
-            return ["unstar-sm", "unstar-sm"][int(obj["promoted"])]
+            return ["unstar-sm", "star-sm"][int(obj["promoted"])]
         elif obj["status"] == ARCHIVED:
             return "archive-sm"
         elif obj["status"] == TRASHED:

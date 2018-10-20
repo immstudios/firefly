@@ -287,7 +287,22 @@ class FireflyFraction(FireflyNotImplementedEditor):
 class FireflyList(FireflyNotImplementedEditor):
     pass
 
+class FireflyColorPicker(QPushButton):
+    def __init__(self, parent, **kwargs):
+        super(FireflyColorPicker, self).__init__(parent)
+        self.color = 0
+        self.clicked.connect(self.execute)
 
+    def execute(self):
+        color = int(QColorDialog.getColor(QColor(self.color)).rgb())
+        self.set_value(color)
+
+    def get_value(self):
+        return self.color
+
+    def set_value(self, value):
+        self.color = value
+        self.setStyleSheet("background-color: #{:06x}".format(self.color))
 
 
 
@@ -303,6 +318,7 @@ meta_editors = {
     FRACTION  : FireflyFraction,
     SELECT    : FireflySelect,
     LIST      : FireflyList,
+    COLOR     : FireflyColorPicker,
 }
 
 

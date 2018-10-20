@@ -232,7 +232,7 @@ class RundownView(FireflyView):
     def on_edit_event(self):
         objs = [obj for obj in self.selected_objects if obj.object_type == "event"]
         if event_dialog(event=objs[0]):
-            self.refresh()
+            self.load()
 
     def on_activate(self, mi):
         obj = self.model().object_data[mi.row()]

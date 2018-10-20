@@ -10,7 +10,8 @@ default_meta_set = [
         ["start", {}],
         ["title", {}],
         ["subtitle", {}],
-        ["description", {}]
+        ["description", {}],
+        ["color", {}]
     ]
 
 class EventDialog(QDialog):
