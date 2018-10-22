@@ -139,6 +139,14 @@ class FireflyJobsView(FireflyView):
             if h in colw :
                 self.horizontalHeader().resizeSection(i, colw[h])
 
+    def selectionChanged(self, selected, deselected):
+        super(FireflyView, self).selectionChanged(selected, deselected)
+        sel = self.selected_jobs
+        if len(sel) == 1:
+            self.parent().main_window.focus(asset_cache[sel[0]["id_asset"]])
+
+
+
     @property
     def selected_jobs(self):
         used = []
