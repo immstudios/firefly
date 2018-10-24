@@ -178,6 +178,7 @@ class DetailTabPreview(QWidget):
     def load_video(self):
         if self.current_asset and not self.loaded:
             logging.debug("Opening {} preview".format(self.current_asset))
+            self.player.fps = self.current_asset.fps
             self.player.load(
                     config["hub"] + "/proxy/{:04d}/{}.mp4".format(
                         int(self.current_asset.id/1000),
@@ -248,6 +249,10 @@ class DetailTabs(QTabWidget):
             index = int(args[0])
         except:
             index = self.currentIndex()
+
+        if index == -1 and has_player:
+            self.tab_preview.player.force_pause()
+
         for i, tab in enumerate(self.tabs):
             hf = index == i
             tab.has_focus = hf
@@ -346,6 +351,8 @@ class DetailModule(BaseModule):
         self.detail_tabs.load(self.asset)
         self.folder_select.set_value(self.asset["id_folder"])
 
+
+        self.duration.fps = self.asset.fps
         self.duration.set_value(self.asset.duration)
         self.duration.show()
         if self.asset["status"] == OFFLINE or not self.asset.id:

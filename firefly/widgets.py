@@ -17,6 +17,9 @@ class ToolBarStretcher(QWidget):
         super(ToolBarStretcher, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
 
+class ActionButton(QPushButton):
+    pass
+
 #
 # Metadata editor widgets
 #
@@ -148,18 +151,24 @@ class FireflyDatetime(QLineEdit):
 class FireflyTimecode(QLineEdit):
     def __init__(self, parent, **kwargs):
         super(FireflyTimecode,self).__init__(parent)
+        self.fps = kwargs.get("fps", 25.0)
         self.setInputMask("99:99:99:99")
         self.setText("00:00:00:00")
         self.default = self.get_value()
 
+        fm = self.fontMetrics()
+        w = fm.boundingRect(self.text()).width() + 16
+        self.setMinimumWidth(w)
+        self.setMaximumWidth(w)
+
     def set_value(self, value):
-        self.setText(s2time(value))
+        self.setText(s2tc(value, self.fps))
         self.setCursorPosition(0)
         self.default = self.get_value()
 
     def get_value(self):
         hh, mm, ss, ff = [int(i) for i in self.text().split(":")]
-        return (hh*3600) + (mm*60) + ss + (ff/25.0) #FIXME: FPS
+        return (hh*3600) + (mm*60) + ss + (ff/self.fps)
 
 
 

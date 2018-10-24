@@ -4,8 +4,6 @@ QWidget,
 QToolBar {
     background-color : #2a2e30;
     color : #c0c0c0;
-    padding-top: 2px;
-    padding-left: 0;
 }
 
 QStatusBar,
@@ -119,8 +117,14 @@ QSpinBox {
 
 
 QCheckBox {
-    color: #009fbc;
+    color: #cccccc;
 }
+
+QCheckBox::indicator{
+    width:24px;
+    height:24px;
+}
+
 
 QLineEdit:focus,
 QTextEdit:focus,
@@ -179,11 +183,13 @@ QSlider::handle:horizontal {
     width: 15px;
 }
 
-.FireflyTimecode {
+.FireflyTimecode,
+.TimecodeWindow {
     font: 12px monospace;
     font-weight: bold;
     min-width : 88px;
     max-width : 88px;
+    text-align: center;
 }
 
 .ChannelDisplay {
@@ -193,12 +199,15 @@ QSlider::handle:horizontal {
     font: 16px;
 }
 
-.SendToButton {
+.ActionButton {
     min-height: 35px;
     min-width: 300px;
 }
 
+
+
 /* SCROLL BARS */
+
 
 QScrollBar:horizontal {
     background: #161616;
@@ -214,11 +223,13 @@ QScrollBar:vertical {
     padding-bottom:24px;
 }
 
-QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {
   background: none;
 }
 
-QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
   background: none;
 }
 
