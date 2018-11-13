@@ -180,10 +180,7 @@ class DetailTabPreview(QWidget):
             logging.debug("Opening {} preview".format(self.current_asset))
             self.player.fps = self.current_asset.fps
             self.player.load(
-                    config["hub"] + "/proxy/{:04d}/{}.mp4".format(
-                        int(self.current_asset.id/1000),
-                        self.current_asset.id
-                    ),
+                    config["hub"] +  self.current_asset.proxy_url,
                     mark_in=self.current_asset["mark_in"],
                     mark_out=self.current_asset["mark_out"]
                 )
