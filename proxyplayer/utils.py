@@ -51,7 +51,7 @@ class RegionBar(QWidget):
     def paintEvent(self, event=False):
         qp = QPainter()
         qp.begin(self)
-        self.drawRegion(qp)
+        self.draw_timeline(qp)
         qp.end()
 
     @property
@@ -66,19 +66,30 @@ class RegionBar(QWidget):
     def mark_out(self):
         return self.parent().mark_out or self.parent().duration
 
-    def drawRegion(self, qp):
+
+    def draw_timeline(self, qp):
         if not self.duration:
             return
+        qp.setPen(Qt.NoPen)
+
         w = self.width()
         h = self.height()
+
+        # in/out
         x1 = (float(w) / self.duration) * (self.mark_in)
         x2 = (float(w) / self.duration) * (self.mark_out - self.mark_in)
-        qp.setPen(Qt.NoPen)
         if self.mark_in and self.mark_out and self.mark_in > self.mark_out:
             qp.setBrush(self.bad_marks_color)
         else:
             qp.setBrush(self.marks_color)
         qp.drawRect(x1, 1, x2, h-4)
+
+        # markers
+        for marker_id in self.parent().markers:
+            marker = self.parent().markers[marker_id]
+            qp.setBrush(QColor(marker.get("color", "#ccaa00")))
+            x = (float(w) / self.duration) * marker["position"]
+            qp.drawRect(x, 0, 2, h)
 
 
 def get_navbar(wnd):

@@ -9,6 +9,8 @@ class VideoPlayer(QWidget):
 
         self.pixlib = pixlib
 
+        self.markers = { }
+
         self.video_window = QWidget(self)
         self.video_window.setStyleSheet("background-color: #161616;")
         self.player = MPV(
@@ -22,11 +24,13 @@ class VideoPlayer(QWidget):
         self.mark_out = 0
         self.fps = 25.0
         self.loaded = False
+        self.duration_changed = False
 
         self.prev_position = 0
         self.prev_duration = 0
         self.prev_mark_in  = 0
         self.prev_mark_out = 0
+
 
         @self.player.property_observer('time-pos')
         def time_observer(_name, value):
@@ -108,8 +112,9 @@ class VideoPlayer(QWidget):
     def frame_dur(self):
         return 1 / self.fps
 
-    def load(self, path, mark_in=0, mark_out=0):
+    def load(self, path, mark_in=0, mark_out=0, markers={}):
         self.loaded = False
+        self.markers = markers
         self.player["pause"] = True
         self.player.play(path)
         self.prev_mark_in  = -1
@@ -130,6 +135,7 @@ class VideoPlayer(QWidget):
         else:
             self.duration = 0
         self.loaded = True
+        self.duration_changed = True
         self.region_bar.update()
 
     def on_timeline_seek(self):
@@ -235,8 +241,9 @@ class VideoPlayer(QWidget):
             self.timeline.setMaximum(int(self.duration*100))
             self.prev_duration = self.duration
 
-        if self.mark_in != self.prev_mark_in or self.mark_out or self.duration != self.prev_mark_out:
+        if self.mark_in != self.prev_mark_in or self.mark_out != self.prev_mark_out or self.duration_changed:
             self.update_marks()
+            self.duration_changed = False
 
 
 

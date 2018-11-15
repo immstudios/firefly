@@ -179,10 +179,15 @@ class DetailTabPreview(QWidget):
         if self.current_asset and not self.loaded:
             logging.debug("Opening {} preview".format(self.current_asset))
             self.player.fps = self.current_asset.fps
+            if self.current_asset["poster_frame"]:
+                markers = {"poster_frame" : {"position" : self.current_asset["poster_frame"]}}
+            else:
+                markers = {}
             self.player.load(
                     config["hub"] +  self.current_asset.proxy_url,
                     mark_in=self.current_asset["mark_in"],
-                    mark_out=self.current_asset["mark_out"]
+                    mark_out=self.current_asset["mark_out"],
+                    markers=markers,
                 )
             self.loaded = True
 
@@ -191,6 +196,13 @@ class DetailTabPreview(QWidget):
 
     def set_poster(self):
         self.changed["poster_frame"] = self.player.position
+        self.player.markers["poster_frame"] = {"position" : self.player.position}
+        self.player.region_bar.update()
+
+    def go_to_poster(self):
+        pos = self.player.markers.get("poster_frame",{}).get("position", 0)
+        if pos:
+            self.player.seek(pos)
 
     def save_marks(self):
         if self.player.mark_in and self.player.mark_out and self.player.mark_in > self.player.mark_out:
