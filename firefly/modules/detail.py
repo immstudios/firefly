@@ -183,8 +183,10 @@ class DetailTabPreview(QWidget):
                 markers = {"poster_frame" : {"position" : self.current_asset["poster_frame"]}}
             else:
                 markers = {}
+            proxy_url = config["hub"] +  self.current_asset.proxy_url
+            logging.debug("Opening", proxy_url)
             self.player.load(
-                    config["hub"] +  self.current_asset.proxy_url,
+                    proxy_url,
                     mark_in=self.current_asset["mark_in"],
                     mark_out=self.current_asset["mark_out"],
                     markers=markers,
