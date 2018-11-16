@@ -185,21 +185,29 @@ class FireflySelect(QComboBox):
         self.setEnabled(not val)
 
     def auto_data(self, key):
-        data = [[k["value"], k["alias"]] for k in format_select(key, -1, full=True)]
+        data = [[k["value"], k["alias"], k["selected"]] for k in format_select(key, -1, full=True)]
         self.set_data(data)
 
     def set_data(self, data):
         self.clear()
         for i, row in enumerate(sorted(data)):
-            value, label = row
+            if len(row) == 3:
+                value, label, selected = row
+            else:
+                value, label = row
+                selected = i==0
             if not label:
                 label = value
             self.cdata.append(value)
             self.addItem(label)
-        self.setCurrentIndex(-1)
+            if selected:
+                self.setCurrentIndex(i)
 
     def set_value(self, value):
         if value == self.get_value():
+            return
+        if not value and self.cdata and self.cdata[0] == "0":
+            self.setCurrentIndex(0)
             return
         for i, val in enumerate(self.cdata):
             if val == value:
