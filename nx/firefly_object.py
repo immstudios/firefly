@@ -266,6 +266,8 @@ class FireflyObject(BaseObject):
             )
 
     def format_foreground(self, key, **kwargs):
+        if self.object_type == "item" and self["status"] == AIRED:
+            return COLOR_TEXT_FADED
         if key in format_helpers:
             return format_helpers[key].foreground(self, **kwargs)
 
