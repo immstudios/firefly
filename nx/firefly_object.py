@@ -82,9 +82,6 @@ def parse_item_status(obj):
         print ("bad idc", obj.meta)
     pskey = "playout_status/{}".format(obj.id_channel)
 
-    if obj["status"] in [ONAIR, AIRED]:
-        return obj["status"]
-
     if asset["status"] == OFFLINE:
         return OFFLINE
 
@@ -121,7 +118,9 @@ class FormatStatus(CellFormat):
 
         xfr = ""
         if hasattr(obj, "transfer_progress"):
-            if obj.transfer_progress < 100:
+            if obj.transfer_progress == 0:
+                xfr = " (PENDING)"
+            elif obj.transfer_progress < 100:
                 xfr = " ({:.01f}%)".format(obj.transfer_progress)
 
         return get_object_state_name(state).upper() + xfr

@@ -79,16 +79,23 @@ class RundownView(FireflyView):
         menu = QMenu(self)
 
         if len(obj_set) == 1:
-            if len(self.selected_objects) == 1 and self.selected_objects[0]["item_role"] == "placeholder":
-                #solvers = config["playout_channels"][self.id_channel].get("solvers", [])
-                solvers = self.playout_config.get("solvers", [])
-                if solvers:
-                    solver_menu = menu.addMenu("Solve using...")
-                    for solver in solvers:
-                        action_solve = QAction(solver.capitalize(), self)
-                        action_solve.setStatusTip("Solve this placeholder using {}".format(solver))
-                        action_solve.triggered.connect(functools.partial(self.on_solve, solver))
-                        solver_menu.addAction(action_solve)
+            if len(self.selected_objects) == 1:
+                if self.selected_objects[0]["item_role"] == "placeholder":
+                    #solvers = config["playout_channels"][self.id_channel].get("solvers", [])
+                    solvers = self.playout_config.get("solvers", [])
+                    if solvers:
+                        solver_menu = menu.addMenu("Solve using...")
+                        for solver in solvers:
+                            action_solve = QAction(solver.capitalize(), self)
+                            action_solve.setStatusTip("Solve this placeholder using {}".format(solver))
+                            action_solve.triggered.connect(functools.partial(self.on_solve, solver))
+                            solver_menu.addAction(action_solve)
+
+                if obj_set[0] == "item" and self.selected_objects[0]["id_asset"]:
+                    action_trim = QAction("Trim", self)
+                    action_trim.setStatusTip('Trim selected item')
+                    action_trim.triggered.connect(self.on_trim)
+                    menu.addAction(action_trim)
 
             if obj_set[0] == "item" and self.selected_objects[0]["id_asset"]:
 
@@ -103,6 +110,7 @@ class RundownView(FireflyView):
                 action_mode_manual.setStatusTip('Set run mode to manual')
                 action_mode_manual.triggered.connect(functools.partial(self.on_set_mode, 1))
                 mode_menu.addAction(action_mode_manual)
+
 
             elif obj_set[0] == "event" and len(self.selected_objects) == 1:
                 mode_menu = menu.addMenu("Run mode")
@@ -181,6 +189,11 @@ class RundownView(FireflyView):
         QApplication.restoreOverrideCursor()
         if result.is_error:
             logging.error(result.message)
+
+    def on_trim(self):
+        item = self.selected_objects[0]
+        trim_dialog(item)
+
 
     def on_solve(self, solver):
         response = api.solve(id_item=self.selected_objects[0]["id"], solver=solver)

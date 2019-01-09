@@ -66,23 +66,22 @@ class NebulaAPI(object):
         return NebulaResponse(**data)
 
     def run(self, method, **kwargs):
-        response = requests.post(
-                self._settings["hub"] + "/api/" + method,
-                data=json.dumps(kwargs),
-                cookies=self._cookies,
-                headers=headers
-            )
+        try:
+            response = requests.post(
+                    self._settings["hub"] + "/api/" + method,
+                    data=json.dumps(kwargs),
+                    cookies=self._cookies,
+                    headers=headers
+                )
+        except TimeoutError:
+            return NebulaResponse(504)
         self._cookies = response.cookies
         if response.status_code >= 400:
-            return NebulaResponse(
-                    response=response.status_code,
-                    message=DEFAULT_RESPONSE_MESSAGES.get(
-                            response.status_code,
-                            "Unknown error"
-                        )
-                )
-
-        data = json.loads(response.text)
+            return NebulaResponse(response.status_code)
+        try:
+            data = json.loads(response.text)
+        except:
+            return NebulaResponse(500, "Unknown response from server")
         return NebulaResponse(**data)
 
     def __getattr__(self, method_name):
