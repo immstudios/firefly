@@ -66,6 +66,7 @@ class NebulaAPI(object):
         return NebulaResponse(**data)
 
     def run(self, method, **kwargs):
+        logging.debug("Executing {} query".format(method))
         try:
             response = requests.post(
                     self._settings["hub"] + "/api/" + method,
@@ -74,14 +75,18 @@ class NebulaAPI(object):
                     headers=headers
                 )
         except TimeoutError:
+            logging.debug("Query {} timeout".format(method))
             return NebulaResponse(504)
         self._cookies = response.cookies
         if response.status_code >= 400:
+            logging.debug("Query {} responded {}".format(method, response.status_code))
             return NebulaResponse(response.status_code)
         try:
             data = json.loads(response.text)
-        except:
+        except Exception:
+            logging.debug("Query {} responded {}".format(method, response.status_code))
             return NebulaResponse(500, "Unknown response from server")
+        logging.debug("Query {} responded {}".format(method, response.status_code))
         return NebulaResponse(**data)
 
     def __getattr__(self, method_name):

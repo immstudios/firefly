@@ -103,12 +103,11 @@ class FireflyApplication(Application):
 
     def load_settings(self):
         self.splash_message("Loading site settings")
-        result = api.settings()
-        if result.is_error:
-            QMessageBox.critical(self.splash, "Error", result.message)
+        response = api.settings()
+        if not response:
+            QMessageBox.critical(self.splash, "Error", response.message)
             critical_error("Unable to load site settings")
-
-        config.update(result.data)
+        config.update(response.data)
 
         # Fix indices
         for config_group in [
@@ -124,4 +123,3 @@ class FireflyApplication(Application):
             for id in config[config_group]:
                 ng[int(id)] = config[config_group][id]
             config[config_group] = ng
-#        config["playout_channels"] = {} #testing CMS MODE

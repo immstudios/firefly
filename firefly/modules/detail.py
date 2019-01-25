@@ -444,7 +444,7 @@ class DetailModule(BaseModule):
 
         self.form.setEnabled(False) # reenable on seismic message with new data
         response = api.set(objects=[self.asset.id], data=data)
-        if response.is_error:
+        if not response:
             logging.error(response.message)
             self.form.setEnabled(True) # reenable on seismic message with new data
         else:
@@ -462,7 +462,7 @@ class DetailModule(BaseModule):
 
     def on_set_qc(self, state):
         response = api.set(objects=[self.asset.id], data={"qc/state" : state})
-        if response.is_error:
+        if not response:
             logging.error(response.message)
 
     def seismic_handler(self, data):

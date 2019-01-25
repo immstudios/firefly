@@ -161,10 +161,8 @@ class TrimDialog(QDialog):
 
             )
         QApplication.restoreOverrideCursor()
-        if response.is_error:
+        if not response:
             logging.error(response.message)
-        else:
-            self.close()
         self.close()
 
 def trim_dialog(item):

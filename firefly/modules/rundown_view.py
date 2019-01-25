@@ -185,10 +185,10 @@ class RundownView(FireflyView):
             return
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        result = api.set(object_type=self.selected_objects[0].object_type, objects=[obj.id for obj in self.selected_objects], data={"run_mode":mode})
+        response = api.set(object_type=self.selected_objects[0].object_type, objects=[obj.id for obj in self.selected_objects], data={"run_mode":mode})
         QApplication.restoreOverrideCursor()
-        if result.is_error:
-            logging.error(result.message)
+        if not response:
+            logging.error(response.message)
 
     def on_trim(self):
         item = self.selected_objects[0]
@@ -197,7 +197,7 @@ class RundownView(FireflyView):
 
     def on_solve(self, solver):
         response = api.solve(id_item=self.selected_objects[0]["id"], solver=solver)
-        if response.is_error:
+        if not response:
             logging.error(response.message)
         self.load()
 
@@ -229,7 +229,7 @@ class RundownView(FireflyView):
             QApplication.setOverrideCursor(Qt.WaitCursor)
             response = api.delete(object_type="item", objects=items)
             QApplication.restoreOverrideCursor()
-            if response.is_error:
+            if not response:
                 logging.error(response.message)
             else:
                 logging.info("Item deleted: {}".format(response.message))
@@ -239,7 +239,7 @@ class RundownView(FireflyView):
             QApplication.setOverrideCursor(Qt.WaitCursor)
             response = api.schedule(delete=events, id_channel=self.parent().id_channel)
             QApplication.restoreOverrideCursor()
-            if response.is_error:
+            if not response:
                 logging.error(response.message)
             else:
                 logging.info("Event deleted: {}".format(response.message))
@@ -269,7 +269,7 @@ class RundownView(FireflyView):
                     objects=[obj.id],
                     data=data
                 )
-            if response.is_error:
+            if not response:
                 logging.error(response.message)
 
     def on_edit_event(self):
@@ -284,9 +284,9 @@ class RundownView(FireflyView):
 
             # Playout cue
             if obj.id and self.parent().mcr and self.parent().mcr.isVisible() and can_mcr:
-                result = api.playout(action="cue", id_channel=self.id_channel, id_item=obj.id)
-                if result.is_error:
-                    logging.error(result.message)
+                response = api.playout(action="cue", id_channel=self.id_channel, id_item=obj.id)
+                if not response:
+                    logging.error(response.message)
                 self.clearSelection()
 
             # Virtual item edit

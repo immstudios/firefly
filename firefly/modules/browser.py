@@ -283,7 +283,7 @@ class BrowserModule(BaseModule):
                 )
         else:
             return
-        if response.is_error:
+        if not response:
             logging.error("Unable to trash:\n\n" + response.message)
 
     def on_untrash(self):
@@ -294,7 +294,7 @@ class BrowserModule(BaseModule):
                 objects=objects,
                 data={"status" : CREATING}
             )
-        if response.is_error:
+        if not response:
             logging.error("Unable to untrash:\n\n" + response.message)
 
     def on_archive(self):
@@ -313,7 +313,7 @@ class BrowserModule(BaseModule):
                 )
         else:
             return
-        if response.is_error:
+        if not response:
             logging.error("Unable to archive:\n\n" + response.message)
 
     def on_unarchive(self):
@@ -324,7 +324,7 @@ class BrowserModule(BaseModule):
                 objects=objects,
                 data={"status" : RETRIEVING}
             )
-        if response.is_error:
+        if not response:
             logging.error("Unable to unarchive:\n\n" + response.message)
 
 
