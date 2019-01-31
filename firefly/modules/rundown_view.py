@@ -103,13 +103,18 @@ class RundownView(FireflyView):
 
                 action_mode_auto = QAction('&Auto', self)
                 action_mode_auto.setStatusTip('Set run mode to auto')
-                action_mode_auto.triggered.connect(functools.partial(self.on_set_mode, 0))
+                action_mode_auto.triggered.connect(functools.partial(self.on_set_mode, RUN_AUTO))
                 mode_menu.addAction(action_mode_auto)
 
                 action_mode_manual = QAction('&Manual', self)
                 action_mode_manual.setStatusTip('Set run mode to manual')
-                action_mode_manual.triggered.connect(functools.partial(self.on_set_mode, 1))
+                action_mode_manual.triggered.connect(functools.partial(self.on_set_mode, RUN_MANUAL))
                 mode_menu.addAction(action_mode_manual)
+
+                action_mode_skip = QAction('&Skip', self)
+                action_mode_skip.setStatusTip('Set run mode to skip')
+                action_mode_skip.triggered.connect(functools.partial(self.on_set_mode, RUN_SKIP))
+                mode_menu.addAction(action_mode_skip)
 
 
             elif obj_set[0] == "event" and len(self.selected_objects) == 1:
@@ -284,7 +289,7 @@ class RundownView(FireflyView):
 
             # Playout cue
             if obj.id and self.parent().mcr and self.parent().mcr.isVisible() and can_mcr:
-                response = api.playout(action="cue", id_channel=self.id_channel, id_item=obj.id)
+                response = api.playout(timeout=1, action="cue", id_channel=self.id_channel, id_item=obj.id)
                 if not response:
                     logging.error(response.message)
                 self.clearSelection()

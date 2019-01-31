@@ -137,17 +137,17 @@ class MCR(QWidget):
         return self.parent().id_channel
 
     def on_take(self):
-        api.playout(action="take", id_channel=self.id_channel)
+        api.playout(timeout=1, action="take", id_channel=self.id_channel)
 
     def on_freeze(self):
         self.paused = not self.paused
-        api.playout(action="freeze", id_channel=self.id_channel)
+        api.playout(timeout=1, action="freeze", id_channel=self.id_channel)
 
     def on_retake(self):
-        api.playout(action="retake", id_channel=self.id_channel)
+        api.playout(timeout=1, action="retake", id_channel=self.id_channel)
 
     def on_abort(self):
-        api.playout(action="abort", id_channel=self.id_channel)
+        api.playout(timeout=1, action="abort", id_channel=self.id_channel)
 
     def seismic_handler(self, data):
         status = data.data
