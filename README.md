@@ -24,7 +24,7 @@ Installation
 ### Linux
 
 Install **python3** and **python3-pip** packages and then install requiered libraries using
-following command
+following command:
 
 ```
 sudo pip install requests PyQT5 websocket-client
@@ -34,7 +34,8 @@ For video playback, you will also need **libmpv1** package.
 
 ### Windows
 
-Latest binary release is available on [nebulabroadcast/firefly](https://github.com/nebulabroadcast/firefly) GitHub releases page.
+Latest binary release is available on [nebulabroadcast/firefly](https://github.com/nebulabroadcast/firefly/releases)
+GitHub releases page.
 
 Usage
 -----
@@ -47,6 +48,10 @@ ESC            | Global     | Focus browser search
 F1             | Global     | Switch to rundown, go to now
 F2             | Global     | Toggle asset detail
 F5             | Global     | Refresh views
+Ctrl+T         | Global     | Open new browser tab
+Ctrl+W         | Global     | Close current browser tab
+Ctrl+PgUp      | Global     | Switch to previous tab
+Ctrl+PgDown    | Global     | Switch to next tab
 Ctrl+N         | Global     | Create new asset
 Ctrl+Shift+N   | Global     | Clone current asset
 Alt+Left       | Scheduler  | Previous week
