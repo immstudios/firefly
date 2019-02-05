@@ -270,13 +270,7 @@ class FireflyRadio(QWidget):
     def set_value(self, value):
         value = str(value)
 
-        if not value:
-            print (self.cdata)
-        else:
-            print ("val:", value , type(value))
-
         if not value and self.cdata and self.cdata[0] == "0":
-
             value = "0"
 
         for i, val in enumerate(self.cdata):
