@@ -367,6 +367,8 @@ class BrowserModule(BaseModule):
     def __init__(self, parent):
         super(BrowserModule, self).__init__(parent)
         self.tabs = QTabWidget(self)
+        self.tabs.setTabsClosable(True)
+        self.tabs.tabCloseRequested.connect(self.close_tab)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(0)
@@ -390,18 +392,22 @@ class BrowserModule(BaseModule):
             self.new_tab()
 
     def new_tab(self, **kwargs):
+        if not "id_view" in kwargs:
+            id_view = self.tabs.currentWidget().id_view
+            kwargs["id_view"] = id_view
         tab = BrowserTab(self, **kwargs)
         self.tabs.addTab(tab, "New tab")
         self.tabs.setCurrentIndex(self.tabs.indexOf(tab))
         tab.load()
 
 
-    def close_tab(self):
+    def close_tab(self, idx=False):
         if self.tabs.count() == 1:
             return
-        idx = self.tabs.currentIndex()
+        if not idx:
+            idx = self.tabs.currentIndex()
         w = self.tabs.widget(idx)
-        del(w)
+        w.deleteLater()
         self.tabs.removeTab(idx)
         self.redraw_tabs()
 

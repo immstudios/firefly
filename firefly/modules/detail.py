@@ -1,4 +1,3 @@
-from firefly import *
 from firefly.modules.detail_toolbars import *
 from firefly.modules.detail_subclips import *
 

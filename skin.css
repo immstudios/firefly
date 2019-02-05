@@ -78,6 +78,10 @@ QTabWidget::pane {
     border-top: 1px solid #50595b;
 }
 
+QTabBar::close-button {
+    image: url(images/cancel-sm.png);
+}
+
 QTabBar::tab {
     min-width: 120px;
     min-height : 30px;
