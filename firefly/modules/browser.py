@@ -393,8 +393,12 @@ class BrowserModule(BaseModule):
 
     def new_tab(self, **kwargs):
         if not "id_view" in kwargs:
-            id_view = self.tabs.currentWidget().id_view
-            kwargs["id_view"] = id_view
+            try:
+                id_view = self.tabs.currentWidget().id_view
+            except AttributeError:
+                pass
+            else:
+                kwargs["id_view"] = id_view
         tab = BrowserTab(self, **kwargs)
         self.tabs.addTab(tab, "New tab")
         self.tabs.setCurrentIndex(self.tabs.indexOf(tab))
