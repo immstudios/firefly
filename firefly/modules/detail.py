@@ -282,10 +282,29 @@ class DetailModule(BaseModule):
     def __init__(self, parent):
         super(DetailModule, self).__init__(parent)
         self.asset = self._is_loading = self._load_queue = False
+        toolbar_layout = QHBoxLayout()
+
+        fdata = []
+        for id_folder in sorted(config["folders"].keys()):
+            fdata.append([id_folder, config["folders"][id_folder]["title"]])
+
+        self.folder_select = FireflySelect(self, data=fdata)
+        for i, fd in enumerate(fdata):
+            self.folder_select.setItemIcon(i, QIcon(pix_lib["folder_"+str(fd[0])]))
+        self.folder_select.currentIndexChanged.connect(self.on_folder_changed)
+        self.folder_select.setEnabled(False)
+        toolbar_layout.addWidget(self.folder_select, 0)
+
+        self.duration =  FireflyTimecode(self)
+        toolbar_layout.addWidget(self.duration, 0)
+
+
         self.toolbar = detail_toolbar(self)
+        toolbar_layout.addWidget(self.toolbar)
         self.detail_tabs = DetailTabs(self)
         layout = QVBoxLayout()
-        layout.addWidget(self.toolbar)
+        layout.setContentsMargins(0,0,0,0)
+        layout.addLayout(toolbar_layout, 1)
         layout.addWidget(self.detail_tabs)
         self.setLayout(layout)
 

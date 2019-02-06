@@ -67,6 +67,7 @@ QHeaderView::section {
     padding: 5px;
 }
 
+
 QTableCornerButton::section{
     background-color: #242424;
 }
