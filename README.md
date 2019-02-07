@@ -37,6 +37,9 @@ For video playback, you will also need **libmpv1** package.
 Latest binary release is available on [nebulabroadcast/firefly](https://github.com/nebulabroadcast/firefly/releases)
 GitHub releases page.
 
+[Microsoft Visual C++ 2015 Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=52685)
+is required to run this application.
+
 Usage
 -----
 
