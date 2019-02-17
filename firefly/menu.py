@@ -136,6 +136,14 @@ def create_menu(wnd):
         action_now.triggered.connect(wnd.now)
         menu_rundown.addAction(action_now)
 
+        wnd.action_rundown_edit = QAction('Rundown edit mode', wnd)
+        wnd.action_rundown_edit.setShortcut('Ctrl+R')
+        wnd.action_rundown_edit.setStatusTip('Toggle rundown edit mode')
+        wnd.action_rundown_edit.setCheckable(True)
+        wnd.action_rundown_edit.setEnabled(has_right("rundown_edit"))
+        wnd.action_rundown_edit.triggered.connect(wnd.toggle_rundown_edit)
+        menu_rundown.addAction(wnd.action_rundown_edit)
+
         menu_rundown.addSeparator()
 
         action_refresh_plugins = QAction('Refresh plugins', wnd)

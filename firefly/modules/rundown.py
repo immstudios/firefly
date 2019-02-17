@@ -20,6 +20,9 @@ class RundownModule(BaseModule):
         self.last_search = ""
         self.first_load = True
 
+        self.edit_wanted = self.app_state.get("edit_enabled", True)
+        self.edit_enabled = False
+
         self.toolbar = rundown_toolbar(self)
 
         layout = QVBoxLayout()
@@ -46,9 +49,19 @@ class RundownModule(BaseModule):
             layout.addWidget(self.mcr)
             layout.addWidget(self.plugins)
 
-
         layout.addWidget(self.view, 1)
         self.setLayout(layout)
+
+
+    def toggle_rundown_edit(self, val=None):
+        if val is None:
+            self.edit_enabled = not self.edit_enabled
+        else:
+            self.edit_enabled = val
+            self.edit_wanted = val
+        self.view.setDragEnabled(self.edit_enabled)
+        self.main_window.action_rundown_edit.setChecked(self.edit_enabled)
+
 
 
     @property
@@ -68,7 +81,6 @@ class RundownModule(BaseModule):
                         self.view.model().object_data[idx.row()].object_type,
                         self.view.model().object_data[idx.row()].id
                     ])
-
 
         do_update_header = False
         if "id_channel" in kwargs and kwargs["id_channel"] != self.id_channel:
@@ -148,6 +160,10 @@ class RundownModule(BaseModule):
                 self.mcr.btn_freeze.setEnabled(can_mcr)
                 self.mcr.btn_retake.setEnabled(can_mcr)
                 self.mcr.btn_abort.setEnabled(can_mcr)
+
+            can_rundown_edit = has_right("rundown_edit", self.id_channel)
+            self.main_window.action_rundown_edit.setEnabled(can_rundown_edit)
+            self.toggle_rundown_edit(can_rundown_edit)
 
 
     def go_day_prev(self):

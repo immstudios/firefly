@@ -203,6 +203,10 @@ class FireflyMainWindow(MainWindow):
             self.show_rundown()
             self.rundown.go_now()
 
+    def toggle_rundown_edit(self):
+        if config["playout_channels"] and user.has_right("rundown_edit", self.id_channel):
+            cstate = self.rundown.toggle_rundown_edit()
+
     def refresh_plugins(self):
         self.rundown.plugins.load()
 

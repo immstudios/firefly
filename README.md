@@ -63,6 +63,7 @@ Alt+Left       | Rundown    | Previous day
 Alt+Right      | Rundown    | Next day
 Ctrl+D         | Rundown    | Show calendar
 Ctrl+F         | Rundown    | Search in rundown
+Ctrl+R         | Rundown    | Toggle rundown edit mode
 F3             | Rundown    | Search in rundown again
 1, J           | Preview    | Seek previous 5 frames
 2, L           | Preview    | Seek next 5 frames

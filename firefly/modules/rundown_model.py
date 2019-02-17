@@ -151,8 +151,8 @@ class RundownModel(FireflyViewModel):
         if action == Qt.IgnoreAction:
             return True
 
-        if not user.has_right("rundown_edit", self.id_channel):
-            logging.info("You are not allowed to modify this rundown")
+#        if not user.has_right("rundown_edit", self.id_channel):
+        if not self.parent().parent().edit_enabled:
             return True
 
         if row < 1:

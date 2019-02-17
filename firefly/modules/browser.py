@@ -142,7 +142,8 @@ class BrowserTab(QWidget):
             if view["title"] == "-":
                 self.action_search.addSeparator()
                 continue
-            action = QAction(view["title"], self, checkable=True)
+            action = QAction(view["title"], self)
+            action.setCheckable(True)
             action.setShortcut("ALT+{}".format(i))
             action.id_view = id_view
             action.triggered.connect(functools.partial(self.set_view, id_view))
@@ -191,6 +192,13 @@ class BrowserTab(QWidget):
                 else:
                     w = 120
                 self.view.horizontalHeader().resizeSection(i, w)
+            for action in self.action_search.actions():
+                if not hasattr(action, "id_view"):
+                    continue
+                if action.id_view == self.id_view:
+                    action.setChecked(True)
+                else:
+                    action.setChecked(False)
             self.first_load = False
         self.loading = False
         self._parent.redraw_tabs()
@@ -201,13 +209,6 @@ class BrowserTab(QWidget):
 
     def set_view(self, id_view):
         self.load(id_view=id_view)
-        for action in self.action_search.actions():
-            if not hasattr(action, "id_view"):
-                continue
-            if action.id_view == id_view:
-                action.setChecked(True)
-            else:
-                action.setChecked(False)
         self.app_state["id_view"] = id_view
 
 

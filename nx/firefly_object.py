@@ -267,14 +267,6 @@ class FormatTitle(CellFormat):
             return STATUS_FG_COLORS[parse_item_status(obj)]
 
 
-    def font(self, obj, **kwargs):
-        if obj.object_type == "event":
-            return "bold"
-        elif obj.object_type == "item":
-            if obj["run_mode"] == RUN_SKIP:
-                return "strikeout"
-            if obj["id_asset"] == obj["rundown_event_asset"]:
-                return "bold"
 
 
 format_helpers_list = [
@@ -342,6 +334,12 @@ class FireflyObject(BaseObject):
         return None
 
     def format_font(self, key, **kwargs):
+        if self.object_type == "event":
+            return "bold"
+        elif self.object_type == "item":
+            if self["run_mode"] == RUN_SKIP:
+                return "strikeout"
+            if self["id_asset"] == self["rundown_event_asset"]:
+                return "bold"
         if key in format_helpers:
             return format_helpers[key].font(self, **kwargs)
-        return None
