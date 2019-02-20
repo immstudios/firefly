@@ -62,11 +62,11 @@ class MCR(QWidget):
         self.cued     = "(loading)"
         self.request_time = 0
         self.paused = False
-        self.stopped = True
         self.cueing = False
         self.local_request_time = time.time()
         self.updating = False
         self.request_display_resize = False
+        self.first_update = True
 
         self.fps = 25.0
 
@@ -154,16 +154,26 @@ class MCR(QWidget):
         self.pos = status["position"] + (1/self.fps)
         self.request_time = status["request_time"]
         self.paused = status["paused"]
-        self.stopped = status["stopped"]
         self.local_request_time = time.time()
 
         if status["fps"] != self.fps:
             self.fps = status["fps"]
 
-        if self.dur != status["duration"]:
+        if self.dur != status["duration"] or self.first_update:
             self.dur = status["duration"]
             self.display_dur.set_text(f2tc(self.dur, self.fps))
             self.request_display_resize = False
+            self.first_update = False
+
+            if status["duration"] == 0:
+                self.pos = 0
+                self.dur = 0
+                self.progress_bar.setValue(0)
+                self.progress_bar.setMaximum(0)
+            else:
+                self.progress_bar.setMaximum(PROGRESS_BAR_RESOLUTION)
+
+
 
         if self.current != status["current_title"]:
             self.current = status["current_title"]
@@ -192,7 +202,7 @@ class MCR(QWidget):
         rtime = self.request_time+adv
         rpos = self.pos
 
-        if not (self.paused or self.stopped):
+        if not self.paused:
             rpos += adv * self.fps
 
         clock = time.strftime("%H:%M:%S:{:02d}", time.localtime(rtime)).format(int(25*(rtime-math.floor(rtime))))
