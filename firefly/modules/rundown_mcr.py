@@ -81,12 +81,20 @@ class MCR(QWidget):
         self.btn_freeze  = MCRButton("Freeze", self, self.on_freeze)
         self.btn_retake  = MCRButton("Retake", self, self.on_retake)
         self.btn_abort   = MCRButton("Abort",  self, self.on_abort)
+        self.btn_cue_backward = MCRButton("<",  self, self.on_cue_backward)
+        self.btn_cue_forward = MCRButton(">",  self, self.on_cue_forward)
 
         can_mcr = True #TODO: ACL
         self.btn_take.setEnabled(can_mcr)
         self.btn_freeze.setEnabled(can_mcr)
         self.btn_retake.setEnabled(can_mcr)
         self.btn_abort.setEnabled(can_mcr)
+        self.btn_cue_backward.setEnabled(can_mcr)
+        self.btn_cue_forward.setEnabled(can_mcr)
+
+        self.btn_take.setShortcut('Ctrl+K')
+        self.btn_cue_backward.setShortcut('Ctrl+J')
+        self.btn_cue_forward.setShortcut('Ctrl+L')
 
         btns_layout = QHBoxLayout()
 
@@ -95,6 +103,8 @@ class MCR(QWidget):
         btns_layout.addWidget(self.btn_freeze ,0)
         btns_layout.addWidget(self.btn_retake,0)
         btns_layout.addWidget(self.btn_abort,0)
+        btns_layout.addWidget(self.btn_cue_backward,0)
+        btns_layout.addWidget(self.btn_cue_forward,0)
         btns_layout.addStretch(1)
 
         self.display_clock   = MCRLabel("CLK", "--:--:--:--")
@@ -140,7 +150,6 @@ class MCR(QWidget):
         api.playout(timeout=1, action="take", id_channel=self.id_channel)
 
     def on_freeze(self):
-        self.paused = not self.paused
         api.playout(timeout=1, action="freeze", id_channel=self.id_channel)
 
     def on_retake(self):
@@ -148,6 +157,13 @@ class MCR(QWidget):
 
     def on_abort(self):
         api.playout(timeout=1, action="abort", id_channel=self.id_channel)
+
+    def on_cue_forward(self):
+        api.playout(timeout=1, action="cue_forward", id_channel=self.id_channel)
+
+    def on_cue_backward(self):
+        api.playout(timeout=1, action="cue_backward", id_channel=self.id_channel)
+
 
     def seismic_handler(self, data):
         status = data.data
