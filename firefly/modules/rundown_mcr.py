@@ -92,9 +92,12 @@ class MCR(QWidget):
         self.btn_cue_backward.setEnabled(can_mcr)
         self.btn_cue_forward.setEnabled(can_mcr)
 
-        self.btn_take.setShortcut('Ctrl+K')
         self.btn_cue_backward.setShortcut('Ctrl+J')
+        self.btn_take.setShortcut('Ctrl+K')
         self.btn_cue_forward.setShortcut('Ctrl+L')
+        self.btn_retake.setShortcut('Alt+J')
+        self.btn_freeze.setShortcut('Alt+K')
+        self.btn_abort.setShortcut('Alt+L')
 
         btns_layout = QHBoxLayout()
 
