@@ -56,9 +56,11 @@ class RundownModule(BaseModule):
     def toggle_rundown_edit(self, val=None):
         if val is None:
             self.edit_enabled = not self.edit_enabled
+            self.edit_wanted = self.edit_enabled
         else:
             self.edit_enabled = val
             self.edit_wanted = val
+        self.app_state["edit_enabled"] = self.edit_wanted
         self.view.setDragEnabled(self.edit_enabled)
         self.main_window.action_rundown_edit.setChecked(self.edit_enabled)
 
@@ -163,7 +165,7 @@ class RundownModule(BaseModule):
 
             can_rundown_edit = has_right("rundown_edit", self.id_channel)
             self.main_window.action_rundown_edit.setEnabled(can_rundown_edit)
-            self.toggle_rundown_edit(can_rundown_edit)
+            self.toggle_rundown_edit(can_rundown_edit and self.edit_wanted)
 
 
     def go_day_prev(self):

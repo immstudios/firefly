@@ -423,6 +423,8 @@ class DetailModule(BaseModule):
             new_asset["id_folder"] = min(config["folders"])
         self.duration.set_value(0)
         self.focus(new_asset)
+        self.main_window.show_detail()
+        self.detail_tabs.setCurrentIndex(0)
 
     def clone_asset(self):
         new_asset = Asset()
@@ -437,6 +439,8 @@ class DetailModule(BaseModule):
         new_asset["content_type"] = self.asset["content_type"]
         self.asset = False
         self.focus(new_asset)
+        self.main_window.show_detail()
+        self.detail_tabs.setCurrentIndex(0)
 
     def on_apply(self):
         if not self.form:
