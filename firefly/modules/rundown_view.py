@@ -97,7 +97,7 @@ class RundownView(FireflyView):
                     action_trim.triggered.connect(self.on_trim)
                     menu.addAction(action_trim)
 
-            if obj_set[0] == "item" and self.selected_objects[0]["id_asset"]:
+            if obj_set[0] == "item" and (self.selected_objects[0]["id_asset"] or self.selected_objects[0]["item_role"] == "live"):
 
                 mode_menu = menu.addMenu("Run mode")
 
