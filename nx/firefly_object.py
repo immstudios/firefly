@@ -187,6 +187,8 @@ class FormatRunMode(CellFormat):
 class FormatDuration(CellFormat):
     key = "duration"
     def display(self, obj, **kwargs):
+        if obj["loop"]:
+            return "--:--:--:--"
         if obj.object_type in ["asset", "item"] and obj["duration"]:
             t = s2time(obj.duration)
             if obj.object_type == "asset" and obj["subclips"]:
@@ -196,8 +198,11 @@ class FormatDuration(CellFormat):
             return ""
 
     def foreground(self, obj, **kwargs):
+        if obj["loop"]:
+            return COLOR_TEXT_YELLOW
         if obj["mark_in"] or obj["mark_out"]:
             return "#00ccaa"
+
 
 class FormatMarkIn(CellFormat):
     key = "mark_in"
