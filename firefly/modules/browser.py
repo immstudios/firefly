@@ -27,6 +27,7 @@ class FireflyBrowserView(FireflyView):
         self.setSortingEnabled(True)
         self.model = BrowserModel(self)
         self.sort_model = FireflySortModel(self.model)
+        self.activated.connect(self.on_activate)
         self.setModel(self.sort_model)
 
     def selectionChanged(self, selected, deselected):
@@ -59,7 +60,13 @@ class FireflyBrowserView(FireflyView):
 
 
 
+    def on_activate(self, mi):
+        obj = self.model.object_data[mi.row()]
+        key = self.model.header_data[mi.column()]
+        val = obj.show(key)
 
+        QApplication.clipboard().setText(str(val))
+        logging.info("Copied \"{}\" to clipboard".format(val))
 
 
 

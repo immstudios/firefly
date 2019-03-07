@@ -325,6 +325,8 @@ class FireflyObject(BaseObject):
         if model and self.object_type == "item":
             if not self.id:
                 return "#111140"
+            if self.object_type == "item" and self["item_role"] == "live":
+                return COLOR_LIVE_BACKGROUND
             elif model.cued_item == self.id:
                 return "#059005"
             elif model.current_item == self.id:

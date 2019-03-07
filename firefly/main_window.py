@@ -109,6 +109,7 @@ class FireflyMainWindow(MainWindow):
                 int(config["seismic_port"])
             )
 
+        self.last_message = time.time()
         self.seismic_timer = QTimer(self)
         self.seismic_timer.timeout.connect(self.on_seismic_timer)
         self.seismic_timer.start(40)
@@ -254,11 +255,16 @@ class FireflyMainWindow(MainWindow):
     #
 
     def on_seismic_timer(self):
+        now = time.time()
+        if now - self.last_message > 5:
+            logging.warning("No seismic message receivet. Something is wrong")
+            self.last_message = now
         try:
             message = self.listener.queue.pop(0)
         except IndexError:
             pass
         else:
+            self.last_message = now
             self.seismic_handler(message)
 
     def add_subscriber(self, module, methods):
