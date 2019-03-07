@@ -44,6 +44,9 @@ class CellFormat(object):
     def font(self, obj, **kwargs):
         return None
 
+    def tooltip(self, obj, **kwargs):
+        return None
+
 #
 # Cell formatters
 #
@@ -242,6 +245,10 @@ class FormatState(CellFormat):
                 4 : "#00cc00"
                 }[int(obj.meta.get(self.key, 0))]
 
+    def tooltip(self, obj, **kwargs):
+        if "qc/report" in obj.meta:
+            return obj["qc/report"]
+
 
 class FormatTitle(CellFormat):
     key = "title"
@@ -348,3 +355,7 @@ class FireflyObject(BaseObject):
                 return "bold"
         if key in format_helpers:
             return format_helpers[key].font(self, **kwargs)
+
+    def format_tooltip(self, key, **kwargs):
+        if key in format_helpers:
+            return format_helpers[key].tooltip(self, **kwargs)
