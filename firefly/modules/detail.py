@@ -432,7 +432,6 @@ class DetailModule(BaseModule):
             new_asset["id_folder"] = self.asset["id_folder"]
             for key in self.form.inputs:
                 new_asset[key] = self.form[key]
-                new_asset["duration"] = self.duration.get_value()
         else:
             new_asset["id_folder"] = min(config["folders"])
         new_asset["media_type"] = self.asset["media_type"]
