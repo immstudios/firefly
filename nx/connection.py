@@ -18,6 +18,7 @@ headers = {
 class NebulaAPI(object):
     def __init__(self, **kwargs):
         self._settings = kwargs
+        self.timeout = config.get("timeout", 5)
         self._cookies = requests.cookies.RequestsCookieJar()
 
     def get_user(self):
@@ -27,7 +28,7 @@ class NebulaAPI(object):
                     self._settings["hub"] + "/ping",
                     cookies=self._cookies,
                     headers=headers,
-                    timeout=config.get("timeout", 5)
+                    timeout=self.timeout
                 )
             self._cookies = response.cookies
 
@@ -57,14 +58,14 @@ class NebulaAPI(object):
                 "password" : password,
                 "api" : 1
             }
-        response = requests.post(self._settings["hub"] + "/login", data, headers=headers)
+        response = requests.post(self._settings["hub"] + "/login", data, headers=headers, timeout=self.timeout)
         self._cookies = response.cookies
         data = json.loads(response.text)
         return NebulaResponse(**data)
 
     def logout(self):
         data = {"api" : 1}
-        response = requests.post(self._settings["hub"] + "/logout", data, headers=headers)
+        response = requests.post(self._settings["hub"] + "/logout", data, headers=headers, timeout=self.timeout)
         self._cookies = response.cookies
         data = json.loads(response.text)
         return NebulaResponse(**data)
@@ -77,7 +78,7 @@ class NebulaAPI(object):
                     data=json.dumps(kwargs),
                     cookies=self._cookies,
                     headers=headers,
-                    timeout=timeout or config.get("timeout", (3.05, 10))
+                    timeout=timeout or config.get("timeout", (self.timeout, self.timeout * 2))
                 )
 
         except requests.exceptions.Timeout:

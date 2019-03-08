@@ -71,6 +71,7 @@ class SeismicListener(QThread):
 
         if message.site_name != self.site_name:
             return
+
         self.last_msg = time.time()
 
         if message.method == "objects_changed":
