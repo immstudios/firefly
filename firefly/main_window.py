@@ -101,6 +101,7 @@ class FireflyMainWindow(MainWindow):
         self.subscribers = []
         super(FireflyMainWindow, self).__init__(parent, MainWidgetClass)
         self.setWindowIcon(QIcon(get_pix("icon")))
+        self.setWindowTitle("Firefly {} ({}@{})".format(FIREFLY_VERSION, user["login"], config["site_name"]))
 
         logging.handlers = [self.log_handler]
         self.listener = SeismicListener(
