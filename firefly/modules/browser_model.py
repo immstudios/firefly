@@ -16,10 +16,6 @@ class BrowserModel(FireflyViewModel):
 
         search_query = kwargs
         search_query["result"] = ["id", "mtime"]
-        try:
-            del (search_query["header_state"])
-        except KeyError:
-            pass
         response = api.get(**search_query)
         if not response:
             logging.error(response.message)

@@ -81,7 +81,6 @@ class BrowserTab(QWidget):
         self.search_query = {
                 "id_view" : kwargs.get("id_view", min(config["views"])),
                 "fulltext" : kwargs.get("fulltext", ""),
-                "header_state" : kwargs.get("header_state", False)
             }
 
         # Layout
@@ -173,7 +172,6 @@ class BrowserTab(QWidget):
             self.app_state["browser_default_sizes"][h] = w
             data[h] = w
         self.app_state["browser_view_sizes"][self.id_view] = data
-        self.search_query["header_state"] = self.view.horizontalHeader().saveState()
 
 #
 # Do browse
@@ -187,7 +185,7 @@ class BrowserTab(QWidget):
         self.search_query.update(kwargs)
         self.view.model.load(**self.search_query)
 
-        if self.first_load or self.id_view != old_view and not self.search_query["header_state"]:
+        if self.first_load or self.id_view != old_view:
             view_state = self.app_state.get("browser_view_sizes", {}).get(self.id_view, {})
             default_sizes = self.app_state.get("browser_defaut_sizes", {})
             for i, h in enumerate(self.model.header_data):
@@ -211,8 +209,6 @@ class BrowserTab(QWidget):
                     action.setChecked(False)
             self.first_load = False
 
-        if self.search_query["header_state"]:
-            self.view.horizontalHeader().restoreState(self.search_query["header_state"])
         self.loading = False
         self._parent.redraw_tabs()
 
@@ -222,7 +218,6 @@ class BrowserTab(QWidget):
 
     def set_view(self, id_view):
         self.load(id_view=id_view)
-        self.app_state["id_view"] = id_view
 
 
     def contextMenuEvent(self, event):
