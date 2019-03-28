@@ -241,6 +241,8 @@ class FireflySelect(QComboBox):
     def get_value(self):
         if self.currentIndex() == -1:
             return ""
+        if hasattr(self, "default") and not self.default:
+            return self.cdata[self.currentIndex() - 1]
         return self.cdata[self.currentIndex()]
 
 
