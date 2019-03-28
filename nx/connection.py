@@ -83,18 +83,21 @@ class NebulaAPI(object):
 
         except requests.exceptions.Timeout:
             return NebulaResponse(ERROR_TIMEOUT)
+
         except Exception:
             return NebulaResponse(ERROR_SERVICE_UNAVAILABLE)
-        self._cookies = response.cookies
+
         if response.status_code >= 400:
             logging.debug("Query {} responded {}".format(method, response.status_code))
             return NebulaResponse(response.status_code)
+
         try:
             data = json.loads(response.text)
         except Exception:
-            logging.debug("Query {} responded {}".format(method, response.status_code))
             return NebulaResponse(500, "Unknown response from server")
+
         logging.debug("Query {} responded {}".format(method, response.status_code))
+        self._cookies = response.cookies
         return NebulaResponse(**data)
 
     def __getattr__(self, method_name):
