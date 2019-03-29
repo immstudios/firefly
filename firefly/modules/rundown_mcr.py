@@ -113,10 +113,10 @@ class MCR(QWidget):
         self.display_clock   = MCRLabel("CLK", "--:--:--:--")
         self.display_pos     = MCRLabel("POS", "--:--:--:--")
 
-        self.display_current = MCRLabel("CUR","(no clip)", tcolor="#cc0000")
-        self.display_cued    = MCRLabel("NXT","(no clip)", tcolor="#00cc00")
+        self.display_current = MCRLabel("CUR", "(no clip)", tcolor="#cc0000")
+        self.display_cued    = MCRLabel("NXT", "(no clip)", tcolor="#00cc00")
 
-        self.display_rem     = MCRLabel("REM","(unknown)")
+        self.display_rem     = MCRLabel("REM", "(unknown)")
         self.display_dur     = MCRLabel("DUR", "--:--:--:--")
 
 
@@ -136,9 +136,9 @@ class MCR(QWidget):
         info_layout.setColumnStretch(1,1)
 
         layout = QVBoxLayout()
-        layout.addLayout(info_layout,0)
-        layout.addWidget(self.progress_bar,0)
-        layout.addLayout(btns_layout,0)
+        layout.addLayout(info_layout, 0)
+        layout.addWidget(self.progress_bar, 0)
+        layout.addLayout(btns_layout, 0)
         self.setLayout(layout)
 
         self.display_timer = QTimer(self)
@@ -181,7 +181,7 @@ class MCR(QWidget):
         if self.dur != status["duration"] or self.first_update:
             self.dur = status["duration"]
             self.display_dur.set_text(f2tc(self.dur, self.fps))
-            self.request_display_resize = False
+            self.request_display_resize = True
             self.first_update = False
 
             if status["duration"] == 0:
@@ -192,12 +192,10 @@ class MCR(QWidget):
             else:
                 self.progress_bar.setMaximum(PROGRESS_BAR_RESOLUTION)
 
-
-
         if self.current != status["current_title"]:
             self.current = status["current_title"]
             self.display_current.set_text(self.current)
-            self.request_display_resize = False
+            self.request_display_resize = True
 
         cueing = status.get("cueing", False)
         if self.cued != status["cued_title"] or self.cueing != cueing:
@@ -207,7 +205,8 @@ class MCR(QWidget):
             else:
                 self.display_cued.set_text(self.cued)
             self.cueing = cueing
-            self.request_display_resize = False
+            self.request_display_resize = True
+
 
     def show(self, *args, **kwargs):
         super(MCR, self).show(*args, **kwargs)
