@@ -176,11 +176,8 @@ class RundownModule(BaseModule):
 
     def go_now(self):
         if not (self.start_time + 86400 > time.time() > self.start_time):
-            self.load(start_time=day_start(
-                        time.time(),
-                        self.playout_config["day_start"]
-                    )
-                )
+            #do not use day_start here. it will be used in the load method
+            self.load(start_time=int(time.time()))
 
         for i,r in enumerate(self.view.model().object_data):
             if self.current_item == r.id and r.object_type=="item":
