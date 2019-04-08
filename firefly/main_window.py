@@ -50,6 +50,7 @@ class FireflyMainWidget(QWidget):
         self.main_splitter = QSplitter(Qt.Horizontal)
         self.main_splitter.addWidget(self.browser)
         self.main_splitter.addWidget(self.tabs)
+        self.main_splitter.splitterMoved.connect(self.main_window.save_window_state)
 
         create_menu(self.main_window)
 
@@ -113,7 +114,8 @@ class FireflyMainWindow(MainWindow):
         self.seismic_timer = QTimer(self)
         self.seismic_timer.timeout.connect(self.on_seismic_timer)
         self.seismic_timer.start(40)
-        self.load_default_state()
+
+        self.load_window_state()
 
         for id_channel in config["playout_channels"]:
             if user.has_right("rundown_view", id_channel) \
@@ -126,10 +128,18 @@ class FireflyMainWindow(MainWindow):
         logging.info("[MAIN WINDOW] Firefly is ready")
 
 
-    def load_default_state(self):
+    def load_window_state(self):
+        self.window_state = self.app_state.get("window_state", {})
         self.showMaximized()
         one_third = self.width() / 3
-        self.main_widget.main_splitter.setSizes([one_third, one_third*2])
+        sizes = self.window_state.get("splitter_sizes", [one_third, one_third*2])
+        self.main_widget.main_splitter.setSizes(sizes)
+
+    def save_window_state(self, *args, **kwargs):
+        state = {
+                "splitter_sizes" : self.main_widget.main_splitter.sizes()
+            }
+        self.app_state["window_state"] = state
 
     @property
     def current_module(self):
