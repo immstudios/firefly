@@ -2,6 +2,11 @@ from functools import partial
 
 from .common import *
 
+
+def throw_exception():
+    print (1000/0)
+
+
 def create_menu(wnd):
     menubar = wnd.menuBar()
 
@@ -160,3 +165,8 @@ def create_menu(wnd):
     action_about.setStatusTip('About Firefly')
     action_about.triggered.connect(partial(about_dialog, wnd))
     menu_help.addAction(action_about)
+
+    if config.get("debug", False):
+        action_throw_exception = QAction('Throw exception', wnd)
+        action_throw_exception.triggered.connect(throw_exception)
+        menu_help.addAction(action_throw_exception)

@@ -463,6 +463,23 @@ class DetailModule(BaseModule):
         if has_player and self.preview.changed:
             data.update(self.preview.changed)
 
+
+        if config.get("debug", False):
+            reply = QMessageBox.question(
+                    self,
+                    "Save changes?",
+                    "{}".format(
+                        "\n".join("{} : {}".format(k, data[k]) for k in data if data[k])
+                        ),
+                    QMessageBox.Yes | QMessageBox.No
+                    )
+
+            if reply == QMessageBox.Yes:
+                pass
+            else:
+                logging.info("Save aborted")
+                return
+
         self.form.setEnabled(False) # reenable on seismic message with new data
         response = api.set(objects=[self.asset.id], data=data)
         if not response:

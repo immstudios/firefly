@@ -211,6 +211,7 @@ class FireflySelect(QComboBox):
 
     def set_data(self, data):
         self.clear()
+        self.cdata = []
         for i, row in enumerate(sorted(data)):
             if len(row) == 3:
                 value, label, selected = row
@@ -241,8 +242,6 @@ class FireflySelect(QComboBox):
     def get_value(self):
         if self.currentIndex() == -1:
             return ""
-        if hasattr(self, "default") and not self.default:
-            return self.cdata[self.currentIndex() - 1]
         return self.cdata[self.currentIndex()]
 
 

@@ -1,4 +1,5 @@
 import math
+import copy
 import functools
 
 from firefly import *
@@ -378,6 +379,7 @@ class BrowserModule(BaseModule):
         self.tabs = QTabWidget(self)
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
+        self.tabs.currentChanged.connect(self.redraw_tabs)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(0)
@@ -388,10 +390,17 @@ class BrowserModule(BaseModule):
 
         tabscfg = self.app_state.get("browser_tabs", [])
         created_tabs = 0
+        current_index = 0
         for tabcfg in tabscfg:
             try:
                 if tabcfg["id_view"] not in config["views"]:
                     continue
+                if tabcfg.get("active"):
+                    current_index = self.tabs.count()
+                try:
+                    del(tabcfg["active"])
+                except KeyError:
+                    pass
                 self.new_tab(**tabcfg)
                 created_tabs += 1
             except Exception:
@@ -399,6 +408,8 @@ class BrowserModule(BaseModule):
                 logging.warning("Unable to restore tab")
         if not created_tabs:
             self.new_tab()
+
+        self.tabs.setCurrentIndex(current_index)
 
     def new_tab(self, **kwargs):
         if not "id_view" in kwargs:
@@ -456,11 +467,15 @@ class BrowserModule(BaseModule):
             r.append(self.tabs.widget(i))
         return r
 
-    def redraw_tabs(self):
+    def redraw_tabs(self, *args, **kwargs):
         QApplication.processEvents()
         views = []
         for i,b in enumerate(self.browsers):
             id_view = b.id_view
             self.tabs.setTabText(i, config["views"][id_view]["title"])
-            views.append(b.search_query)
+            sq = copy.copy(b.search_query)
+            if self.tabs.currentIndex() == i:
+                logging.debug("Saving browser current index to ", i)
+                sq["active"] = True
+            views.append(sq)
         self.app_state["browser_tabs"] = views
