@@ -143,7 +143,6 @@ class MCR(QWidget):
 
         self.display_timer = QTimer(self)
         self.display_timer.timeout.connect(self.update_display)
-        self.display_timer.start(40)
 
     @property
     def id_channel(self):
@@ -210,7 +209,11 @@ class MCR(QWidget):
 
     def show(self, *args, **kwargs):
         super(MCR, self).show(*args, **kwargs)
-        self.request_display_resize = True
+        self.display_timer.start(40)
+
+    def hide(self, *args, **kwargs):
+        super(MCR, self).hide(*args, **kwargs)
+        self.display_timer.stop()
 
 
     def update_display(self):
@@ -247,6 +250,7 @@ class MCR(QWidget):
                 self.progress_bar.setValue(ppos)
 
         if self.request_display_resize:
+            logging.debug("display resize")
             QApplication.processEvents()
             self.display_clock.setFixedSize(self.display_clock.size())
             self.display_pos.setFixedSize(self.display_clock.size())
