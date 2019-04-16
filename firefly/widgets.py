@@ -1,4 +1,5 @@
 import time
+import copy
 import functools
 
 from nx import *
@@ -399,7 +400,7 @@ class MetaEditor(QWidget):
         for key, conf in keys:
             key_label = meta_types[key].alias(config.get("language","en"))
             key_class = meta_types[key]["class"]
-            key_settings = meta_types[key].settings
+            key_settings = copy.copy(meta_types[key].settings)
             key_settings.update(conf)
 
             widget = key_settings.get("widget", key_class)
