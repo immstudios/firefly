@@ -8,6 +8,9 @@ __all__ = ["FireflyViewModel", "FireflySortModel", "FireflyView"]
 def format_header(key):
     return meta_types[key].header(config.get("language", "en"))
 
+def format_description(key):
+    return meta_types[key].description(config.get("language", "en"))
+
 class FireflyViewModel(QAbstractTableModel):
     def __init__(self, parent):
         super(FireflyViewModel, self).__init__(parent)
@@ -37,8 +40,11 @@ class FireflyViewModel(QAbstractTableModel):
         return len(self.header_data)
 
     def headerData(self, col, orientation=Qt.Horizontal, role=Qt.DisplayRole):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return format_header(self.header_data[col])
+        if orientation == Qt.Horizontal:
+            if role == Qt.DisplayRole:
+                return format_header(self.header_data[col])
+            elif role == Qt.ToolTipRole:
+                return format_description(self.header_data[col])
         return None
 
     def data(self, index, role=Qt.DisplayRole):

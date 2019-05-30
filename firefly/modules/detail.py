@@ -62,8 +62,8 @@ class DetailTabMain(QWidget):
 
         if self.form:
             for key, conf in self.keys:
-                if meta_types[key]["class"] == SELECT:
-                   self.form.inputs[key].set_data([[k["value"], k["alias"]] for k in asset.show(key, full=True)])
+                if meta_types[key]["class"] in [SELECT, LIST]:
+                    self.form.inputs[key].set_data(asset.show(key, full=True))
                 self.form[key] = asset[key]
             self.form.set_defaults()
 
@@ -286,11 +286,11 @@ class DetailModule(BaseModule):
 
         fdata = []
         for id_folder in sorted(config["folders"].keys()):
-            fdata.append([id_folder, config["folders"][id_folder]["title"]])
+            fdata.append({"value" : id_folder, "alias" : config["folders"][id_folder]["title"]})
 
         self.folder_select = FireflySelect(self, data=fdata)
         for i, fd in enumerate(fdata):
-            self.folder_select.setItemIcon(i, QIcon(pix_lib["folder_"+str(fd[0])]))
+            self.folder_select.setItemIcon(i, QIcon(pix_lib["folder_"+str(fd["value"])]))
         self.folder_select.currentIndexChanged.connect(self.on_folder_changed)
         self.folder_select.setEnabled(False)
         toolbar_layout.addWidget(self.folder_select, 0)

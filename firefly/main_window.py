@@ -103,7 +103,7 @@ class FireflyMainWindow(MainWindow):
         super(FireflyMainWindow, self).__init__(parent, MainWidgetClass)
         self.setWindowIcon(QIcon(get_pix("icon")))
         self.setWindowTitle("Firefly {} ({}@{})".format(FIREFLY_VERSION, user["login"], config["site_name"]))
-
+        self.setAttribute(Qt.WA_AlwaysShowToolTips)
         logging.handlers = [self.log_handler]
         self.listener = SeismicListener(
                 config["site_name"],

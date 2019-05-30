@@ -8,6 +8,7 @@ from nebulacore.meta_format import format_select
 
 from .common import *
 from .dialogs.text_editor import TextEditorDialog
+from .multiselect import CheckComboBox
 
 
 class ChannelDisplay(QLabel):
@@ -207,23 +208,17 @@ class FireflySelect(QComboBox):
         self.setEnabled(not val)
 
     def auto_data(self, key):
-        data = [[k["value"], k["alias"], k["selected"]] for k in format_select(key, -1, full=True)]
+        data = format_select(key, -1, full=True)
         self.set_data(data)
 
     def set_data(self, data):
         self.clear()
         self.cdata = []
-        for i, row in enumerate(sorted(data)):
-            if len(row) == 3:
-                value, label, selected = row
-            else:
-                value, label = row
-                selected = i==0
-            if not label:
-                label = value
-            self.cdata.append(value)
-            self.addItem(label)
-            if selected:
+        for i, row in enumerate(data):
+            self.cdata.append(row["value"])
+            self.addItem(row.get("alias", row["value"]))
+            self.setItemData(i, row.get("description", ""), Qt.ToolTipRole)
+            if row.get("selected"):
                 self.setCurrentIndex(i)
 
     def set_value(self, value):
@@ -231,6 +226,8 @@ class FireflySelect(QComboBox):
             return
         if not value and self.cdata and self.cdata[0] == "0":
             self.setCurrentIndex(0)
+            return
+        if not value:
             return
         for i, val in enumerate(self.cdata):
             if val == value:
@@ -265,27 +262,23 @@ class FireflyRadio(QWidget):
             button.deleteLater()
             self.layout.removeWidget(button)
         self.current_index = -1
-        self.cdata = []
         self.buttons = []
 
     def auto_data(self, key):
-        data = [[k["value"], k["alias"], k["selected"]] for k in format_select(key, -1, full=True)]
+        data = format_select(key, -1, full=True)
         self.set_data(data)
 
     def set_data(self, data):
         self.clear()
         self.current_index = -1
         i = 0
-        for row in sorted(data):
-            value, label = row
-            if not (value or label):
+        for row in data:
+            if not row.get("value"):
                 continue
+            self.cdata.append(row["value"])
 
-            if not label:
-                label = value
-            self.cdata.append(value)
-
-            self.buttons.append(QPushButton(label))
+            self.buttons.append(QPushButton(row.get("alias", row["value"]) ))
+            self.buttons[-1].setToolTip(row.get("description", ""))
             self.buttons[-1].setCheckable(True)
             self.buttons[-1].setAutoExclusive(True)
             self.buttons[-1].clicked.connect(functools.partial(self.switch, i))
@@ -339,16 +332,47 @@ class FireflyBoolean(QCheckBox):
     def get_value(self):
         return self.isChecked()
 
-#TODO
 
-class FireflyRegions(FireflyNotImplementedEditor):
-    pass
+class FireflyList(CheckComboBox):
+    def __init__(self, parent, **kwargs):
+        super(FireflyList, self).__init__(parent, placeholderText="")
+        self.cdata = []
+        if kwargs.get("data", []):
+            self.set_data(kwargs["data"])
+        self.default = self.get_value()
 
-class FireflyFraction(FireflyNotImplementedEditor):
-    pass
+    def setReadOnly(self, val):
+        self.setEnabled(not val)
 
-class FireflyList(FireflyNotImplementedEditor):
-    pass
+    def auto_data(self, key):
+        data = format_select(key, -1, full=True)
+        self.set_data(data)
+
+    def set_data(self, data):
+        self.clear()
+        self.cdata = []
+        for i, row in enumerate(data):
+            self.cdata.append(row["value"])
+            self.addItem(row.get("alias", row["value"]))
+            self.model().item(i).setCheckable(True)
+            self.setItemCheckState(i, row.get("selected"))
+        self.update()
+
+    def set_value(self, value):
+        if type(value) == str:
+            value = [value]
+        value = [str(v) for v in value]
+        for i, val in enumerate(self.cdata):
+            self.setItemCheckState(i, val in value)
+        self.default = self.get_value()
+
+    def get_value(self):
+        result = []
+        for i, val in enumerate(self.cdata):
+            if self.itemCheckState(i):
+                result.append(val)
+        return result
+
 
 class FireflyColorPicker(QPushButton):
     def __init__(self, parent, **kwargs):
@@ -370,6 +394,13 @@ class FireflyColorPicker(QPushButton):
     def setReadOnly(self, stat):
         self.setEnabled(not stat)
 
+#TODO
+
+class FireflyRegions(FireflyNotImplementedEditor):
+    pass
+
+class FireflyFraction(FireflyNotImplementedEditor):
+    pass
 
 
 meta_editors = {
@@ -397,8 +428,10 @@ class MetaEditor(QWidget):
 
         layout = QFormLayout()
 
+        i = 0
         for key, conf in keys:
             key_label = meta_types[key].alias(config.get("language","en"))
+            key_description = meta_types[key].description(config.get("language", "en"))
             key_class = meta_types[key]["class"]
             key_settings = copy.copy(meta_types[key].settings)
             key_settings.update(conf)
@@ -410,7 +443,11 @@ class MetaEditor(QWidget):
                     FireflyNotImplementedEditor
                 )(self, **key_settings)
 
+            self.inputs[key].meta_key = key
+
             layout.addRow(key_label, self.inputs[key])
+            layout.labelForField(self.inputs[key]).setToolTip(key_description)
+            i+=1
         self.setLayout(layout)
 
     def keys(self):
@@ -427,7 +464,6 @@ class MetaEditor(QWidget):
         self.inputs[key].set_value(value)
 
     def setEnabled(self, stat):
-        #super(MetaEditor, self).setEnabled(stat)
         for w in self.inputs:
             self.inputs[w].setReadOnly(not stat)
 
