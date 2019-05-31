@@ -36,7 +36,7 @@ class PlayoutPlugin(QWidget):
             elif slot_type == "select":
                 if not slot["values"]:
                     continue
-                values = [{"value" : val, "alias" : ali} for val, ali in slot["values"]]
+                values = [{"value" : val, "alias" : ali, "role" : "option"} for val, ali in slot["values"]]
                 self.slots[slot_name] = FireflySelect(self, data=values)
                 self.slots[slot_name].set_value(min([r["value"] for r in values]))
             else:

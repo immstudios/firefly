@@ -1,7 +1,9 @@
 QMainWindow,
 QDialog,
 QWidget,
-QToolBar {
+QToolBar,
+QMenuBar,
+QToolTip {
     background-color: #2a2e30;
     color: #c0c0c0;
 }
@@ -16,17 +18,19 @@ QToolBar::separator{
     width: 30px;
 }
 
+QToolTip {
+    border: 1px solid #009fbc;
+    padding: 5px;
+    line-height: 150%;
+}
+
 /* MENU */
 
 QMenu{
-    background-color: #2a2e30;
-    color: #c0c0c0;
     border: 1px solid #50595b;
 }
 
 QMenuBar {
-    background-color: #2a2e30;
-    color: #c0c0c0;
 }
 
 QMenuBar::item {
@@ -34,13 +38,13 @@ QMenuBar::item {
 }
 
 QMenuBar::item:selected {
-    color: #e0e0e0;
     background-color: #242424;
+    color: #e0e0e0;
 }
 
 QMenu::item:selected {
+    background-color: #009fbc;
     color: #000000;
-    background: #009fbc;
 }
 
 QMenu::item:!enabled {
@@ -108,10 +112,10 @@ QTextEdit,
 QComboBox,
 QPushButton,
 QSpinBox {
-    padding-left: 5px;
-    padding-right: 5px;
     background-color: #2a2e30;
     border: 1px solid #50595b;
+    padding-left: 5px;
+    padding-right: 5px;
     min-width: 80px;
     min-height: 30px;
 }
@@ -143,6 +147,48 @@ QPushButton:!enabled {
     color: #646464;
 }
 
+
+/* Combo box*/
+
+QComboBox QAbstractItemView {
+    border: 1px solid #009fbc;
+	padding : 5px;
+}
+
+QComboBox::drop-down {
+    border: 0px;
+}
+
+QComboBox::down-arrow {
+    image: url(images/dropdown-arrow.png);
+    width: 16px;
+    height: 16px;
+}
+
+/*
+QComboBox::indicator{
+    background-color:transparent;
+    selection-background-color:transparent;
+    color:transparent;
+    selection-color:transparent;
+}
+
+*/
+
+QComboBox:item:disabled {
+    background-color: #242424;
+    font-weight: bold;
+}
+
+QComboBox:item:selected {
+    color: #009fbc;
+}
+
+
+
+
+
+/* Push button */
 
 QPushButton:checked{
     background-color: #50595b;

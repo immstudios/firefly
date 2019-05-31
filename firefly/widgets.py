@@ -224,7 +224,7 @@ class FireflySelect(QComboBox):
                 i+=1
             self.cdata.append(row["value"])
             self.addItem(row.get("alias", row["value"]))
-            self.setItemData(i, "<font color='black'>{}</font>".format(row["description"]) if row.get("description") else "", Qt.ToolTipRole)
+            self.setItemData(i, "<p>{}</p>".format(row["description"]) if row.get("description") else "", Qt.ToolTipRole)
 
             if row["role"] == "label":
                 item = self.model().item(i)
@@ -292,7 +292,7 @@ class FireflyRadio(QWidget):
             self.cdata.append(row["value"])
 
             self.buttons.append(QPushButton(row.get("alias", row["value"]) ))
-            self.buttons[-1].setToolTip("<font color='black'>{}</font>".format(row["description"]) if row.get("description") else "")
+            self.buttons[-1].setToolTip("<p>{}</p>".format(row["description"]) if row.get("description") else "")
             self.buttons[-1].setCheckable(row["role"] in ["option", "header"])
             self.buttons[-1].setAutoExclusive(True)
             self.buttons[-1].clicked.connect(functools.partial(self.switch, i))
@@ -376,7 +376,7 @@ class FireflyList(CheckComboBox):
             self.cdata.append(row["value"])
             self.addItem(row.get("alias", row["value"]))
             self.model().item(i).setCheckable(True)
-            self.setItemData(i, "<font color='black'>{}</font>".format(row["description"]) if row.get("description") else "", Qt.ToolTipRole)
+            self.setItemData(i, "<p>{}</p>".format(row["description"]) if row.get("description") else "", Qt.ToolTipRole)
             if row["role"] == "label":
                 item = self.model().item(i)
                 item.setEnabled(False)
@@ -473,7 +473,7 @@ class MetaEditor(QWidget):
             self.inputs[key].meta_key = key
 
             layout.addRow(key_label, self.inputs[key])
-            layout.labelForField(self.inputs[key]).setToolTip("<font color='black'>{}</font>".format(key_description) if key_description else "")
+            layout.labelForField(self.inputs[key]).setToolTip("<p>{}</p>".format(key_description) if key_description else "")
             i+=1
         self.setLayout(layout)
 
