@@ -286,7 +286,7 @@ class DetailModule(BaseModule):
 
         fdata = []
         for id_folder in sorted(config["folders"].keys()):
-            fdata.append({"value" : id_folder, "alias" : config["folders"][id_folder]["title"]})
+            fdata.append({"value" : id_folder, "alias" : config["folders"][id_folder]["title"], "role" : "option"})
 
         self.folder_select = FireflySelect(self, data=fdata)
         for i, fd in enumerate(fdata):

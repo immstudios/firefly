@@ -61,3 +61,29 @@ pix_lib = PixLib()
 
 def has_right(*args, **kwargs):
     return user.has_right(*args, **kwargs)
+
+
+if PLATFORM == "unix":
+    import subprocess
+
+    def notify(text, header, expire):
+        subprocess.Popen([
+                "notify-send",
+                "-t", str(expire),
+                header,
+                text
+            ])
+
+def notify_send(text, level=INFO):
+    caption, expire = {
+            DEBUG : ["debug", 1],
+            INFO : ["info", 3],
+            WARNING : ["warning", 5],
+            ERROR : ["error", 10],
+            GOOD_NEWS : ["good news", 5]
+        }[level]
+    caption = "Firefly {}".format(caption)
+    if level < WARNING:
+        return
+
+    notify(text, caption, expire)

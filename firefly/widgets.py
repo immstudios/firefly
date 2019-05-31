@@ -214,12 +214,24 @@ class FireflySelect(QComboBox):
     def set_data(self, data):
         self.clear()
         self.cdata = []
-        for i, row in enumerate(data):
+        i = 0
+        for row in data:
+            if row["role"] == "hidden":
+                continue
+            if row["role"] in ["label", "header"]:
+                self.insertSeparator(i)
+                self.cdata.append("-")
+                i+=1
             self.cdata.append(row["value"])
             self.addItem(row.get("alias", row["value"]))
-            self.setItemData(i, row.get("description", ""), Qt.ToolTipRole)
+            self.setItemData(i, "<font color='black'>{}</font>".format(row["description"]) if row.get("description") else "", Qt.ToolTipRole)
+
+            if row["role"] == "label":
+                item = self.model().item(i)
+                item.setEnabled(False)
             if row.get("selected"):
                 self.setCurrentIndex(i)
+            i+=1
 
     def set_value(self, value):
         if value == self.get_value():
@@ -275,11 +287,13 @@ class FireflyRadio(QWidget):
         for row in data:
             if not row.get("value"):
                 continue
+            if row["role"] == "hidden":
+                continue
             self.cdata.append(row["value"])
 
             self.buttons.append(QPushButton(row.get("alias", row["value"]) ))
-            self.buttons[-1].setToolTip(row.get("description", ""))
-            self.buttons[-1].setCheckable(True)
+            self.buttons[-1].setToolTip("<font color='black'>{}</font>".format(row["description"]) if row.get("description") else "")
+            self.buttons[-1].setCheckable(row["role"] in ["option", "header"])
             self.buttons[-1].setAutoExclusive(True)
             self.buttons[-1].clicked.connect(functools.partial(self.switch, i))
             self.layout.addWidget(self.buttons[-1])
@@ -351,11 +365,24 @@ class FireflyList(CheckComboBox):
     def set_data(self, data):
         self.clear()
         self.cdata = []
-        for i, row in enumerate(data):
+        i = 0
+        for row in data:
+            if row["role"] == "hidden":
+                continue
+            if row["role"] in ["label", "header"]:
+                self.insertSeparator(i)
+                self.cdata.append("-")
+                i+=1
             self.cdata.append(row["value"])
             self.addItem(row.get("alias", row["value"]))
             self.model().item(i).setCheckable(True)
-            self.setItemCheckState(i, row.get("selected"))
+            self.setItemData(i, "<font color='black'>{}</font>".format(row["description"]) if row.get("description") else "", Qt.ToolTipRole)
+            if row["role"] == "label":
+                item = self.model().item(i)
+                item.setEnabled(False)
+            else:
+                self.setItemCheckState(i, row.get("selected"))
+            i+=1
         self.update()
 
     def set_value(self, value):
@@ -446,7 +473,7 @@ class MetaEditor(QWidget):
             self.inputs[key].meta_key = key
 
             layout.addRow(key_label, self.inputs[key])
-            layout.labelForField(self.inputs[key]).setToolTip(key_description)
+            layout.labelForField(self.inputs[key]).setToolTip("<font color='black'>{}</font>".format(key_description) if key_description else "")
             i+=1
         self.setLayout(layout)
 
