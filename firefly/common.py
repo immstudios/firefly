@@ -9,6 +9,44 @@ DEBUG, INFO, WARNING, ERROR, GOOD_NEWS = range(5)
 logging.user = ""
 logging.handlers = []
 
+class FontLib():
+    def __init__(self):
+        self.data = {}
+
+    def load(self):
+
+        font_italic = QFont()
+        font_italic.setItalic(True)
+
+        font_bold = QFont()
+        font_bold.setBold(True)
+
+        font_bolditalic = QFont()
+        font_bolditalic.setBold(True)
+        font_bolditalic.setItalic(True)
+
+        font_underline = QFont()
+        font_underline.setUnderline(True)
+
+        font_strikeout = QFont()
+        font_strikeout.setStrikeOut(True)
+
+        self.data = {
+                "bold" : font_bold,
+                "italic" : font_italic,
+                "bolditalic" : font_bolditalic,
+                "underline" : font_underline,
+                "strikeout" : font_strikeout
+           }
+
+    def __getitem__(self, key):
+        if not self.data:
+            self.load()
+        return self.data.get(key)
+
+fonts = FontLib()
+
+
 #
 # pix library
 #

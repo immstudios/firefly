@@ -102,6 +102,10 @@ class CheckComboBox(QComboBox):
             else:
                 menuoption.font = QApplication.font("QMenu")
 
+
+            if index.data(Qt.FontRole):
+                menuoption.font = index.data(Qt.FontRole)
+
             menuoption.maxIconWidth = option.decorationSize.width() + 4
             menuoption.rect = option.rect
             menuoption.menuRect = option.rect

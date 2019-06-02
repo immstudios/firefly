@@ -177,7 +177,6 @@ QComboBox::indicator{
 
 QComboBox:item:disabled {
     background-color: #242424;
-    font-weight: bold;
 }
 
 QComboBox:item:selected {

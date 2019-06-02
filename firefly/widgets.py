@@ -218,13 +218,14 @@ class FireflySelect(QComboBox):
         for row in data:
             if row["role"] == "hidden":
                 continue
-            if row["role"] in ["label", "header"]:
-                self.insertSeparator(i)
-                self.cdata.append("-")
-                i+=1
+
+            alias = row.get("alias", row["value"])
+            self.addItem(alias)
             self.cdata.append(row["value"])
-            self.addItem(row.get("alias", row["value"]))
-            self.setItemData(i, "<p>{}</p>".format(row["description"]) if row.get("description") else "", Qt.ToolTipRole)
+
+            self.setItemData(i, "<p>{}</p>".format(row["description"]) if row.get("description") else None, Qt.ToolTipRole)
+            if row["role"] == "header":
+                self.setItemData(i, fonts["bold"], Qt.FontRole)
 
             if row["role"] == "label":
                 item = self.model().item(i)
@@ -369,18 +370,21 @@ class FireflyList(CheckComboBox):
         for row in data:
             if row["role"] == "hidden":
                 continue
-            if row["role"] in ["label", "header"]:
-                self.insertSeparator(i)
-                self.cdata.append("-")
-                i+=1
+
+            alias = row.get("alias", row["value"])
+            self.addItem(alias)
             self.cdata.append(row["value"])
-            self.addItem(row.get("alias", row["value"]))
-            self.model().item(i).setCheckable(True)
-            self.setItemData(i, "<p>{}</p>".format(row["description"]) if row.get("description") else "", Qt.ToolTipRole)
+
+            self.setItemData(i, "<p>{}</p>".format(row["description"]) if row.get("description") else None, Qt.ToolTipRole)
+
             if row["role"] == "label":
                 item = self.model().item(i)
+                self.setItemData(i, fonts["bolditalic"], Qt.FontRole)
                 item.setEnabled(False)
             else:
+                self.model().item(i).setCheckable(True)
+                if row["role"] == "header":
+                    self.setItemData(i, fonts["bold"], Qt.FontRole)
                 self.setItemCheckState(i, row.get("selected"))
             i+=1
         self.update()
@@ -473,7 +477,7 @@ class MetaEditor(QWidget):
             self.inputs[key].meta_key = key
 
             layout.addRow(key_label, self.inputs[key])
-            layout.labelForField(self.inputs[key]).setToolTip("<p>{}</p>".format(key_description) if key_description else "")
+            layout.labelForField(self.inputs[key]).setToolTip("<p>{}</p>".format(key_description) if key_description else None)
             i+=1
         self.setLayout(layout)
 

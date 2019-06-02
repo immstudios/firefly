@@ -18,21 +18,6 @@ class FireflyViewModel(QAbstractTableModel):
         self.header_data = []
         self.changed_objects = []
 
-        font_italic = QFont()
-        font_italic.setItalic(True)
-        font_bold = QFont()
-        font_bold.setBold(True)
-        font_underline = QFont()
-        font_underline.setUnderline(True)
-        font_strikeout = QFont()
-        font_strikeout.setStrikeOut(True)
-        self.fonts = {
-                "bold" : font_bold,
-                "italic" : font_italic,
-                "underline" : font_underline,
-                "strikeout" : font_strikeout
-           }
-
     def rowCount(self, parent):
         return len(self.object_data)
 
@@ -67,8 +52,7 @@ class FireflyViewModel(QAbstractTableModel):
             return pix_lib[obj.format_decoration(key, model=self)]
         elif role == Qt.FontRole:
             font = obj.format_font(key, model=self)
-            if font in self.fonts:
-                return self.fonts[font]
+            return fonts[font]
         elif role == Qt.ToolTipRole:
             if config.get("debug", False):
                 r = pformat(obj.meta)
