@@ -76,6 +76,8 @@ class FireflyText(QTextEdit):
     def get_value(self):
         return self.toPlainText()
 
+    def insertFromMimeData(self,source):
+        self.insertPlainText(source.text())
 
 class FireflyInteger(QSpinBox):
     def __init__(self, parent, **kwargs):
