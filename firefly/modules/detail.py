@@ -63,7 +63,7 @@ class DetailTabMain(QWidget):
         if self.form:
             for key, conf in self.keys:
                 if meta_types[key]["class"] in [SELECT, LIST]:
-                    self.form.inputs[key].set_data(asset.show(key, full=True))
+                    self.form.inputs[key].set_data(asset.show(key, result="full"))
                 self.form[key] = asset[key]
             self.form.set_defaults()
 

@@ -150,10 +150,6 @@ QPushButton:!enabled {
 
 /* Combo box*/
 
-QComboBox QAbstractItemView {
-    border: 1px solid #009fbc;
-	padding : 5px;
-}
 
 QComboBox::drop-down {
     border: 0px;
@@ -165,26 +161,35 @@ QComboBox::down-arrow {
     height: 16px;
 }
 
-/*
-QComboBox::indicator{
-    background-color:transparent;
-    selection-background-color:transparent;
-    color:transparent;
-    selection-color:transparent;
+QComboBox QAbstractItemView {
+    border: 1px solid #009fbc;
+	padding : 5px;
 }
 
-*/
+QComboBox QAbstractItemView::item, QComboBox:item {
+    background-color: #2a2e30;
+    color: #c0c0c0;
+}
+
+QComboBox QAbstractItemView::item:selected, QComboBox:item:selected {
+    background-color: #242424;
+    color: #009fbc;
+}
+/*
+QComboBox:item {
+    background-color: #2a2e30;
+    color: #c0c0c0;
+}
 
 QComboBox:item:disabled {
     background-color: #242424;
 }
 
 QComboBox:item:selected {
+    background-color: #242424;
     color: #009fbc;
 }
-
-
-
+*/
 
 
 /* Push button */

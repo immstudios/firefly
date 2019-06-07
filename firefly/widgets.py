@@ -8,7 +8,7 @@ from nebulacore.meta_format import format_select
 
 from .common import *
 from .dialogs.text_editor import TextEditorDialog
-from .multiselect import CheckComboBox
+from .multiselect import CheckComboBox, ComboMenuDelegate
 
 
 class ChannelDisplay(QLabel):
@@ -189,6 +189,7 @@ class FireflyTimecode(QLineEdit):
 
 
 
+
 class FireflySelect(QComboBox):
     def __init__(self, parent, **kwargs):
         super(FireflySelect, self).__init__(parent)
@@ -197,6 +198,9 @@ class FireflySelect(QComboBox):
         if kwargs.get("data", []):
             self.set_data(kwargs["data"])
         self.default = self.get_value()
+
+        delegate = ComboMenuDelegate(self)
+        self.setItemDelegate(delegate)
 
     def wheelEvent(self, event):
         if self.hasFocus():
@@ -208,7 +212,7 @@ class FireflySelect(QComboBox):
         self.setEnabled(not val)
 
     def auto_data(self, key):
-        data = format_select(key, -1, full=True)
+        data = format_select(key, -1, result="full")
         self.set_data(data)
 
     def set_data(self, data):
@@ -216,20 +220,28 @@ class FireflySelect(QComboBox):
         self.cdata = []
         i = 0
         for row in data:
-            if row["role"] == "hidden":
+            value = row["value"]
+            alias = row.get("alias", row["value"])
+            indent = row.get("indent", 0)
+            role = row.get("role", "option")
+
+            if role == "hidden":
                 continue
 
-            alias = row.get("alias", row["value"])
             self.addItem(alias)
-            self.cdata.append(row["value"])
+            self.cdata.append(value)
+
+            self.setItemData(i, indent ,Qt.UserRole)
 
             self.setItemData(i, "<p>{}</p>".format(row["description"]) if row.get("description") else None, Qt.ToolTipRole)
-            if row["role"] == "header":
+            if role == "header":
                 self.setItemData(i, fonts["bold"], Qt.FontRole)
 
-            if row["role"] == "label":
+            elif role == "label":
                 item = self.model().item(i)
                 item.setEnabled(False)
+                self.setItemData(i, fonts["boldunderline"], Qt.FontRole)
+
             if row.get("selected"):
                 self.setCurrentIndex(i)
             i+=1
@@ -278,7 +290,7 @@ class FireflyRadio(QWidget):
         self.buttons = []
 
     def auto_data(self, key):
-        data = format_select(key, -1, full=True)
+        data = format_select(key, -1, result="full")
         self.set_data(data)
 
     def set_data(self, data):
@@ -360,7 +372,7 @@ class FireflyList(CheckComboBox):
         self.setEnabled(not val)
 
     def auto_data(self, key):
-        data = format_select(key, -1, full=True)
+        data = format_select(key, -1, result="full")
         self.set_data(data)
 
     def set_data(self, data):
@@ -368,18 +380,25 @@ class FireflyList(CheckComboBox):
         self.cdata = []
         i = 0
         for row in data:
-            if row["role"] == "hidden":
+            value = row["value"]
+            alias = row.get("alias", row["value"])
+            indent = row.get("indent", 0)
+            role = row.get("role", "option")
+
+            if role == "hidden":
                 continue
 
-            alias = row.get("alias", row["value"])
             self.addItem(alias)
-            self.cdata.append(row["value"])
+            self.cdata.append(value)
+
+
+            self.setItemData(i, indent ,Qt.UserRole)
 
             self.setItemData(i, "<p>{}</p>".format(row["description"]) if row.get("description") else None, Qt.ToolTipRole)
 
             if row["role"] == "label":
                 item = self.model().item(i)
-                self.setItemData(i, fonts["bolditalic"], Qt.FontRole)
+                self.setItemData(i, fonts["boldunderline"], Qt.FontRole)
                 item.setEnabled(False)
             else:
                 self.model().item(i).setCheckable(True)
@@ -387,7 +406,6 @@ class FireflyList(CheckComboBox):
                     self.setItemData(i, fonts["bold"], Qt.FontRole)
                 self.setItemCheckState(i, row.get("selected"))
             i+=1
-        self.update()
 
     def set_value(self, value):
         if type(value) == str:

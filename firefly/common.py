@@ -25,6 +25,10 @@ class FontLib():
         font_bolditalic.setBold(True)
         font_bolditalic.setItalic(True)
 
+        font_boldunderline = QFont()
+        font_boldunderline.setBold(True)
+        font_boldunderline.setUnderline(True)
+
         font_underline = QFont()
         font_underline.setUnderline(True)
 
@@ -36,6 +40,7 @@ class FontLib():
                 "italic" : font_italic,
                 "bolditalic" : font_bolditalic,
                 "underline" : font_underline,
+                "boldunderline" : font_boldunderline,
                 "strikeout" : font_strikeout
            }
 
