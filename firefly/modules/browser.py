@@ -285,7 +285,7 @@ class BrowserTab(QWidget):
         send_to_dialog(self.view.selected_objects)
 
     def on_reset(self):
-        objects = [obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED, RESET]],
+        objects = [obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED, RESET]]
         if not objects:
             return
         response = api.set(
