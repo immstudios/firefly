@@ -1,6 +1,6 @@
 from nxtools import *
 from pyqtbs import *
-from .version import FIREFLY_VERSION
+from .version import *
 
 from nx import *
 

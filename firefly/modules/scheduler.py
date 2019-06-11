@@ -102,7 +102,7 @@ class SchedulerModule(BaseModule):
         except Exception:
             log_traceback()
 
-    def import_template(self):
+    def import_template(self, day_offset=0):
         try:
             if not os.path.exists("templates"):
                 os.makedirs("templates")
@@ -138,7 +138,7 @@ class SchedulerModule(BaseModule):
                     if (hh*3600) + (mm*60) < (ch*3600) - (cm*60):
                         clock_offset += 24*3600
 
-                    start_time = day_start + clock_offset
+                    start_time = day_start + clock_offset + (day_offset*3600*24)
 
                     event = Event(meta={"start" : start_time})
                     for m in event_data.findall("meta"):

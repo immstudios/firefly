@@ -29,7 +29,10 @@ def check_login(wnd):
 
 class FireflyApplication(Application):
     def __init__(self, **kwargs):
-        super(FireflyApplication, self).__init__(name="firefly", title="Firefly {}".format(FIREFLY_VERSION))
+        title = "Firefly {}".format(FIREFLY_VERSION)
+        if FIREFLY_STATUS:
+            title += " " + FIREFLY_STATUS
+        super(FireflyApplication, self).__init__(name="firefly", title=title)
         locale.setlocale(locale.LC_NUMERIC, 'C')
         self.splash = QSplashScreen(pix_lib['splash'])
         self.splash.show()

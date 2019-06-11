@@ -1,4 +1,5 @@
 import datetime
+import functools
 
 from firefly import *
 from firefly.modules.scheduler_utils import *
@@ -495,7 +496,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
 
 
 class SchedulerDayHeaderWidget(QLabel):
-    def __init__(self, parent):
+    def __init__(self, parent, dow):
         super(SchedulerDayHeaderWidget, self).__init__(parent)
         self.setStyleSheet("""
                 background-color:#161616;
@@ -504,6 +505,7 @@ class SchedulerDayHeaderWidget(QLabel):
                 font-size:14px;
                 min-height:24px"""
             )
+        self.dow = dow
         self.start_time = 0
 
     @property
@@ -530,6 +532,10 @@ class SchedulerDayHeaderWidget(QLabel):
         action_open_rundown = QAction('Open rundown', self)
         action_open_rundown.triggered.connect(self.on_open_rundown)
         menu.addAction(action_open_rundown)
+
+        action_import_template = QAction("Import template", self)
+        action_import_template.triggered.connect(functools.partial(self.parent().parent().import_template, self.dow))
+        menu.addAction(action_import_template)
 
         menu.exec_(event.globalPos())
 
@@ -562,7 +568,7 @@ class SchedulerCalendar(QWidget):
         self.headers = []
         self.days = []
         for i in range(7):
-            self.headers.append(SchedulerDayHeaderWidget(self))
+            self.headers.append(SchedulerDayHeaderWidget(self, i))
             self.days.append(SchedulerDayWidget(self))
             header_layout.addWidget(self.headers[-1])
             cols_layout.addWidget(self.days[-1], 1)
