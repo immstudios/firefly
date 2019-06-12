@@ -126,8 +126,13 @@ QCheckBox {
 }
 
 QCheckBox::indicator{
-    width: 24px;
-    height: 24px;
+    border: 1px solid #50595b;
+    width: 30px;
+    height: 30px;
+}
+
+QCheckBox::indicator:checked{
+    image: url(images/accept.png);
 }
 
 
@@ -148,6 +153,18 @@ QPushButton:!enabled {
 }
 
 
+QSpinBox:up-button{
+    padding-right: 2px;
+    image: url(images/smallarrow-up.png);
+}
+
+QSpinBox:down-button{
+    padding-right: 2px;
+    image: url(images/smallarrow-down.png);
+}
+
+
+
 /* Combo box*/
 
 
@@ -156,7 +173,7 @@ QComboBox::drop-down {
 }
 
 QComboBox::down-arrow {
-    image: url(images/dropdown-arrow.png);
+    image: url(images/smallarrow-down.png);
     width: 16px;
     height: 16px;
 }

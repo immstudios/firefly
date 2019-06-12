@@ -126,7 +126,7 @@ class RundownView(FireflyView):
                     action_mode_loop = QAction('&Loop', self)
                     action_mode_loop.setStatusTip('Loop item')
                     action_mode_loop.setCheckable(True)
-                    action_mode_loop.setChecked(self.selected_objects[0]["loop"])
+                    action_mode_loop.setChecked(bool(self.selected_objects[0]["loop"]))
                     action_mode_loop.triggered.connect(self.on_set_loop)
                     mode_menu.addAction(action_mode_loop)
 

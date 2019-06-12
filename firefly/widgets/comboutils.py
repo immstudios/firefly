@@ -1,30 +1,6 @@
-__all__ = ["ComboItemDelegate", "ComboMenuDelegate", "CheckComboBox"]
+__all__ = ["ComboMenuDelegate", "CheckComboBox"]
 
 from firefly.common import *
-
-class ComboItemDelegate(QStyledItemDelegate):
-    def isSeparator(self, index):
-        return str(index.data(Qt.AccessibleDescriptionRole)) == "separator"
-
-    def paint(self, painter, option, index):
-        if option.widget is not None:
-            style = option.widget.style()
-        else:
-            style = QApplication.style()
-
-        option = QStyleOptionViewItem(option)
-        option.showDecorationSelected = True
-
-        option.state &= ~QStyle.State_HasFocus & ~QStyle.State_MouseOver
-        if self.isSeparator(index):
-            opt = QStyleOption()
-            opt.rect = QRect(option.rect)
-            if isinstance(option.widget, QAbstractItemView):
-                opt.rect.setWidth(option.widget.viewport().width())
-            style.drawPrimitive(QStyle.PE_IndicatorToolBarSeparator,
-                                opt, painter, option.widget)
-        else:
-            super(ComboItemDelegate, self).paint(painter, option, index)
 
 
 class ComboMenuDelegate(QAbstractItemDelegate):
@@ -99,8 +75,11 @@ class ComboMenuDelegate(QAbstractItemDelegate):
         menuoption.rect = option.rect
         menuoption.menuRect = option.rect
 
-        idt = int(index.data(Qt.UserRole))
-        menuoption.rect.adjust(idt*16, 0, 0, 0)
+        idt = index.data(Qt.UserRole)
+
+        if idt is not None:
+            idt = int(idt)
+            menuoption.rect.adjust(idt*16, 0, 0, 0)
 
         menuoption.menuHasCheckableItems = True
         menuoption.tabWidth = 0
@@ -240,15 +219,6 @@ class CheckComboBox(QComboBox):
         painter.drawControl(QStyle.CE_ComboBoxLabel, option)
 
     def itemCheckState(self, index):
-        """
-        Return the check state for item at `index`
-        Parameters
-        ----------
-        index : int
-        Returns
-        -------
-        state : Qt.CheckState
-        """
         state = self.itemData(index, role=Qt.CheckStateRole)
         if isinstance(state, int):
             return Qt.CheckState(state)
@@ -256,47 +226,19 @@ class CheckComboBox(QComboBox):
             return Qt.Unchecked
 
     def setItemCheckState(self, index, state):
-        """
-        Set the check state for item at `index` to `state`.
-        Parameters
-        ----------
-        index : int
-        state : Qt.CheckState
-        """
-
         state = Qt.Checked if state else Qt.Unchecked
         self.setItemData(index, state, Qt.CheckStateRole)
 
     def checkedIndices(self):
-        """
-        Return a list of indices of all checked items.
-        Returns
-        -------
-        indices : List[int]
-        """
         return [i for i in range(self.count())
                 if self.itemCheckState(i)]
 
     def setPlaceholderText(self, text):
-        """
-        Set the placeholder text.
-        This text is displayed on the checkbox when there are no checked
-        items.
-        Parameters
-        ----------
-        text : str
-        """
         if self.__placeholderText != text:
             self.__placeholderText = text
             self.update()
 
     def placeholderText(self):
-        """
-        Return the placeholder text.
-        Returns
-        -------
-        text : str
-        """
         return self.__placeholderText
 
     def wheelEvent(self, event):
@@ -323,9 +265,6 @@ class CheckComboBox(QComboBox):
     def __updateItemDelegate(self):
         opt = QStyleOptionComboBox()
         opt.initFrom(self)
-        if self.style().styleHint(QStyle.SH_ComboBox_Popup, opt, self):
-            delegate = ComboMenuDelegate(self)
-        else:
-            delegate = ComboItemDelegate(self)
+        delegate = ComboMenuDelegate(self)
         self.setItemDelegate(delegate)
 

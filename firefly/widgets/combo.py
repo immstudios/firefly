@@ -127,8 +127,8 @@ class FireflySelect(QComboBox):
             self.cdata.append(value)
 
             self.setItemData(i, indent ,Qt.UserRole)
-
             self.setItemData(i, "<p>{}</p>".format(row["description"]) if row.get("description") else None, Qt.ToolTipRole)
+
             if role == "header":
                 self.setItemData(i, fonts["bold"], Qt.FontRole)
 
@@ -194,8 +194,7 @@ class FireflyList(CheckComboBox):
             self.addItem(alias)
             self.cdata.append(value)
 
-
-            self.setItemData(i, indent ,Qt.UserRole)
+            self.setItemData(i, indent, Qt.UserRole)
 
             self.setItemData(i, "<p>{}</p>".format(row["description"]) if row.get("description") else None, Qt.ToolTipRole)
 
@@ -224,5 +223,3 @@ class FireflyList(CheckComboBox):
             if self.itemCheckState(i):
                 result.append(val)
         return result
-
-
