@@ -146,13 +146,13 @@ class SchedulerModule(BaseModule):
                         value = m.text
                         if value:
                             event[key] = value
-                        print (key, value, event[key])
 
                     items_data = event_data.find("items")
                     if items_data is not None:
                         event.meta["_items"] = []
-                        for item_data in items_data.findall("item"):
+                        for ipos, item_data in enumerate(items_data.findall("item")):
                             item = Item()
+                            item["position"] = ipos + 1
                             for kv in item_data.findall("meta"):
                                 item[kv.attrib["key"]] = kv.text
                             event.meta["_items"].append(item.meta)
