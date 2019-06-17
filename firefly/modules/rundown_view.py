@@ -313,17 +313,17 @@ class RundownView(FireflyView):
         can_mcr = user.has_right("mcr", self.id_channel)
         if obj.object_type == "item":
 
-            # Playout cue
-            if obj.id and self.parent().mcr and self.parent().mcr.isVisible() and can_mcr:
-                response = api.playout(timeout=1, action="cue", id_channel=self.id_channel, id_item=obj.id)
-                if not response:
-                    logging.error(response.message)
-                self.clearSelection()
+            if obj.id:
+                if obj["item_role"] == "placeholder":
+                    self.on_edit_item()
 
-            # Virtual item edit
+                elif self.parent().mcr and self.parent().mcr.isVisible() and can_mcr:
+                    response = api.playout(timeout=1, action="cue", id_channel=self.id_channel, id_item=obj.id)
+                    if not response:
+                        logging.error(response.message)
+                    self.clearSelection()
 
-            elif obj["item_role"] in ["placeholder", "live"]:
-                self.on_edit_item()
+
 
         # Event edit
         elif obj.object_type == "event" and (has_right("scheduler_view", self.id_channel) or has_right("scheduler_edit", self.id_channel)):
