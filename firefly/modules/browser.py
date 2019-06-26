@@ -292,6 +292,9 @@ class BrowserTab(QWidget):
                 objects=objects,
                 data={"status" : RESET}
             )
+        if not response:
+            return
+        self.refresh_assets(*objects, request_data=True)
 
     def on_trash(self):
         objects = [obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED]]
@@ -311,6 +314,8 @@ class BrowserTab(QWidget):
             return
         if not response:
             logging.error("Unable to trash:\n\n" + response.message)
+            return
+        self.refresh_assets(*objects, request_data=True)
 
     def on_untrash(self):
         objects = [obj.id for obj in self.view.selected_objects if obj["status"] in [TRASHED]]
@@ -322,6 +327,8 @@ class BrowserTab(QWidget):
             )
         if not response:
             logging.error("Unable to untrash:\n\n" + response.message)
+            return
+        self.refresh_assets(*objects, request_data=True)
 
     def on_archive(self):
         objects = [obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED]]
@@ -341,6 +348,8 @@ class BrowserTab(QWidget):
             return
         if not response:
             logging.error("Unable to archive:\n\n" + response.message)
+            return
+        self.refresh_assets(*objects, request_data=True)
 
     def on_unarchive(self):
         objects = [obj.id for obj in self.view.selected_objects if obj["status"] in [ARCHIVED]]
@@ -352,6 +361,8 @@ class BrowserTab(QWidget):
             )
         if not response:
             logging.error("Unable to unarchive:\n\n" + response.message)
+            return
+        self.refresh_assets(*objects, request_data=True)
 
 
     def on_choose_columns(self):
@@ -366,11 +377,17 @@ class BrowserTab(QWidget):
         clipboard = QApplication.clipboard();
         clipboard.setText(result)
 
+    def refresh_assets(self, *objects, request_data=False):
+        if request_data:
+            asset_cache.request([[aid, 0] for aid in objects])
+        for row, obj in enumerate(self.model.object_data):
+            if obj.id in objects:
+                self.model.object_data[row] = asset_cache[obj.id]
+                self.model.dataChanged.emit(self.model.index(row, 0), self.model.index(row, len(self.model.header_data)-1))
+
+
     def seismic_handler(self, message):
-            for row, obj in enumerate(self.model.object_data):
-                if obj.id in message.data["objects"]:
-                    self.model.object_data[row] = asset_cache[obj.id]
-                    self.model.dataChanged.emit(self.model.index(row, 0), self.model.index(row, len(self.model.header_data)-1))
+        self.refresh_assets(*message.data["objects"])
 
 
 class BrowserModule(BaseModule):
@@ -479,3 +496,7 @@ class BrowserModule(BaseModule):
                 sq["active"] = True
             views.append(sq)
         self.app_state["browser_tabs"] = views
+
+    def refresh_assets(self, *objects, request_data=False):
+        for b in self.browsers:
+            b.refresh_assets(*objects, request_data=request_data)

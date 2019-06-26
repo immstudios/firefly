@@ -3,6 +3,7 @@ import time
 import websocket
 
 from .common import *
+from nx.connection import CLIENT_ID
 
 if config.get("debug"):
     websocket.enableTrace(True)
@@ -73,6 +74,9 @@ class SeismicListener(QThread):
             return
 
         self.last_msg = time.time()
+
+        if message.data and message.data.get("initiator", None) == CLIENT_ID:
+            return
 
 #        if message.method == "objects_changed":
 #            for i, m in enumerate(self.queue):

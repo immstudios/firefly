@@ -31,6 +31,8 @@ class AssetCache(object):
             id = int(id)
             if not id in self.data:
                 to_update.append(id)
+            elif not mtime:
+                to_update.append(id)
             elif self.data[id]["mtime"] < mtime:
                 to_update.append(id)
         if not to_update:

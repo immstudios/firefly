@@ -484,13 +484,16 @@ class DetailModule(BaseModule):
         response = api.set(objects=[self.asset.id], data=data)
         if not response:
             logging.error(response.message)
-            self.form.setEnabled(True) # reenable on seismic message with new data
         else:
             logging.debug("[DETAIL] Set method responded", response.response)
-            if not self.asset.id:
+            try:
                 aid = response.data[0]
-                asset_cache.request([[aid, 0]])
-                self.focus(asset_cache[aid], silent=True)
+            except Exception:
+                aid = self.asset.id
+            asset_cache.request([[aid, 0]])
+            self.focus(asset_cache[aid], silent=True)
+            self.main_window.browser.refresh_assets(aid)
+        self.form.setEnabled(True)
 
 
 
@@ -502,6 +505,14 @@ class DetailModule(BaseModule):
         response = api.set(objects=[self.asset.id], data={"qc/state" : state})
         if not response:
             logging.error(response.message)
+            return
+        try:
+            aid = response.data[0]
+        except Exception:
+            aid = self.asset.id
+        asset_cache.request([[aid, 0]])
+        self.focus(asset_cache[aid], silent=True)
+        self.main_window.browser.refresh_assets(aid)
 
     def seismic_handler(self, data):
         if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.asset:

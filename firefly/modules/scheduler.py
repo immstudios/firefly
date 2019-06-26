@@ -216,4 +216,5 @@ class SchedulerModule(BaseModule):
                 if id_event in self.calendar.event_ids:
                     do_load = True
             if do_load:
+                logging.debug("Seismic message requested calendar reload")
                 self.load()

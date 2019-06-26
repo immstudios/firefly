@@ -349,6 +349,8 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 QApplication.setOverrideCursor(Qt.WaitCursor)
                 response = api.schedule(
                         id_channel=self.id_channel,
+                        start_time=self.calendar.week_start_time,
+                        end_time=self.calendar.week_end_time,
                         events=[{
                                 "id_asset" : self.calendar.dragging.id,
                                 "start" : drop_ts,
@@ -359,6 +361,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 QApplication.restoreOverrideCursor()
                 if not response:
                     logging.error(response.message)
+
             do_reload = True
 
 
@@ -366,7 +369,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             event = self.calendar.dragging
             move = True
 
-            if event.id and abs(event["start"] - drop_ts) > 3600:
+            if event.id and abs(event["start"] - drop_ts) > 7200:
                 ret = QMessageBox.question(self,
                     "Move event",
                     "Do you really want to move {}?\n\nFrom: {}\nTo: {}".format(
@@ -390,21 +393,27 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                             id_channel=self.id_channel,
                             start=drop_ts
                         ):
-                        do_reload = True
+                        do_reload = response.data
                 else:
                     # Just dragging events around. Instant save
                     QApplication.setOverrideCursor(Qt.WaitCursor)
                     response = api.schedule(
                                 id_channel=self.id_channel,
+                                start_time=self.calendar.week_start_time,
+                                end_time=self.calendar.week_end_time,
                                 events=[event.meta]
                             )
                     QApplication.restoreOverrideCursor()
                     if not response:
                         logging.error(response.message)
+                    else:
+                        do_reload = response.data
 
         self.calendar.drag_source = False
         self.calendar.dragging = False
-        if do_reload:
+        if type(do_reload) == list:
+            self.calendar.set_data(do_reload)
+        elif do_reload:
             self.calendar.load()
 
 
@@ -465,9 +474,10 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             QApplication.restoreOverrideCursor()
             if response:
                 logging.info("{} deleted".format(cursor_event))
+                self.calendar.set_data(response.data)
             else:
                 logging.error(response.message)
-            self.calendar.load()
+                self.calendar.load()
 
 
     def wheelEvent(self, event):
@@ -620,9 +630,6 @@ class SchedulerCalendar(QWidget):
         return [event.id for event in self.events]
 
     def load(self, ts=False):
-        zoomlevel = self.parent().app_state.get("scheduler_zoom", 0)
-        logging.debug("Setting scheduler zoom level to", zoomlevel)
-        self.zoom.setValue(zoomlevel)
         if not self.week_start_time and not ts:
             ts = time.time()
 
@@ -640,7 +647,6 @@ class SchedulerCalendar(QWidget):
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        self.events = []
         response = api.schedule(
                 id_channel=self.id_channel,
                 start_time=self.week_start_time,
@@ -650,8 +656,7 @@ class SchedulerCalendar(QWidget):
         if response:
             self.clock_bar.day_start = self.day_start
             self.clock_bar.update()
-            for meta in response.data:
-                self.events.append(Event(meta=meta))
+            self.set_data(response.data)
 
             for i, widgets in enumerate(zip(self.days, self.headers)):
                 day_widget, header_widget = widgets
@@ -661,6 +666,15 @@ class SchedulerCalendar(QWidget):
         else:
             logging.error(response.message)
         QApplication.restoreOverrideCursor()
+        self.on_zoom()
+
+
+    def set_data(self, data):
+        self.events = []
+        for meta in data:
+            self.events.append(Event(meta=meta))
+        QApplication.processEvents()
+        self.update()
 
 
     def update(self):
@@ -678,7 +692,6 @@ class SchedulerCalendar(QWidget):
         self.scroll_widget.setMinimumHeight(h)
         self.scroll_area.verticalScrollBar().setValue(pos * h)
         self.parent().app_state["scheduler_zoom"] = self.zoom.value()
-        logging.debug("Saving scheduler zoom level to", self.zoom.value())
 
     def resizeEvent(self, evt):
         self.zoom.setMinimum(self.scroll_area.height())

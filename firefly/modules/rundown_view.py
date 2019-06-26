@@ -208,6 +208,9 @@ class RundownView(FireflyView):
         QApplication.restoreOverrideCursor()
         if not response:
             logging.error(response.message)
+            return
+        self.load()
+
 
 
     def on_set_mode(self, mode):
@@ -220,6 +223,8 @@ class RundownView(FireflyView):
         QApplication.restoreOverrideCursor()
         if not response:
             logging.error(response.message)
+            return
+        self.load()
 
     def on_trim(self):
         item = self.selected_objects[0]
@@ -227,10 +232,14 @@ class RundownView(FireflyView):
 
 
     def on_solve(self, solver):
+        QApplication.processEvents()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         response = api.solve(id_item=self.selected_objects[0]["id"], solver=solver)
+        QApplication.restoreOverrideCursor()
         if not response:
             logging.error(response.message)
         self.load()
+
 
     def on_delete(self):
         items = list(set([obj.id for obj in self.selected_objects if obj.object_type == "item"]))
@@ -262,6 +271,7 @@ class RundownView(FireflyView):
             QApplication.restoreOverrideCursor()
             if not response:
                 logging.error(response.message)
+                return
             else:
                 logging.info("Item deleted: {}".format(response.message))
 
@@ -272,10 +282,12 @@ class RundownView(FireflyView):
             QApplication.restoreOverrideCursor()
             if not response:
                 logging.error(response.message)
+                return
             else:
                 logging.info("Event deleted: {}".format(response.message))
-        self.selectionModel().clear()
 
+        self.selectionModel().clear()
+        self.load()
 
     def on_send_to(self):
         objs = set([obj for obj in self.selected_objects if obj.object_type == "item" and obj["id_asset"]])
@@ -294,14 +306,17 @@ class RundownView(FireflyView):
         for key in dlg.meta:
             if dlg.meta[key] != obj[key]:
                 data[key] = dlg.meta[key]
-        if data:
-            response = api.set(
-                    object_type=obj.object_type,
-                    objects=[obj.id],
-                    data=data
-                )
-            if not response:
-                logging.error(response.message)
+        if not data:
+            return
+        response = api.set(
+                object_type=obj.object_type,
+                objects=[obj.id],
+                data=data
+            )
+        if not response:
+            logging.error(response.message)
+            return
+        self.load()
 
     def on_edit_event(self):
         objs = [obj for obj in self.selected_objects if obj.object_type == "event"]

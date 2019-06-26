@@ -265,15 +265,18 @@ class RundownModel(FireflyViewModel):
 
         sorted_items = [item for item in sorted_items]# if item["id_object"]]
 
-        if sorted_items:
-            QApplication.processEvents()
-            QApplication.setOverrideCursor(Qt.WaitCursor)
-            response = api.order(
-                    id_channel=self.id_channel,
-                    id_bin=to_bin,
-                    order=sorted_items
-                )
-            QApplication.restoreOverrideCursor()
-            if not response:
-                logging.error("Unable to change bin order: {}".format(response.message))
+        if not sorted_items:
+            return
+        QApplication.processEvents()
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        response = api.order(
+                id_channel=self.id_channel,
+                id_bin=to_bin,
+                order=sorted_items
+            )
+        QApplication.restoreOverrideCursor()
+        if not response:
+            logging.error("Unable to change bin order: {}".format(response.message))
+            return False
+        self.load()
         return True
