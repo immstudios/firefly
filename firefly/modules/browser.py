@@ -25,11 +25,13 @@ class SearchWidget(QLineEdit):
 class FireflyBrowserView(FireflyView):
     def __init__(self, parent):
         super(FireflyBrowserView, self).__init__(parent)
-        self.setSortingEnabled(True)
-        self.model = BrowserModel(self)
-        self.sort_model = FireflySortModel(self.model)
+        self.num_pages = 1
+        self.current_page = 1
+        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.activated.connect(self.on_activate)
-        self.setModel(self.sort_model)
+        self.setModel(BrowserModel(self))
+        self.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
+
 
     def selectionChanged(self, selected, deselected):
         rows = []
@@ -37,11 +39,12 @@ class FireflyBrowserView(FireflyView):
 
         tot_dur = 0
         for idx in self.selectionModel().selectedIndexes():
-            row = self.sort_model.mapToSource(idx).row()
+            #row = self.sort_model.mapToSource(idx).row()
+            row = idx.row()
             if row in rows:
                 continue
             rows.append(row)
-            obj = self.model.object_data[row]
+            obj = self.model().object_data[row]
             self.selected_objects.append(obj)
             if obj.object_type in ["asset", "item"]:
                 tot_dur += obj.duration
@@ -59,15 +62,38 @@ class FireflyBrowserView(FireflyView):
                     )
         super(FireflyView, self).selectionChanged(selected, deselected)
 
+    @property
+    def current_order(self):
+        try:
+            return self.parent().search_query.get("order", "ctime desc").split(" ")
+        except Exception:
+            return ["ctime", "desc"]
+
+    def on_header_clicked(self, index):
+        old_order, old_trend = self.current_order
+        value = self.model().header_data[index]
+        if value == old_order:
+            if old_trend == "asc":
+                trend = "desc"
+            else:
+                trend = "asc"
+        else:
+            trend = "asc"
+        self.parent().search_query["order"] = "{} {}".format(value, trend)
+        self.parent().load()
 
 
     def on_activate(self, mi):
-        obj = self.model.object_data[mi.row()]
-        key = self.model.header_data[mi.column()]
+        obj = self.model().object_data[mi.row()]
+        key = self.model().header_data[mi.column()]
         val = obj.show(key)
 
         QApplication.clipboard().setText(str(val))
         logging.info("Copied \"{}\" to clipboard".format(val))
+
+    def set_num_pages(self, pages):
+        self.num_pages = pages
+        #TODO: show pagination widget if num_pages > 1
 
 
 
@@ -82,6 +108,7 @@ class BrowserTab(QWidget):
         self.search_query = {
                 "id_view" : kwargs.get("id_view", min(config["views"])),
                 "fulltext" : kwargs.get("fulltext", ""),
+                "order" : kwargs.get("order", "ctime desc")
             }
 
         # Layout
@@ -125,9 +152,8 @@ class BrowserTab(QWidget):
         layout.addWidget(self.view, 1)
         self.setLayout(layout)
 
-    @property
     def model(self):
-        return self.view.model
+        return self.view.model()
 
     @property
     def id_view(self):
@@ -168,7 +194,7 @@ class BrowserTab(QWidget):
             self.app_state["browser_default_sizes"] = {}
 
         data = {}
-        for i, h in enumerate(self.model.header_data):
+        for i, h in enumerate(self.model().header_data):
             w = self.view.horizontalHeader().sectionSize(i)
             self.app_state["browser_default_sizes"][h] = w
             data[h] = w
@@ -184,12 +210,12 @@ class BrowserTab(QWidget):
         search_string = self.search_box.text()
         self.search_query["fulltext"] = search_string
         self.search_query.update(kwargs)
-        self.view.model.load(**self.search_query)
+        self.model().load(**self.search_query)
 
         if self.first_load or self.id_view != old_view:
             view_state = self.app_state.get("browser_view_sizes", {}).get(self.id_view, {})
             default_sizes = self.app_state.get("browser_defaut_sizes", {})
-            for i, h in enumerate(self.model.header_data):
+            for i, h in enumerate(self.model().header_data):
                 if h in view_state:
                     w = view_state[h]
                 elif h in default_sizes:
@@ -373,17 +399,17 @@ class BrowserTab(QWidget):
     def on_copy_result(self):
         result = ""
         for obj in self.view.selected_objects:
-            result += "{}\n".format("\t".join([obj.format_display(key) or "" for key in self.view.model.header_data]))
+            result += "{}\n".format("\t".join([obj.format_display(key) or "" for key in self.model().header_data]))
         clipboard = QApplication.clipboard();
         clipboard.setText(result)
 
     def refresh_assets(self, *objects, request_data=False):
         if request_data:
             asset_cache.request([[aid, 0] for aid in objects])
-        for row, obj in enumerate(self.model.object_data):
+        for row, obj in enumerate(self.model().object_data):
             if obj.id in objects:
-                self.model.object_data[row] = asset_cache[obj.id]
-                self.model.dataChanged.emit(self.model.index(row, 0), self.model.index(row, len(self.model.header_data)-1))
+                self.model().object_data[row] = asset_cache[obj.id]
+                self.model().dataChanged.emit(self.model().index(row, 0), self.model().index(row, len(self.model().header_data)-1))
 
 
     def seismic_handler(self, message):
@@ -492,7 +518,6 @@ class BrowserModule(BaseModule):
             self.tabs.setTabText(i, config["views"][id_view]["title"])
             sq = copy.copy(b.search_query)
             if self.tabs.currentIndex() == i:
-                logging.debug("Saving browser current index to ", i)
                 sq["active"] = True
             views.append(sq)
         self.app_state["browser_tabs"] = views

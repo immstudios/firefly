@@ -65,9 +65,11 @@ QTableView::item:focus {
     background-color: rgba(160, 160, 160, 160);
 }
 
+
 QHeaderView::section {
     background-color: #161616;
     color: #c0c0c0;
+    font-weight: bold;
     padding: 5px;
 }
 

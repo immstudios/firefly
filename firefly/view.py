@@ -3,7 +3,7 @@ from .widgets import *
 
 from pprint import pformat
 
-__all__ = ["FireflyViewModel", "FireflySortModel", "FireflyView"]
+__all__ = ["FireflyViewModel", "FireflySortModel", "FireflyView", "format_header", "format_description"]
 
 def format_header(key):
     return meta_types[key].header(config.get("language", "en"))

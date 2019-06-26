@@ -340,11 +340,12 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                     self.calendar.dragging,
                     time.strftime("%Y-%m-%d %H:%M", time.localtime(self.cursor_time))
                     ))
-                event_dialog(
+                if event_dialog(
                         asset=self.calendar.dragging,
                         id_channel=self.id_channel,
                         start=drop_ts
-                    )
+                        ):
+                    do_reload = True
             else:
                 QApplication.setOverrideCursor(Qt.WaitCursor)
                 response = api.schedule(
@@ -393,7 +394,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                             id_channel=self.id_channel,
                             start=drop_ts
                         ):
-                        do_reload = response.data
+                        do_reload = True
                 else:
                     # Just dragging events around. Instant save
                     QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -470,7 +471,12 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         if ret == QMessageBox.Yes:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.WaitCursor)
-            response = api.schedule(delete=[cursor_event.id], id_channel=self.id_channel)
+            response = api.schedule(
+                    id_channel=self.id_channel,
+                    start_time=self.calendar.week_start_time,
+                    end_time=self.calendar.week_end_time,
+                    delete=[cursor_event.id]
+                )
             QApplication.restoreOverrideCursor()
             if response:
                 logging.info("{} deleted".format(cursor_event))
