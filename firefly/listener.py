@@ -78,14 +78,14 @@ class SeismicListener(QThread):
         if message.data and message.data.get("initiator", None) == CLIENT_ID:
             return
 
-#        if message.method == "objects_changed":
-#            for i, m in enumerate(self.queue):
-#                if m.method == "objects_changed" and m.data["object_type"] == message.data["object_type"]:
-#                    r = list(set(m.data["objects"] + message.data["objects"] ))
-#                    self.queue[i].data["objects"] = r
-#                    break
-#            else:
-#                self.queue.append(message)
+        if message.method == "objects_changed":
+            for i, m in enumerate(self.queue):
+                if m.method == "objects_changed" and m.data["object_type"] == message.data["object_type"]:
+                    r = list(set(m.data["objects"] + message.data["objects"] ))
+                    self.queue[i].data["objects"] = r
+                    break
+            else:
+                self.queue.append(message)
 
         if message.method == "playout_status":
             for i, m in enumerate(self.queue):
