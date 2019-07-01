@@ -53,7 +53,7 @@ class RundownModel(FireflyViewModel):
         required_assets = []
         self.beginResetModel()
 
-        self.header_data = DEFAULT_COLUMNS
+        self.header_data = config["playout_channels"][self.id_channel].get("rundown_columns", DEFAULT_COLUMNS)
         self.object_data = []
         self.event_ids = []
 
