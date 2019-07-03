@@ -3,7 +3,7 @@ import functools
 from nx import *
 from firefly.common import *
 
-from nebulacore.meta_format import format_select
+from nebulacore.meta_format import format_select, format_list
 
 from .comboutils import *
 
@@ -29,8 +29,8 @@ class FireflyRadio(QWidget):
         self.current_index = -1
         self.buttons = []
 
-    def auto_data(self, key):
-        data = format_select(key, -1, result="full")
+    def auto_data(self, key, id_folder=0):
+        data = format_select(key, None, result="full", id_folder=id_folder)
         self.set_data(data)
 
     def set_data(self, data):
@@ -106,8 +106,8 @@ class FireflySelect(QComboBox):
     def setReadOnly(self, val):
         self.setEnabled(not val)
 
-    def auto_data(self, key):
-        data = format_select(key, -1, result="full")
+    def auto_data(self, key, id_folder=0):
+        data = format_select(key, None, result="full", id_folder=id_folder)
         self.set_data(data)
 
     def set_data(self, data):
@@ -174,8 +174,8 @@ class FireflyList(CheckComboBox):
     def setReadOnly(self, val):
         self.setEnabled(not val)
 
-    def auto_data(self, key):
-        data = format_select(key, -1, result="full")
+    def auto_data(self, key, id_folder=0):
+        data = format_list(key, [], result="full", id_folder=id_folder)
         self.set_data(data)
 
     def set_data(self, data):

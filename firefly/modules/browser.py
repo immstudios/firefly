@@ -4,6 +4,7 @@ import functools
 
 from firefly import *
 from firefly.dialogs.send_to import *
+from firefly.dialogs.batch_ops import *
 
 from .browser_model import *
 
@@ -297,6 +298,11 @@ class BrowserTab(QWidget):
         action_send_to.triggered.connect(self.on_send_to)
         menu.addAction(action_send_to)
 
+        action_batch_ops = QAction('&Batch ops', self)
+        action_batch_ops.setStatusTip('Batch operations')
+        action_batch_ops.triggered.connect(self.on_batch_ops)
+        menu.addAction(action_batch_ops)
+
 #TODO
 #        menu.addSeparator()
 #        action_columns = QAction('Choose columns', self)
@@ -308,7 +314,15 @@ class BrowserTab(QWidget):
 
 
     def on_send_to(self):
-        send_to_dialog(self.view.selected_objects)
+        objs = self.view.selected_objects
+        if objs:
+            send_to_dialog(objs)
+
+    def on_batch_ops(self):
+        objs = self.view.selected_objects
+        if objs:
+            if batch_ops_dialog(objs):
+                self.load()
 
     def on_reset(self):
         objects = [obj.id for obj in self.view.selected_objects if obj["status"] not in [ARCHIVED, TRASHED, RESET]]
