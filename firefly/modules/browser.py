@@ -9,6 +9,19 @@ from firefly.dialogs.batch_ops import *
 from .browser_model import *
 
 
+links = [
+        {
+            "filter" : "id_folder",
+            "value" : 13,
+            "source_key" : "id",
+            "target_key" : "serie",
+            "id_view" : 1,
+            "title" : "Show episodes"
+        }
+    ]
+
+
+
 class SearchWidget(QLineEdit):
     def __init__(self, parent):
         super(QLineEdit, self).__init__()
@@ -103,13 +116,15 @@ class BrowserTab(QWidget):
         super(BrowserTab, self).__init__(parent)
         self._parent = parent
         self.loading = False
+        self.title = False
 
         # Search query
 
         self.search_query = {
                 "id_view" : kwargs.get("id_view", min(config["views"])),
                 "fulltext" : kwargs.get("fulltext", ""),
-                "order" : kwargs.get("order", "ctime desc")
+                "order" : kwargs.get("order", "ctime desc"),
+                "conds" : kwargs.get("conds", [])
             }
 
         # Layout
@@ -252,9 +267,10 @@ class BrowserTab(QWidget):
         if not self.view.selected_objects:
             return
         menu = QMenu(self)
+        objs = self.view.selected_objects
 
         statuses = []
-        for obj in self.view.selected_objects:
+        for obj in objs:
             status = obj["status"]
             if not status in statuses:
                 statuses.append(status)
@@ -291,6 +307,22 @@ class BrowserTab(QWidget):
         action_reset.triggered.connect(self.on_reset)
         menu.addAction(action_reset)
 
+
+        action_batch_ops = QAction('&Batch ops...', self)
+        action_batch_ops.setStatusTip('Batch operations')
+        action_batch_ops.triggered.connect(self.on_batch_ops)
+        menu.addAction(action_batch_ops)
+
+        if len(objs) == 1:
+            menu.addSeparator()
+            for link in links:
+                if str(objs[0][link["filter"]]) ==  str(link["value"]):
+                    action_link = QAction(link["title"])
+                    action_link.triggered.connect(
+                            functools.partial(self.link_exec, objs[0], **link)
+                            )
+                    menu.addAction(action_link)
+
         menu.addSeparator()
 
         action_send_to = QAction('&Send to...', self)
@@ -298,19 +330,17 @@ class BrowserTab(QWidget):
         action_send_to.triggered.connect(self.on_send_to)
         menu.addAction(action_send_to)
 
-        action_batch_ops = QAction('&Batch ops', self)
-        action_batch_ops.setStatusTip('Batch operations')
-        action_batch_ops.triggered.connect(self.on_batch_ops)
-        menu.addAction(action_batch_ops)
-
-#TODO
-#        menu.addSeparator()
-#        action_columns = QAction('Choose columns', self)
-#        action_columns.setStatusTip('Choose header columns')
-#        action_columns.triggered.connect(self.on_choose_columns)
-#        menu.addAction(action_columns)
-
         menu.exec_(event.globalPos())
+
+    def link_exec(self, obj,  **kwargs):
+        param = kwargs["target_key"]
+        value = obj[kwargs["source_key"]]
+        self._parent.new_tab(
+                obj["title"],
+                id_view=kwargs["id_view"],
+                conds=["'{}' = '{}'".format(param, value)]
+            )
+        self._parent.redraw_tabs()
 
 
     def on_send_to(self):
@@ -468,7 +498,7 @@ class BrowserModule(BaseModule):
 
         self.tabs.setCurrentIndex(current_index)
 
-    def new_tab(self, **kwargs):
+    def new_tab(self, title=False, **kwargs):
         if not "id_view" in kwargs:
             try:
                 id_view = self.tabs.currentWidget().id_view
@@ -479,7 +509,9 @@ class BrowserModule(BaseModule):
         tab = BrowserTab(self, **kwargs)
         self.tabs.addTab(tab, "New tab")
         self.tabs.setCurrentIndex(self.tabs.indexOf(tab))
+        tab.title = title
         tab.load()
+        return tab
 
 
     def close_tab(self, idx=False):
@@ -529,7 +561,7 @@ class BrowserModule(BaseModule):
         views = []
         for i,b in enumerate(self.browsers):
             id_view = b.id_view
-            self.tabs.setTabText(i, config["views"][id_view]["title"])
+            self.tabs.setTabText(i, b.title or config["views"][id_view]["title"])
             sq = copy.copy(b.search_query)
             if self.tabs.currentIndex() == i:
                 sq["active"] = True
