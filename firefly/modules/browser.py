@@ -9,29 +9,16 @@ from firefly.dialogs.batch_ops import *
 from .browser_model import *
 
 
-links = [
-        {
-            "filter" : "id_folder",
-            "value" : 13,
-            "source_key" : "id",
-            "target_key" : "serie",
-            "id_view" : 1,
-            "title" : "Show episodes"
-        }
-    ]
-
-
-
 class SearchWidget(QLineEdit):
     def __init__(self, parent):
         super(QLineEdit, self).__init__()
 
     def keyPressEvent(self, event):
-        if event.key() in [Qt.Key_Return,Qt.Key_Enter]:
+        if event.key() in [Qt.Key_Return, Qt.Key_Enter]:
             self.parent().load()
         elif event.key() == Qt.Key_Escape:
             self.line_edit.setText("")
-        elif event.key() == Qt.Key_Down:
+        elif event.key() in [Qt.Key_Down, Qt.Key_Up]:
             self.parent().view.setFocus()
         QLineEdit.keyPressEvent(self, event)
 
@@ -190,12 +177,12 @@ class BrowserTab(QWidget):
                     key=lambda k: config["views"][k]["position"]
                 ):
             view = config["views"][id_view]
-            if view["title"] == "-":
+            if  view.get("separator", False):
                 self.action_search.addSeparator()
-                continue
             action = QAction(view["title"], self)
             action.setCheckable(True)
-            action.setShortcut("ALT+{}".format(i))
+            if i < 10:
+                action.setShortcut("ALT+{}".format(i))
             action.id_view = id_view
             action.triggered.connect(functools.partial(self.set_view, id_view))
             self.action_search.addAction(action)
@@ -315,13 +302,12 @@ class BrowserTab(QWidget):
 
         if len(objs) == 1:
             menu.addSeparator()
-            for link in links:
-                if str(objs[0][link["filter"]]) ==  str(link["value"]):
-                    action_link = QAction(link["title"])
-                    action_link.triggered.connect(
-                            functools.partial(self.link_exec, objs[0], **link)
-                            )
-                    menu.addAction(action_link)
+            for link in config["folders"][objs[0]["id_folder"]].get("links", []):
+                action_link = QAction(link["title"])
+                action_link.triggered.connect(
+                        functools.partial(self.link_exec, objs[0], **link)
+                        )
+                menu.addAction(action_link)
 
         menu.addSeparator()
 
@@ -466,7 +452,7 @@ class BrowserModule(BaseModule):
         self.tabs = QTabWidget(self)
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
-        self.tabs.currentChanged.connect(self.redraw_tabs)
+        self.tabs.currentChanged.connect(self.on_tab_switch)
 
         self.layout = QVBoxLayout(self)
         self.layout.setSpacing(0)
@@ -555,6 +541,15 @@ class BrowserModule(BaseModule):
         for i in range(0,self.tabs.count()):
             r.append(self.tabs.widget(i))
         return r
+
+    def on_tab_switch(self):
+        browser = self.browsers[self.tabs.currentIndex()]
+        sel = browser.view.selected_objects
+        if sel:
+            self.main_window.focus(sel[0])
+        browser.search_box.setFocus()
+        self.redraw_tabs()
+
 
     def redraw_tabs(self, *args, **kwargs):
         QApplication.processEvents()

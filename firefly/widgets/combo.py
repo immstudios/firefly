@@ -38,14 +38,17 @@ class FireflyRadio(QWidget):
         self.current_index = -1
         i = 0
         for row in data:
+            value = row["value"]
+            alias = row.get("alias", row["value"])
+            description = row.get("description") or alias or "(No value)"
             if not row.get("value"):
                 continue
             if row["role"] == "hidden":
                 continue
             self.cdata.append(row["value"])
 
-            self.buttons.append(QPushButton(row.get("alias", row["value"]) ))
-            self.buttons[-1].setToolTip("<p>{}</p>".format(row["description"]) if row.get("description") else "")
+            self.buttons.append(QPushButton(alias))
+            self.buttons[-1].setToolTip("<p>{}</p>".format(description))
             self.buttons[-1].setCheckable(row["role"] in ["option", "header"])
             self.buttons[-1].setAutoExclusive(True)
             self.buttons[-1].clicked.connect(functools.partial(self.switch, i))
@@ -117,6 +120,7 @@ class FireflySelect(QComboBox):
         for row in data:
             value = row["value"]
             alias = row.get("alias", row["value"])
+            description = row.get("description") or alias or "(No value)"
             indent = row.get("indent", 0)
             role = row.get("role", "option")
 
@@ -127,7 +131,7 @@ class FireflySelect(QComboBox):
             self.cdata.append(value)
 
             self.setItemData(i, indent ,Qt.UserRole)
-            self.setItemData(i, "<p>{}</p>".format(row["description"]) if row.get("description") else None, Qt.ToolTipRole)
+            self.setItemData(i, "<p>{}</p>".format(description), Qt.ToolTipRole)
 
             if role == "header":
                 self.setItemData(i, fonts["bold"], Qt.FontRole)
@@ -185,6 +189,7 @@ class FireflyList(CheckComboBox):
         for row in data:
             value = row["value"]
             alias = row.get("alias", row["value"])
+            description = row.get("description") or alias or "(No value)"
             indent = row.get("indent", 0)
             role = row.get("role", "option")
 
@@ -196,7 +201,7 @@ class FireflyList(CheckComboBox):
 
             self.setItemData(i, indent, Qt.UserRole)
 
-            self.setItemData(i, "<p>{}</p>".format(row["description"]) if row.get("description") else None, Qt.ToolTipRole)
+            self.setItemData(i, "<p>{}</p>".format(description), Qt.ToolTipRole)
 
             if row["role"] == "label":
                 item = self.model().item(i)

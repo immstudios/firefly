@@ -79,7 +79,7 @@ class MetaEditor(QWidget):
         i = 0
         for key, conf in keys:
             key_label = meta_types[key].alias(config.get("language","en"))
-            key_description = meta_types[key].description(config.get("language", "en"))
+            key_description = meta_types[key].description(config.get("language", "en")) or key_label
             key_class = meta_types[key]["class"]
             key_settings = copy.copy(meta_types[key].settings)
             key_settings.update(conf)
@@ -97,7 +97,7 @@ class MetaEditor(QWidget):
             self.inputs[key].meta_key = key
 
             layout.addRow(key_label, self.inputs[key])
-            layout.labelForField(self.inputs[key]).setToolTip("<p>{}</p>".format(key_description) if key_description else None)
+            layout.labelForField(self.inputs[key]).setToolTip("<p>{}</p>".format(key_description))
             i+=1
         self.setLayout(layout)
 
