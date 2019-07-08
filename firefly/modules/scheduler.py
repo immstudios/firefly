@@ -158,7 +158,8 @@ class SchedulerModule(BaseModule):
                             event.meta["_items"].append(item.meta)
 
                     events.append(event.meta)
-            print (events)
+                if day_offset: # Importing single day.
+                    break
         except Exception:
             QApplication.restoreOverrideCursor()
             log_traceback("Unable to parse template:")
