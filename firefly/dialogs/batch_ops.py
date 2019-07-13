@@ -58,7 +58,7 @@ class BatchOpsDialog(QDialog):
                 self,
                 "Save changes?",
                 "{}".format(
-                    "\n".join(" - {}".format(meta_types[k].alias()) for k in self.form.changed)
+                    "\n".join(" - {}".format(meta_types[k].alias(config.get("language", "en"))) for k in self.form.changed)
                     ),
                 QMessageBox.Yes | QMessageBox.No
                 )
