@@ -140,10 +140,12 @@ class RundownModel(FireflyViewModel):
         data = [self.object_data[row].meta for row in rows]
         urls = [QUrl.fromLocalFile(self.object_data[row].file_path) for row in rows if self.object_data[row].file_path]
 
-        mimeData = QMimeData()
-
-        mimeData.setData("application/nx.item", json.dumps(data).encode("ascii"))
-        mimeData.setUrls(urls)
+        try:
+            mimeData = QMimeData()
+            mimeData.setData("application/nx.item", json.dumps(data).encode("ascii"))
+            mimeData.setUrls(urls)
+        except Exception:
+            return
         return mimeData
 
 

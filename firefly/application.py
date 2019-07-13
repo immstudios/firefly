@@ -46,6 +46,7 @@ class FireflyApplication(Application):
             else:
                 i = 0
         config.update(config["sites"][i])
+        del(config["sites"])
 
         self.app_state_path = os.path.join(app_dir, "ffdata.{}.appstate".format(config["site_name"]))
         self.auth_key_path = os.path.join(app_dir,  "ffdata.{}.key".format(config["site_name"]))
