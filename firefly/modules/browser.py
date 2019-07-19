@@ -40,7 +40,6 @@ class FireflyBrowserView(FireflyView):
 
         tot_dur = 0
         for idx in self.selectionModel().selectedIndexes():
-            #row = self.sort_model.mapToSource(idx).row()
             row = idx.row()
             if row in rows:
                 continue
@@ -247,6 +246,8 @@ class BrowserTab(QWidget):
         self.load(fulltext="")
 
     def set_view(self, id_view):
+        self.search_query["conds"] = []
+        self.title = False
         self.load(id_view=id_view)
 
 
@@ -474,7 +475,15 @@ class BrowserModule(BaseModule):
                     del(tabcfg["active"])
                 except KeyError:
                     pass
-                self.new_tab(**tabcfg)
+                title = False
+                if tabcfg.get("title"):
+                    title = tabcfg.get("title")
+                try:
+                    del(tabcfg["title"])
+                except KeyError:
+                    pass
+
+                self.new_tab(title, **tabcfg)
                 created_tabs += 1
             except Exception:
                 log_traceback()
@@ -560,6 +569,8 @@ class BrowserModule(BaseModule):
             sq = copy.copy(b.search_query)
             if self.tabs.currentIndex() == i:
                 sq["active"] = True
+            if b.title:
+                sq["title"] = b.title
             views.append(sq)
         self.app_state["browser_tabs"] = views
 
