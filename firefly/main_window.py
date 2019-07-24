@@ -65,6 +65,13 @@ class FireflyMainWidget(QWidget):
 
         self.tabs.currentChanged.connect(self.on_switch_tab)
 
+
+    def on_close(self):
+        self.main_window.listener.halt()
+        QApplication.quit()
+        logging.debug("Main window closed")
+
+
     @property
     def app(self):
         return self.main_window.app
@@ -130,6 +137,8 @@ class FireflyMainWindow(MainWindow):
                 self.set_channel(self.id_channel)
                 break
         logging.info("[MAIN WINDOW] Firefly is ready")
+
+
 
 
     def load_window_state(self):

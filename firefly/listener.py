@@ -37,11 +37,9 @@ class SeismicListener(QThread):
         self.start()
 
     def run(self):
-        logging.info("Starting listener", handlers=False)
-
         addr = config["hub"].replace("http", "ws", 1) + "/ws/" + config["site_name"]
-
         while self.should_run:
+            logging.debug("Connecting listener", handlers=False)
             self.halted = False
             self.ws = websocket.WebSocketApp(
                     addr,
@@ -51,7 +49,6 @@ class SeismicListener(QThread):
                 )
             self.ws.run_forever()
             self.active = False
-            logging.warning("Listenner stopped", handlers=False)
 
         logging.debug("Listener halted", handlers=False)
         self.halted = True
@@ -103,9 +100,10 @@ class SeismicListener(QThread):
 
     def on_close(self, *args):
         self.active = False
-        logging.warning("WS connection interrupted. Reconnecting", handlers=False)
+        if self.should_run:
+            logging.warning("WS connection interrupted", handlers=False)
 
     def halt(self):
         logging.debug("Shutting down listener")
-        self.ws.close()
         self.should_run = False
+        self.ws.close()
