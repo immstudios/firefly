@@ -51,6 +51,14 @@ QMenu::item:!enabled {
     color: #646464;
 }
 
+
+QMenu::separator {
+    height: 1px;
+    margin-top: 5px;
+    margin-top: 5px;
+    background-color: #353b3d;
+}
+
 /* TABLES */
 
 QTableView {
