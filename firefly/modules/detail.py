@@ -7,8 +7,6 @@ try:
 except OSError:
     log_traceback()
     logging.warning("Unable to load MPV libraries. Video preview will not be available.")
-    has_player = False
-
 
 class DetailTabMain(QWidget):
     def __init__(self, parent):
@@ -237,14 +235,12 @@ class DetailTabs(QTabWidget):
         self.tab_main = DetailTabMain(self)
         self.tab_extended = DetailTabExtended(self)
         self.tab_technical = DetailTabTechnical(self)
-        if has_player:
-            self.tab_preview = DetailTabPreview(self)
+        self.tab_preview = DetailTabPreview(self)
 
         self.addTab(self.tab_main, "MAIN")
         self.addTab(self.tab_extended, "EXTENDED")
         self.addTab(self.tab_technical, "TECHNICAL")
-        if has_player:
-            self.addTab(self.tab_preview, "PREVIEW")
+        self.addTab(self.tab_preview, "PREVIEW")
 
         self.currentChanged.connect(self.on_switch)
         self.setCurrentIndex(0)
@@ -253,8 +249,7 @@ class DetailTabs(QTabWidget):
                 self.tab_extended,
                 self.tab_technical
             ]
-        if has_player:
-            self.tabs.append(self.tab_preview)
+        self.tabs.append(self.tab_preview)
 
     def on_switch(self, *args):
         try:
@@ -262,7 +257,7 @@ class DetailTabs(QTabWidget):
         except:
             index = self.currentIndex()
 
-        if index == -1 and has_player:
+        if index == -1:
             self.tab_preview.player.force_pause()
 
         for i, tab in enumerate(self.tabs):
@@ -460,7 +455,7 @@ class DetailModule(BaseModule):
             for key in self.form.keys():
                 data[key] = self.form[key]
 
-        if has_player and self.preview.changed:
+        if self.preview.changed:
             data.update(self.preview.changed)
 
 

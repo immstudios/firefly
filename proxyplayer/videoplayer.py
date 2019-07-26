@@ -3,6 +3,30 @@
 from .utils import *
 
 
+class DummyPlayer():
+    def property_observer(self, *args):
+        return lambda x: x
+
+    def __setitem__(self, key, value):
+        return
+
+    def __getitem__(self, key):
+        return
+
+    def play(self, *args, **kwargs):
+        pass
+
+    def seek(self, *args, **kwargs):
+        pass
+
+    def frame_step(self, *args, **kwargs):
+        pass
+
+    def frame_back_step(self, *args, **kwargs):
+        pass
+
+
+
 class VideoPlayer(QWidget):
     def __init__(self, parent=None, pixlib=None):
         super(VideoPlayer, self).__init__(parent)
@@ -13,10 +37,14 @@ class VideoPlayer(QWidget):
 
         self.video_window = QWidget(self)
         self.video_window.setStyleSheet("background-color: #161616;")
-        self.player = MPV(
-                    keep_open=True,
-                    wid=str(int(self.video_window.winId()))
-                )
+        try:
+            self.player = MPV(
+                        keep_open=True,
+                        wid=str(int(self.video_window.winId()))
+                    )
+        except:
+            log_traceback(handlers=False)
+            self.player = DummyPlayer()
 
         self.position = 0
         self.duration = 0
