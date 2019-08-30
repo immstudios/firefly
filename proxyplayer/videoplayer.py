@@ -2,6 +2,14 @@
 
 from .utils import *
 
+try:
+    from .mpv import MPV
+    has_mpv = True
+except OSError:
+    has_mpv = False
+    log_traceback()
+    logging.warning("Unable to load MPV libraries. Video preview will not be available.")
+
 
 class DummyPlayer():
     def property_observer(self, *args):
@@ -37,14 +45,17 @@ class VideoPlayer(QWidget):
 
         self.video_window = QWidget(self)
         self.video_window.setStyleSheet("background-color: #161616;")
-        try:
-            self.player = MPV(
-                        keep_open=True,
-                        wid=str(int(self.video_window.winId()))
-                    )
-        except:
-            log_traceback(handlers=False)
+        if not has_mpv:
             self.player = DummyPlayer()
+        else:
+            try:
+                self.player = MPV(
+                            keep_open=True,
+                            wid=str(int(self.video_window.winId()))
+                        )
+            except:
+                log_traceback(handlers=False)
+                self.player = DummyPlayer()
 
         self.position = 0
         self.duration = 0
@@ -319,7 +330,6 @@ class VideoPlayer(QWidget):
         if self.mark_in != self.prev_mark_in or self.mark_out != self.prev_mark_out or self.duration_changed:
             self.update_marks()
             self.duration_changed = False
-
 
 
 if __name__ == "__main__":

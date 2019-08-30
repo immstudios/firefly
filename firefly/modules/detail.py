@@ -1,12 +1,7 @@
 from firefly.modules.detail_toolbars import *
 from firefly.modules.detail_subclips import *
 
-try:
-    from proxyplayer import VideoPlayer
-    has_player = True
-except OSError:
-    log_traceback()
-    logging.warning("Unable to load MPV libraries. Video preview will not be available.")
+from proxyplayer import VideoPlayer
 
 class DetailTabMain(QWidget):
     def __init__(self, parent):
