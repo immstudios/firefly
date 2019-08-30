@@ -67,6 +67,7 @@ class FireflyMainWidget(QWidget):
 
 
     def on_close(self):
+        self.detail.check_changed()
         self.main_window.listener.halt()
         QApplication.quit()
         logging.debug("Main window closed")
