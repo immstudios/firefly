@@ -231,6 +231,9 @@ class FireflyMainWindow(MainWindow):
         if config["playout_channels"] and user.has_right("rundown_edit", self.id_channel):
             cstate = self.rundown.toggle_rundown_edit()
 
+    def toggle_debug_mode(self):
+        config["debug"] = not config.get("debug")
+
     def refresh_plugins(self):
         self.rundown.plugins.load()
 
