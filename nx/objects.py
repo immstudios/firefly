@@ -40,7 +40,7 @@ class AssetCache(object):
 
     def get(self, key):
         key = int(key)
-        return self.data.get(key, Asset())
+        return self.data.get(key, Asset(meta={"title" : "Loading...", "id": key}))
 
     def request(self, requested):
         to_update = []

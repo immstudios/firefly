@@ -35,8 +35,9 @@ class BrowserModel(FireflyViewModel):
         else:
             page_count = int(math.ceil(response["count"] / RECORDS_PER_PAGE))
             self.parent().set_num_pages(page_count)
-            if asset_cache.request(response.data):
-                self.object_data = [asset_cache[row[0]] for row in response.data]
+            asset_cache.request(response.data)
+            self.object_data = [asset_cache.get(row[0]) for row in response.data]
+
         self.endResetModel()
         QApplication.restoreOverrideCursor()
         callback()

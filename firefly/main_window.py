@@ -108,6 +108,9 @@ class FireflyMainWidget(QWidget):
 class FireflyMainWindow(MainWindow):
     def __init__(self, parent, MainWidgetClass):
         self.subscribers = []
+        asset_cache.api = api
+        asset_cache.handler = self.on_assets_update
+
         super(FireflyMainWindow, self).__init__(parent, MainWidgetClass)
         self.setWindowIcon(QIcon(get_pix("icon")))
         title = "Firefly {}".format(FIREFLY_VERSION)
@@ -138,8 +141,6 @@ class FireflyMainWindow(MainWindow):
                 self.set_channel(self.id_channel)
                 break
 
-        asset_cache.api = api
-        asset_cache.handler = self.on_assets_update
 
         logging.info("[MAIN WINDOW] Firefly is ready")
 
@@ -316,4 +317,4 @@ class FireflyMainWindow(MainWindow):
 
         self.browser.refresh_assets(*assets)
         self.rundown.refresh_assets(*assets)
-        #TODO: ostatni moduly
+        self.detail.refresh_assets(*assets)

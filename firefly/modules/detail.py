@@ -471,7 +471,8 @@ class DetailModule(BaseModule):
                 logging.info("Save aborted")
                 return
 
-        self.form.setEnabled(False) # reenable on seismic message with new data
+#        self.form.setEnabled(False) # reenable on seismic message with new data
+
         response = api.set(objects=[self.asset.id], data=data)
         if not response:
             logging.error(response.message)
@@ -481,10 +482,10 @@ class DetailModule(BaseModule):
                 aid = response.data[0]
             except Exception:
                 aid = self.asset.id
+            self.asset["id"] = aid
             asset_cache.request([[aid, 0]])
-            self.focus(asset_cache[aid], silent=True)
-            self.main_window.browser.refresh_assets(aid)
-        self.form.setEnabled(True)
+
+        #self.form.setEnabled(True)
 
 
 
@@ -520,10 +521,10 @@ class DetailModule(BaseModule):
         except Exception:
             aid = self.asset.id
         asset_cache.request([[aid, 0]])
-        self.focus(asset_cache[aid], silent=True)
-        self.main_window.browser.refresh_assets(aid)
 
     def seismic_handler(self, data):
-        if data.method == "objects_changed" and data.data["object_type"] == "asset" and self.asset:
-            if self.asset.id in data.data["objects"] and self.asset.id:
-                self.focus(asset_cache[self.asset.id], silent=True)
+        pass
+
+    def refresh_assets(self, *objects):
+        if self.asset and self.asset.id in objects:
+            self.focus(asset_cache[self.asset.id], silent=True)
