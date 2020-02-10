@@ -13,8 +13,8 @@ from .main_window import FireflyMainWindow, FireflyMainWidget
 
 
 def check_login(wnd):
-    data = api.get_user()
-    user_meta = data.get("data", False)
+    data = api.ping()
+    user_meta = data.get("user", False)
     if user_meta:
         return user_meta
     if data["response"] > 403:
@@ -53,13 +53,15 @@ class FireflyApplication(Application):
 
         # Login
 
-        api._settings["hub"] = config["hub"]
+        session_id = None
         try:
-            api.set_auth(open(self.auth_key_path).read())
+            session_id = open(self.auth_key_path).read()
         except FileNotFoundError:
             pass
         except Exception:
             log_traceback()
+        config["session_id"] = session_id
+
 
         user_meta = check_login(self.splash)
         if not user_meta:
@@ -91,8 +93,9 @@ class FireflyApplication(Application):
         asset_cache.save()
         if not self.main_window.listener:
             return
-        with open(self.auth_key_path, "w") as f:
-            f.write(api.auth_key)
+        if config.get("session_id"):
+            with open(self.auth_key_path, "w") as f:
+                f.write(config["session_id"])
         if not self.main_window.listener.halted:
             self.main_window.listener.halt()
             i = 0

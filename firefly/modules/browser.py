@@ -208,13 +208,14 @@ class BrowserTab(QWidget):
 
     def load(self, **kwargs):
         self.loading = True
-        old_view = self.search_query.get("id_view", -1)
+        self.old_view = self.search_query.get("id_view", -1)
         search_string = self.search_box.text()
         self.search_query["fulltext"] = search_string
         self.search_query.update(kwargs)
-        self.model().load(**self.search_query)
+        self.model().load(self.load_callback, **self.search_query)
 
-        if self.first_load or self.id_view != old_view:
+    def load_callback(self):
+        if self.first_load or self.id_view != self.old_view:
             view_state = self.app_state.get("browser_view_sizes", {}).get(self.id_view, {})
             default_sizes = self.app_state.get("browser_defaut_sizes", {})
             for i, h in enumerate(self.model().header_data):

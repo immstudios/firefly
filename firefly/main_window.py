@@ -1,7 +1,7 @@
 from .common import *
 from .modules import *
 from .menu import create_menu
-from .listener import SeismicListener
+from .listener import SeismicListener, SeismicMessage
 
 __all__ = ["FireflyMainWidget", "FireflyMainWindow"]
 
@@ -137,6 +137,10 @@ class FireflyMainWindow(MainWindow):
                 self.id_channel = min(config["playout_channels"].keys())
                 self.set_channel(self.id_channel)
                 break
+
+        asset_cache.api = api
+        asset_cache.handler = self.on_assets_update
+
         logging.info("[MAIN WINDOW] Firefly is ready")
 
 
@@ -300,7 +304,16 @@ class FireflyMainWindow(MainWindow):
             logging.info("Requesting new data for objects {}".format(message.data["objects"]))
             now = time.time()
             asset_cache.request([[aid, now] for aid in message.data["objects"]])
+            return
 
         for module, methods in self.subscribers:
             if message.method in methods:
                 module.seismic_handler(message)
+
+
+    def on_assets_update(self, *assets):
+        logging.debug("Updating {} assets in views".format(len(assets)))
+
+        self.browser.refresh_assets(*assets)
+        self.rundown.refresh_assets(*assets)
+        #TODO: ostatni moduly

@@ -174,6 +174,7 @@ class SchedulerModule(BaseModule):
         QApplication.restoreOverrideCursor()
         if not response:
             logging.error(response.message)
+            print (events)
         else:
             logging.info(response.message)
         self.load()
@@ -218,4 +219,5 @@ class SchedulerModule(BaseModule):
                     do_load = True
             if do_load:
                 logging.debug("Seismic message requested calendar reload")
+                print(data.data)
                 self.load()

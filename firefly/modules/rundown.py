@@ -75,6 +75,7 @@ class RundownModule(BaseModule):
         return user.has_right("scheduler_edit", self.id_channel)
 
     def load(self, **kwargs):
+        event = kwargs.get("event", False)
         # Save current selection
         selection = []
         for idx in self.view.selectionModel().selectedIndexes():
@@ -99,8 +100,11 @@ class RundownModule(BaseModule):
             do_update_header = True
             self.start_time = day_start(time.time(), self.playout_config["day_start"])
 
-        self.view.load()
+        self.view.model().load(functools.partial(self.load_callback, do_update_header, selection, event))
 
+
+
+    def load_callback(self, do_update_header, selection, event):
         if do_update_header:
             self.update_header()
 
@@ -109,7 +113,6 @@ class RundownModule(BaseModule):
             self.view.horizontalHeader().resizeSection(0, 300)
             self.first_load = False
 
-        event = kwargs.get("event", False)
         if event:
             for i, r in enumerate(self.view.model().object_data):
                 if event.id == r.id and r.object_type == "event":
@@ -299,11 +302,7 @@ class RundownModule(BaseModule):
                         self.load()
                         break
             elif message.data["object_type"] == "asset":
-                model = self.view.model()
-                for row, obj in enumerate(model.object_data):
-                    if obj.id in message.data["objects"]:
-                        model.object_data[row] = asset_cache[obj.id]
-                        model.dataChanged.emit(model.index(row, 0), model.index(row, len(model.header_data)-1))
+                self.refresh_assets(*message.data["objects"])
 
         elif message.method == "job_progress":
             if self.playout_config.get("send_action", 0) == message.data["id_action"]:
@@ -313,3 +312,8 @@ class RundownModule(BaseModule):
                     if obj["id_asset"] == message.data["id_asset"]:
                         model.object_data[row].transfer_progress = message.data["progress"]
                         model.dataChanged.emit(model.index(row, 0), model.index(row, len(model.header_data)-1))
+
+
+    def refresh_assets(self, *assets):
+        model = self.view.model()
+        model.refresh_assets(assets)
