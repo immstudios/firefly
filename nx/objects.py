@@ -55,7 +55,11 @@ class AssetCache(object):
         if not to_update:
             return True
 
-        logging.info("Requesting data for {} assets".format(len(to_update)))
+        asset_count = len(to_update)
+        if asset_count < 10:
+            logging.info("Requesting data for asset(s) ID: {}".format(", ".join([str(k) for k in to_update])))
+        else:
+            logging.info("Requesting data for {} assets".format(asset_count))
         self.api.get(self.on_response, objects=to_update)
 
     def on_response(self, response):
@@ -64,7 +68,10 @@ class AssetCache(object):
             return False
         ids = []
         for meta in response.data:
-            id_asset= int(meta["id"])
+            try:
+                id_asset= int(meta["id"])
+            except KeyError:
+                continue
             self.data[id_asset] = Asset(meta=meta)
             ids.append(id_asset)
         logging.debug("Updated {} assets in cache".format(len(ids)))

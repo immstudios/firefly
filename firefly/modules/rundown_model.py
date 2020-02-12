@@ -21,6 +21,7 @@ class RundownModel(FireflyViewModel):
     def __init__(self, *args, **kwargs):
         super(RundownModel, self).__init__(*args, **kwargs)
         self.event_ids = []
+        self.load_start_time = 0
 
     @property
     def id_channel(self):
@@ -39,18 +40,20 @@ class RundownModel(FireflyViewModel):
         return self.parent().cued_item
 
     def load(self, callback=None):
+        self.load_start_time = time.time()
+        self.parent().setCursor(Qt.BusyCursor)
         self.current_callback=callback
         api.rundown(self.load_callback, id_channel=self.id_channel, start_time=self.start_time)
 
 
     def load_callback(self, response):
+        self.parent().setCursor(Qt.ArrowCursor)
         if not response:
             logging.error(response.message)
             return
 
-        load_start_time = time.time()
         QApplication.processEvents()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        self.parent().setCursor(Qt.WaitCursor)
         self.beginResetModel()
         logging.info("Loading rundown. Please wait...")
 
@@ -89,26 +92,12 @@ class RundownModel(FireflyViewModel):
 
         asset_cache.request(required_assets)
 
-
-
-#        self.dataChanged.emit(
-#                self.index(min(changed_rows), 0),
-#                self.index(max(changed_rows), len(self.header_data)-1)
-#            )
-
         self.endResetModel()
-        QApplication.restoreOverrideCursor()
-        logging.goodnews(
-                "{} rows of {} rundown loaded in {:.03f}".format(
-                    len(response.data),
-                    format_time(self.start_time, "%Y-%m-%d"),
-                    time.time() - load_start_time
-                )
-            )
+        self.parent().setCursor(Qt.ArrowCursor)
+        logging.goodnews("Rundown loaded in {:.03f}s".format(time.time() - self.load_start_time))
 
         if self.current_callback:
             self.current_callback()
-
 
     def refresh_assets(self, assets):
         for row in range(len(self.object_data)):
@@ -284,8 +273,8 @@ class RundownModel(FireflyViewModel):
 
         if not sorted_items:
             return
+        self.parent().setCursor(Qt.BusyCursor)
         QApplication.processEvents()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
         response = api.order(
                 self.order_callback,
                 id_channel=self.id_channel,
@@ -296,10 +285,9 @@ class RundownModel(FireflyViewModel):
 
 
     def order_callback(self, response):
-        QApplication.restoreOverrideCursor()
+        self.parent().setCursor(Qt.ArrowCursor)
         if not response:
             logging.error("Unable to change bin order: {}".format(response.message))
             return False
         self.load()
         return False
-
