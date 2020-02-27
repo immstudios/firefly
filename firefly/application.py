@@ -14,7 +14,7 @@ from .main_window import FireflyMainWindow, FireflyMainWidget
 
 def check_login(wnd):
     data = api.ping()
-    user_meta = data.get("user", False)
+    user_meta = data.get("data", False)
     if user_meta:
         return user_meta
     if data["response"] > 403:
