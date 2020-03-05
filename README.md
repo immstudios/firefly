@@ -14,7 +14,7 @@ Install **python3** and **python3-pip** packages and then install requiered libr
 following command:
 
 ```
-sudo pip3 install requests PyQT5 websocket-client
+sudo pip3 install PyQT5 websocket-client
 ```
 
 For video playback, you will also need **libmpv1** package.
