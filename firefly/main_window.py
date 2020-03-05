@@ -317,5 +317,6 @@ class FireflyMainWindow(MainWindow):
         logging.debug("Updating {} assets in views".format(len(assets)))
 
         self.browser.refresh_assets(*assets)
-        self.rundown.refresh_assets(*assets)
         self.detail.refresh_assets(*assets)
+        if self.rundown:
+            self.rundown.refresh_assets(*assets)
