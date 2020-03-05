@@ -204,7 +204,8 @@ class FireflyMainWindow(MainWindow):
         self.detail.clone_asset()
 
     def logout(self):
-        api.logout()
+        response = api.logout(api="1")
+        logging.info(response["message"])
         self.close()
 
     def exit(self):
