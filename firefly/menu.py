@@ -92,7 +92,8 @@ def create_menu(wnd):
 
     if config["playout_channels"]:
         wnd.menu_scheduler = menubar.addMenu('&Scheduler')
-        ag = QActionGroup(wnd, exclusive=True)
+        ag = QActionGroup(wnd)
+        ag.setExclusive(True)
 
         for id_channel in sorted(config["playout_channels"]):
             a = ag.addAction(
