@@ -17,7 +17,7 @@ STATUS_FG_COLORS = {
     REMOTE   : COLOR_TEXT_YELLOW,
     UNKNOWN  : COLOR_TEXT_RED,
     CORRUPTED  : COLOR_TEXT_RED,
-    AIRED    : COLOR_TEXT_FADED,
+    AIRED    : COLOR_TEXT_FADED2,
     ONAIR    : COLOR_TEXT_RED,
     RETRIEVING  : COLOR_TEXT_YELLOW
 }
@@ -288,6 +288,11 @@ class FormatTitle(CellFormat):
         elif obj.object_type == "item" and obj["id_asset"]:
             return STATUS_FG_COLORS[parse_item_status(obj)]
 
+    def font(self, obj, **kwargs):
+        if obj.object_type == "event":
+            return "bold"
+
+
 
 
 
@@ -329,8 +334,11 @@ class FireflyObject(BaseObject):
             )
 
     def format_foreground(self, key, **kwargs):
-        if self.object_type == "item" and self["status"] == AIRED:
-            return COLOR_TEXT_FADED
+        if self.object_type == "item":
+            if self["status"] == AIRED:
+                return STATUS_FG_COLORS[AIRED]
+            if self["run_mode"] == RUN_SKIP:
+                return COLOR_TEXT_FADED
         if key in format_helpers:
             return format_helpers[key].foreground(self, **kwargs)
 
@@ -358,13 +366,16 @@ class FireflyObject(BaseObject):
         return None
 
     def format_font(self, key, **kwargs):
-        if self.object_type == "event":
-            return "bold"
-        elif self.object_type == "item":
-            if self["run_mode"] == RUN_SKIP:
+        if self.object_type == "item":
+            if self["run_mode"] == RUN_SKIP and key == "title":
                 return "strikeout"
-            if self["id_asset"] == self["rundown_event_asset"]:
-                return "bold"
+            if self["id_asset"] == self["rundown_event_asset"] and key in [
+                    "title",
+                    "rundown_scheduled",
+                    "rundown_broadcast",
+                    "rundown_difference"
+                    ]:
+                return "underline"
         if key in format_helpers:
             return format_helpers[key].font(self, **kwargs)
 
