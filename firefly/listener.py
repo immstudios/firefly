@@ -40,7 +40,7 @@ class SeismicListener(QThread):
     def run(self):
         addr = config["hub"].replace("http", "ws", 1) + "/ws/" + config["site_name"]
         while self.should_run:
-            logging.debug("Connecting listener", handlers=False)
+            logging.debug("Connecting listener {}".format(addr), handlers=False)
             self.halted = False
             self.ws = websocket.WebSocketApp(
                     addr,

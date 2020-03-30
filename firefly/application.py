@@ -121,7 +121,7 @@ class FireflyApplication(Application):
             QMessageBox.critical(self.splash, "Error", response.message)
             critical_error("Unable to load site settings")
         for key in response.data:
-            if config.get(key):
+            if config.get(key) and key != "site_name":
                 continue
             config[key] = response.data[key]
 
