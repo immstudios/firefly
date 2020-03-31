@@ -31,7 +31,7 @@ class DetailTabMain(QWidget):
 
     def load(self, asset, **kwargs):
         id_folder = kwargs.get("id_folder", asset["id_folder"])
-        if id_folder != self.id_folder:
+        if id_folder != self.id_folder or kwargs.get("force"):
             if not id_folder:
                 self.keys = []
             else:
@@ -344,7 +344,7 @@ class DetailModule(BaseModule):
             if reply == QMessageBox.Yes:
                 self.on_apply()
 
-    def focus(self, asset, silent=False):
+    def focus(self, asset, silent=False, force=False):
         if not isinstance(asset, Asset):
             logging.debug("[DETAIL] Only assets can be focused. Is: {}".format(type(asset)))
             return
@@ -369,7 +369,7 @@ class DetailModule(BaseModule):
 
         self.asset = Asset(meta=asset.meta) # asset deep copy
         self.parent().setWindowTitle("Detail of {}".format(self.asset))
-        self.detail_tabs.load(self.asset)
+        self.detail_tabs.load(self.asset, force=force)
         self.folder_select.set_value(self.asset["id_folder"])
 
 

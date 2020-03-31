@@ -275,6 +275,14 @@ class FireflyMainWindow(MainWindow):
                 self.rundown.load()
             if self.scheduler:
                 self.scheduler.load()
+            if self.detail:
+                if self.detail.asset:
+                    self.detail.focus(self.detail.asset, force=True)
+
+    def load_settings(self):
+        logging.info("Reloading system settings")
+        self.app.load_settings()
+        self.refresh()
 
     def export_template(self):
         self.scheduler.export_template()
@@ -306,6 +314,10 @@ class FireflyMainWindow(MainWindow):
             logging.info("Requesting new data for objects {}".format(message.data["objects"]))
             now = time.time()
             asset_cache.request([[aid, now] for aid in message.data["objects"]])
+            return
+
+        if message.method == "config_changed":
+            self.load_settings()
             return
 
         for module, methods in self.subscribers:
