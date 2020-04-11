@@ -369,13 +369,8 @@ class FireflyObject(BaseObject):
         if self.object_type == "item":
             if self["run_mode"] == RUN_SKIP and key == "title":
                 return "strikeout"
-            if self["id_asset"] == self["rundown_event_asset"] and key in [
-                    "title",
-                    "rundown_scheduled",
-                    "rundown_broadcast",
-                    "rundown_difference"
-                    ]:
-                return "underline"
+            if self["id_asset"] == self["rundown_event_asset"]:
+                return "bold"
         if key in format_helpers:
             return format_helpers[key].font(self, **kwargs)
 

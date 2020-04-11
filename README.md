@@ -41,6 +41,12 @@ Edit **settings.json** file to set your server address and site name.
 }
 ```
 
+It is possible to specify more than one site in the settings.json file.
+In that case, a dialog window pops up when the application is started and a site may be selected for this session.
+
+`site_name` argument can be used as an indentifier for different configurations of the same site and its value
+is updated when server settings are loaded.
+
 Usage
 -----
 

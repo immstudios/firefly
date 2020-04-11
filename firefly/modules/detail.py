@@ -68,6 +68,24 @@ class DetailTabMain(QWidget):
         pass
 
 
+    def search_by_key(self, key, id_view=False):
+        b = self.parent().parent().parent().main_window.browser
+        id_view = id_view or b.tabs.widget(b.tabs.currentIndex()).id_view
+        b.new_tab(
+                "{}: {} ({})".format(
+                    config["views"][id_view]["title"],
+                    self.parent().parent().parent().asset.show(key),
+                    meta_types[key].alias(),
+                    ),
+                id_view=id_view,
+                conds=["'{}' = '{}'".format(key, self.form[key])]
+            )
+        b.redraw_tabs()
+
+
+
+
+
 class MetaList(QTextEdit):
     def __init__(self, parent):
         super(MetaList, self).__init__(parent)
@@ -101,7 +119,7 @@ class DetailTabExtended(MetaList):
             for tag in self.tag_groups[tag_group]:
                 if not tag in asset.meta:
                     continue
-                tag_title = meta_types[tag].alias(config.get("language","en"))
+                tag_title = meta_types[tag].alias()
                 value = asset.format_display(tag) or asset["tag"] or ""
                 if value:
                     data += "{:<40}: {}\n".format(tag_title, value)
@@ -130,7 +148,7 @@ class DetailTabTechnical(MetaList):
             for tag in self.tag_groups[tag_group]:
                 if not tag in asset.meta:
                     continue
-                tag_title = meta_types[tag].alias(config.get("language","en"))
+                tag_title = meta_types[tag].alias()
                 value = asset.format_display(tag) or asset["tag"] or ""
                 if value:
                     data += "{:<40}: {}\n".format(tag_title, value)
@@ -336,7 +354,7 @@ class DetailModule(BaseModule):
                     "Save changes?",
                     "Following data has been changed in the {}\n\n{}".format(
                         self.asset, "\n".join(
-                            [meta_types[k].alias(config.get("language", "en")) for k in changed]
+                            [meta_types[k].alias() for k in changed]
                         )),
                     QMessageBox.Yes | QMessageBox.No
                     )
