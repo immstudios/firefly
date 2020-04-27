@@ -18,6 +18,9 @@ def check_login(wnd):
     data = api.ping()
     user_meta = data.get("data", False)
     if user_meta:
+        session_id = data.get("session_id", False)
+        if session_id:
+            config["session_id"] = session_id
         return user_meta
     if data["response"] > 403:
         QMessageBox.critical(
