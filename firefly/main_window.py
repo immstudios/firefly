@@ -1,3 +1,5 @@
+import queue
+
 from .common import *
 from .modules import *
 from .menu import create_menu
@@ -299,15 +301,16 @@ class FireflyMainWindow(MainWindow):
         if now - self.listener.last_msg > 5:
             logging.debug("No seismic message received. Something may be wrong")
             self.listener.last_msg = time.time()
-        try:
-            message = self.listener.queue.pop(0)
-        except IndexError:
-            pass
-        else:
-            self.seismic_handler(message)
+        while True:
+            try:
+                message = self.listener.queue.get_nowait()
+            except queue.Empty:
+                return
+            else:
+                self.seismic_handler(message)
 
     def add_subscriber(self, module, methods):
-        self.subscribers.append([module, methods])
+        self.subscribers.append([module, frozenset(methods)])
 
     def seismic_handler(self, message):
         if message.method == "objects_changed" and message.data["object_type"] == "asset":
