@@ -1,4 +1,5 @@
 import json
+import queue
 import time
 import websocket
 
@@ -34,7 +35,7 @@ class SeismicListener(QThread):
         self.should_run = True
         self.active = False
         self.last_msg = time.time()
-        self.queue = []
+        self.queue = queue.Queue()
         self.start()
 
     def run(self):
@@ -76,7 +77,7 @@ class SeismicListener(QThread):
         if message.data and message.data.get("initiator", None) == CLIENT_ID:
             return
 
-        self.queue.append(message)
+        self.queue.put(message)
 
     def on_error(self, *args):
         error = args[-1]
