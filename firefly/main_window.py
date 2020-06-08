@@ -65,6 +65,7 @@ class FireflyMainWidget(QWidget):
         else:
             self.on_switch_tab()
 
+        self.perform_on_switch_tab = True
         self.tabs.currentChanged.connect(self.on_switch_tab)
 
 
@@ -83,28 +84,31 @@ class FireflyMainWidget(QWidget):
     def current_module(self):
         return self.tabs.currentWidget()
 
-    def switch_tab(self, module):
+    def switch_tab(self, module, perform_on_switch_tab=True):
+        self.perform_on_switch_tab = perform_on_switch_tab
         for i in range(self.tabs.count()):
             if (type(module) == int and module == i) or self.tabs.widget(i) == module:
                 self.tabs.setCurrentIndex(i)
 
     def on_switch_tab(self, index=None):
-        if self.current_module == self.detail:
-            self.detail.detail_tabs.on_switch()
-        else:
-            # Disable proxy loading if player is not focused
-            self.detail.detail_tabs.on_switch(-1)
+        if self.perform_on_switch_tab:
+            if self.current_module == self.detail:
+                self.detail.detail_tabs.on_switch()
+            else:
+                # Disable proxy loading if player is not focused
+                self.detail.detail_tabs.on_switch(-1)
 
-        if self.current_module == self.rundown:
-            if self.rundown.mcr and self.rundown.mcr.isVisible():
-                self.rundown.mcr.request_display_resize = True
-            # Refresh rundown on focus
-            self.rundown.load()
+            if self.current_module == self.rundown:
+                if self.rundown.mcr and self.rundown.mcr.isVisible():
+                    self.rundown.mcr.request_display_resize = True
+                # Refresh rundown on focus
+                self.rundown.load()
 
-        if self.current_module == self.jobs:
-            self.jobs.load()
+            if self.current_module == self.jobs:
+                self.jobs.load()
 
         self.main_window.app_state["current_module"] = self.tabs.currentIndex()
+        self.perform_on_switch_tab = True
 
 
 class FireflyMainWindow(MainWindow):

@@ -238,6 +238,7 @@ class RundownView(FireflyView):
         if not response:
             logging.error(response.message)
         self.model().load()
+        self.parent().main_window.scheduler.load()
 
 
     def on_delete(self):
@@ -287,6 +288,7 @@ class RundownView(FireflyView):
 
         self.selectionModel().clear()
         self.model().load()
+        self.parent().main_window.scheduler.refresh_events(events)
 
     def on_send_to(self):
         objs = set([obj for obj in self.selected_objects if obj.object_type == "item" and obj["id_asset"]])
@@ -321,6 +323,7 @@ class RundownView(FireflyView):
         objs = [obj for obj in self.selected_objects if obj.object_type == "event"]
         if event_dialog(event=objs[0]):
             self.model().load()
+        self.parent().main_window.scheduler.load()
 
     def on_activate(self, mi):
         obj = self.model().object_data[mi.row()]

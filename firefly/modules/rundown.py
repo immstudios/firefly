@@ -148,7 +148,6 @@ class RundownModule(BaseModule):
         self.parent().setWindowTitle("Rundown {}".format(t))
         self.channel_display.setText("<font{}>{}</font> - {}".format(s, t, ch))
 
-
     #
     # Actions
     #
