@@ -13,6 +13,7 @@ class FireflyMainWidget(QWidget):
         super(FireflyMainWidget, self).__init__(main_window)
         self.main_window = main_window
         current_tab = self.main_window.app_state.get("current_module",0)
+        self.perform_on_switch_tab = True
 
         self.tabs = QTabWidget(self)
 
@@ -65,7 +66,6 @@ class FireflyMainWidget(QWidget):
         else:
             self.on_switch_tab()
 
-        self.perform_on_switch_tab = True
         self.tabs.currentChanged.connect(self.on_switch_tab)
 
 
