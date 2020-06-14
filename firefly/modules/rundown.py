@@ -309,7 +309,7 @@ class RundownModule(BaseModule):
                 model = self.view.model()
                 for row, obj in enumerate(model.object_data):
                     if obj["id_asset"] == message.data["id_asset"]:
-                        model.object_data[row].transfer_progress = message.data["progress"]
+                        model.object_data[row]["transfer_progress"] = message.data["progress"]
                         model.dataChanged.emit(model.index(row, 0), model.index(row, len(model.header_data)-1))
 
 

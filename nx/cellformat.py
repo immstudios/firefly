@@ -99,12 +99,6 @@ def parse_item_status(obj):
     elif asset[pskey]["status"] == CREATING:
         return CREATING
 
-#        if obj["rundown_transfer_progress"] and float(obj["rundown_transfer_progress"]) == -1:
-#            return "PENDING"
-#
-#        elif obj["rundown_transfer_progress"] and float(obj["rundown_transfer_progress"]) > -1:
-#            return "{:0.2f}%".format(float(obj["rundown_transfer_progress"]))
-
     return UNKNOWN
 
 
@@ -120,11 +114,14 @@ class FormatStatus(CellFormat):
         state = parse_item_status(obj)
 
         xfr = ""
-        if hasattr(obj, "transfer_progress"):
-            if obj.transfer_progress == 0:
-                xfr = " (PENDING)"
-            elif obj.transfer_progress < 100:
-                xfr = " ({:.01f}%)".format(obj.transfer_progress)
+        xfrp = obj["transfer_progress"]
+        if xfrp:
+            if xfrp == -1:
+                    xfr = " (PENDING)"
+            elif xfrp == 0:
+                xfr = " (STARTING)"
+            elif xfrp < 100:
+                xfr = " ({:.01f}%)".format(xfrp)
 
         return get_object_state_name(state).upper() + xfr
 
