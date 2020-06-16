@@ -3,7 +3,6 @@ import datetime
 import functools
 
 from firefly import *
-from firefly.dialogs.send_to import SendToDialog
 
 from .rundown_utils import *
 from .rundown_mcr import MCR

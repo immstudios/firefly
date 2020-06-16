@@ -293,6 +293,7 @@ class RundownView(FireflyView):
     def on_send_to(self):
         objs = set([obj for obj in self.selected_objects if obj.object_type == "item" and obj["id_asset"]])
         send_to_dialog(objs)
+        self.model().load()
 
     def on_edit_item(self):
         objs = [obj for obj in self.selected_objects if obj.object_type == "item" and obj["item_role"] in ["live", "placeholder"]]
