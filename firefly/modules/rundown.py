@@ -75,6 +75,7 @@ class RundownModule(BaseModule):
 
     def load(self, **kwargs):
         event = kwargs.get("event", False)
+        go_to_now = kwargs.get("go_to_now", False)
         # Save current selection
         selection = []
         for idx in self.view.selectionModel().selectedIndexes():
@@ -99,11 +100,11 @@ class RundownModule(BaseModule):
             do_update_header = True
             self.start_time = day_start(time.time(), self.playout_config["day_start"])
 
-        self.view.model().load(functools.partial(self.load_callback, do_update_header, selection, event))
+        self.view.model().load(functools.partial(self.load_callback, do_update_header, selection, event, go_to_now))
 
 
 
-    def load_callback(self, do_update_header, selection, event):
+    def load_callback(self, do_update_header, selection, event=False, go_to_now=False):
         if do_update_header:
             self.update_header()
 
@@ -132,6 +133,13 @@ class RundownModule(BaseModule):
             self.view.focus_enabled = False
             self.view.selectionModel().select(item_selection, QItemSelectionModel.ClearAndSelect)
         self.view.focus_enabled = True
+
+
+        if go_to_now:
+            for i,r in enumerate(self.view.model().object_data):
+                if self.current_item == r.id and r.object_type=="item":
+                    self.view.scrollTo(self.view.model().index(i, 0, QModelIndex()), QAbstractItemView.PositionAtTop  )
+                    break
 
 
     def update_header(self):
@@ -178,12 +186,13 @@ class RundownModule(BaseModule):
     def go_now(self):
         if not (self.start_time + 86400 > time.time() > self.start_time):
             #do not use day_start here. it will be used in the load method
-            self.load(start_time=int(time.time()))
+            self.load(start_time=int(time.time()), go_to_now=True)
+        else:
+            for i,r in enumerate(self.view.model().object_data):
+                if self.current_item == r.id and r.object_type=="item":
+                    self.view.scrollTo(self.view.model().index(i, 0, QModelIndex()), QAbstractItemView.PositionAtTop  )
+                    break
 
-        for i,r in enumerate(self.view.model().object_data):
-            if self.current_item == r.id and r.object_type=="item":
-                self.view.scrollTo(self.view.model().index(i, 0, QModelIndex()), QAbstractItemView.PositionAtTop  )
-                break
 
     def show_calendar(self):
         y, m, d = get_date()
