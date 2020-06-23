@@ -491,6 +491,7 @@ class DetailModule(BaseModule):
 
 #        self.form.setEnabled(False) # reenable on seismic message with new data
 
+        self.setCursor(Qt.BusyCursor)
         response = api.set(objects=[self.asset.id], data=data)
         if not response:
             logging.error(response.message)
@@ -544,5 +545,10 @@ class DetailModule(BaseModule):
         pass
 
     def refresh_assets(self, *objects):
-        if self.asset and self.asset.id in objects:
+        self.setCursor(Qt.ArrowCursor)
+        try:
+            current_id = self.asset.id
+        except AttributeError:
+            return
+        if current_id in objects:
             self.focus(asset_cache[self.asset.id], silent=True)
