@@ -73,7 +73,7 @@ class FireflyMainWidget(QWidget):
         self.detail.check_changed()
         self.main_window.listener.halt()
         QApplication.quit()
-        logging.debug("Main window closed")
+        logging.debug("[MAIN WINDOW] Window closed")
 
 
     @property
@@ -286,7 +286,7 @@ class FireflyMainWindow(MainWindow):
                     self.detail.focus(self.detail.asset, force=True)
 
     def load_settings(self):
-        logging.info("Reloading system settings")
+        logging.info("[MAIN WINDOW] Reloading system settings")
         self.app.load_settings()
         self.refresh()
 
@@ -303,7 +303,7 @@ class FireflyMainWindow(MainWindow):
     def on_seismic_timer(self):
         now = time.time()
         if now - self.listener.last_msg > 5:
-            logging.debug("No seismic message received. Something may be wrong")
+            logging.debug("[MAIN WINDOW] No seismic message received. Something may be wrong")
             self.listener.last_msg = time.time()
         while True:
             try:
@@ -318,9 +318,9 @@ class FireflyMainWindow(MainWindow):
 
     def seismic_handler(self, message):
         if message.method == "objects_changed" and message.data["object_type"] == "asset":
-            logging.info("Requesting new data for objects {}".format(message.data["objects"]))
-            now = time.time()
-            asset_cache.request([[aid, now] for aid in message.data["objects"]])
+            objects = message.data["objects"]
+            logging.debug("[MAIN WINDOW] {} asset(s) have been changed".format(len(objects)))
+            asset_cache.request([[aid, message.timestamp + 1] for aid in objects])
             return
 
         if message.method == "config_changed":
@@ -333,7 +333,7 @@ class FireflyMainWindow(MainWindow):
 
 
     def on_assets_update(self, *assets):
-        logging.debug("Updating {} assets in views".format(len(assets)))
+        logging.debug("[MAIN WINDOW] Updating {} assets in views".format(len(assets)))
 
         self.browser.refresh_assets(*assets)
         self.detail.refresh_assets(*assets)

@@ -187,14 +187,13 @@ class DetailTabPreview(QWidget):
 
     def load_video(self):
         if self.current_asset and not self.loaded:
-            logging.debug("Opening {} preview".format(self.current_asset))
+            proxy_url = config["hub"] +  self.current_asset.proxy_url
+            logging.debug("[DETAIL] Opening {} preview: {}".format(self.current_asset, proxy_url))
             self.player.fps = self.current_asset.fps
             if self.current_asset["poster_frame"]:
                 markers = {"poster_frame" : {"position" : self.current_asset["poster_frame"]}}
             else:
                 markers = {}
-            proxy_url = config["hub"] +  self.current_asset.proxy_url
-            logging.debug("Opening", proxy_url)
             self.player.load(
                     proxy_url,
                     mark_in=self.current_asset["mark_in"],
@@ -486,7 +485,7 @@ class DetailModule(BaseModule):
             if reply == QMessageBox.Yes:
                 pass
             else:
-                logging.info("Save aborted")
+                logging.debug("[DETAIL] Save aborted")
                 return
 
 #        self.form.setEnabled(False) # reenable on seismic message with new data
