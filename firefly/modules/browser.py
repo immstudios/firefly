@@ -26,8 +26,8 @@ class SearchWidget(QLineEdit):
 class FireflyBrowserView(FireflyView):
     def __init__(self, parent):
         super(FireflyBrowserView, self).__init__(parent)
-        self.num_pages = 1
         self.current_page = 1
+        self.page_count = 1
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.activated.connect(self.on_activate)
         self.setModel(BrowserModel(self))
@@ -91,9 +91,50 @@ class FireflyBrowserView(FireflyView):
         QApplication.clipboard().setText(str(val))
         logging.info("Copied \"{}\" to clipboard".format(val))
 
-    def set_num_pages(self, pages):
-        self.num_pages = pages
-        #TODO: show pagination widget if num_pages > 1
+    def set_page(self, current_page, page_count):
+        self.current_page = current_page
+        self.page_count = page_count
+        if self.page_count > 1:
+            self.parent().pager.show()
+        else:
+            self.parent().pager.hide()
+        self.parent().pager.info.setText("Page {}".format(current_page))
+
+
+class PagerButton(QPushButton):
+    pass
+
+class Pager(QWidget):
+    def __init__(self, parent):
+        layout = QHBoxLayout()
+        super(Pager, self).__init__(parent)
+        self._parent = parent
+
+        prev = PagerButton()
+        prev.setIcon(QIcon(pix_lib["previous"]))
+        prev.clicked.connect(self.on_prev)
+        layout.addWidget(prev, 0)
+
+        self.info = QLabel("Page 1")
+        self.info.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.info, 1)
+        
+        next = PagerButton()
+        next.setIcon(QIcon(pix_lib["next"]))
+        next.clicked.connect(self.on_next)
+        layout.addWidget(next, 0)
+
+        layout.setContentsMargins(0,0,0,0)
+        self.setLayout(layout)
+
+    def on_prev(self):
+        if self._parent.view.current_page > 1:
+            self._parent.view.current_page -= 1
+            self._parent.load()
+
+    def on_next(self):
+        self._parent.view.current_page += 1
+        self._parent.load()
 
 
 
@@ -110,7 +151,7 @@ class BrowserTab(QWidget):
                 "id_view" : kwargs.get("id_view", min(config["views"])),
                 "fulltext" : kwargs.get("fulltext", ""),
                 "order" : kwargs.get("order", "ctime desc"),
-                "conds" : kwargs.get("conds", [])
+                "conds" : kwargs.get("conds", []),
             }
 
         # Layout
@@ -148,10 +189,13 @@ class BrowserTab(QWidget):
         search_layout.addWidget(self.search_box)
         search_layout.addWidget(toolbar)
 
+        self.pager = Pager(self)
+
         layout = QVBoxLayout()
         layout.setContentsMargins(0,0,0,0)
         layout.addLayout(search_layout, 0)
         layout.addWidget(self.view, 1)
+        layout.addWidget(self.pager, 0)
         self.setLayout(layout)
 
     def model(self):
