@@ -36,7 +36,7 @@ class BrowserModel(FireflyViewModel):
         # Pagination
 
         current_page = self.parent().current_page
-        
+
         if len(response.data) > RECORDS_PER_PAGE:
             page_count = current_page + 1
         elif len(response.data) == 0:
@@ -49,9 +49,9 @@ class BrowserModel(FireflyViewModel):
 
         # Replace object data
 
-        if response.data:
+        if len(response.data) > RECORDS_PER_PAGE:
             response.data.pop(-1)
-            self.object_data = [asset_cache.get(row[0]) for row in response.data]
+        self.object_data = [asset_cache.get(row[0]) for row in response.data]
 
         self.parent().set_page(current_page, page_count)
         self.endResetModel()
