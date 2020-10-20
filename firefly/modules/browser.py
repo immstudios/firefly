@@ -98,6 +98,17 @@ class FireflyBrowserView(FireflyView):
             self.parent().pager.show()
         else:
             self.parent().pager.hide()
+
+        if self.current_page == 1:
+            self.parent().pager.btn_prev.setEnabled(False)
+        else:
+            self.parent().pager.btn_prev.setEnabled(True)
+
+        if self.current_page == page_count:
+            self.parent().pager.btn_next.setEnabled(False)
+        else:
+            self.parent().pager.btn_next.setEnabled(True)
+
         self.parent().pager.info.setText("Page {}".format(current_page))
 
 
@@ -110,19 +121,19 @@ class Pager(QWidget):
         super(Pager, self).__init__(parent)
         self._parent = parent
 
-        prev = PagerButton()
-        prev.setIcon(QIcon(pix_lib["previous"]))
-        prev.clicked.connect(self.on_prev)
-        layout.addWidget(prev, 0)
+        self.btn_prev = PagerButton()
+        self.btn_prev.setIcon(QIcon(pix_lib["previous"]))
+        self.btn_prev.clicked.connect(self.on_prev)
+        layout.addWidget(self.btn_prev, 0)
 
         self.info = QLabel("Page 1")
         self.info.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.info, 1)
-        
-        next = PagerButton()
-        next.setIcon(QIcon(pix_lib["next"]))
-        next.clicked.connect(self.on_next)
-        layout.addWidget(next, 0)
+
+        self.btn_next = PagerButton()
+        self.btn_next.setIcon(QIcon(pix_lib["next"]))
+        self.btn_next.clicked.connect(self.on_next)
+        layout.addWidget(self.btn_next, 0)
 
         layout.setContentsMargins(0,0,0,0)
         self.setLayout(layout)
