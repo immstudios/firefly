@@ -267,6 +267,8 @@ class BrowserTab(QWidget):
         search_string = self.search_box.text()
         self.search_query["fulltext"] = search_string
         self.search_query.update(kwargs)
+        if self.search_query.get("id_view") != self.old_view:
+            self.view.current_page = 1
         self.model().load(self.load_callback, **self.search_query)
 
     def load_callback(self):
