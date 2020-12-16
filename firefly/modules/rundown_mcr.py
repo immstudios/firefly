@@ -2,7 +2,7 @@ import math
 
 from firefly import *
 
-PROGRESS_BAR_RESOLUTION = 2000
+PROGRESS_BAR_RESOLUTION = 1000
 
 class MCRButton(QPushButton):
     def __init__(self, title, parent=None, on_click=False):
@@ -169,17 +169,23 @@ class MCR(QWidget):
 
     def seismic_handler(self, data):
         status = data.data
-        self.pos = status["position"] + (1/self.fps)
+        if status["fps"] != self.fps:
+            self.fps = status["fps"]
+
+        if status.get("time_unit", "f") == "f":
+            self.pos = (status["position"] + 1) / self.fps
+            dur = status["duration"] / self.fps
+        else:
+            self.pos = status["position"] + (1/self.fps)
+            dur = status["duration"]
+
         self.request_time = status["request_time"]
         self.paused = status["paused"]
         self.local_request_time = time.time()
 
-        if status["fps"] != self.fps:
-            self.fps = status["fps"]
-
-        if self.dur != status["duration"] or self.first_update:
-            self.dur = status["duration"]
-            self.display_dur.set_text(f2tc(self.dur, self.fps))
+        if self.dur != dur or self.first_update:
+            self.dur = dur
+            self.display_dur.set_text(s2tc(self.dur, self.fps))
             self.request_display_resize = True
             self.first_update = False
 
@@ -224,15 +230,15 @@ class MCR(QWidget):
         rpos = self.pos
 
         if not self.paused:
-            rpos += adv * self.fps
+            rpos += adv
 
-        clock = time.strftime("%H:%M:%S:{:02d}", time.localtime(rtime)).format(int(25*(rtime-math.floor(rtime))))
+        clock = time.strftime("%H:%M:%S:{:02d}", time.localtime(rtime)).format(int(self.fps*(rtime-math.floor(rtime))))
         self.display_clock.set_text(clock)
-        self.display_pos.set_text(f2tc(min(self.dur, rpos), self.fps))
+        self.display_pos.set_text(s2tc(min(self.dur, rpos), self.fps))
 
         rem = self.dur - rpos
-        t = f2tc(max(0, rem), self.fps)
-        if rem < 250:
+        t = s2tc(max(0, rem), self.fps)
+        if rem < 10:
             self.display_rem.set_text("<font color='red'>{}</font>".format(t))
         else:
             self.display_rem.set_text(t)
@@ -246,8 +252,10 @@ class MCR(QWidget):
             return
         else:
             oldval = self.progress_bar.value()
-            if ppos > oldval or abs(oldval-ppos) > (PROGRESS_BAR_RESOLUTION/self.dur)*self.fps:
+            if ppos > oldval or abs(oldval-ppos) > PROGRESS_BAR_RESOLUTION/self.dur:
                 self.progress_bar.setValue(ppos)
+                self.progress_bar.update()
+
 
         if self.request_display_resize:
             QApplication.processEvents()
