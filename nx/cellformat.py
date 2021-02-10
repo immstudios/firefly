@@ -279,11 +279,12 @@ class FormatTitle(CellFormat):
             elif obj["item_role"] == "placeholder":
                 return "placeholder-sm"
 
-    def foreground(self, obj, **kwargs):
-        if obj.object_type == "asset":
-            return STATUS_FG_COLORS[obj["status"]]
-        elif obj.object_type == "item" and obj["id_asset"]:
-            return STATUS_FG_COLORS[parse_item_status(obj)]
+#REMOVED: use state-based colors in status coulmn only
+#    def foreground(self, obj, **kwargs):
+#        if obj.object_type == "asset":
+#            return STATUS_FG_COLORS[obj["status"]]
+#        elif obj.object_type == "item" and obj["id_asset"]:
+#            return STATUS_FG_COLORS[parse_item_status(obj)]
 
     def font(self, obj, **kwargs):
         if obj.object_type == "event":
@@ -331,8 +332,9 @@ class FireflyObject(BaseObject):
             )
 
     def format_foreground(self, key, **kwargs):
+        model = kwargs.get("model")
         if self.object_type == "item":
-            if self["status"] == AIRED:
+            if self["status"] == AIRED and model and model.cued_item != self.id and model.current_item != self.id:
                 return STATUS_FG_COLORS[AIRED]
             if self["run_mode"] == RUN_SKIP:
                 return COLOR_TEXT_FADED
@@ -347,12 +349,12 @@ class FireflyObject(BaseObject):
         if model and self.object_type == "item":
             if not self.id:
                 return "#111140"
-            if self.object_type == "item" and self["item_role"] == "live":
-                return COLOR_LIVE_BACKGROUND
-            elif model.cued_item == self.id:
+            if model.cued_item == self.id:
                 return "#059005"
             elif model.current_item == self.id:
                 return "#900505"
+            elif self.object_type == "item" and self["item_role"] == "live":
+                return COLOR_LIVE_BACKGROUND
             elif not self["id_asset"]:
                 return "#303030"
         return None
