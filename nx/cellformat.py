@@ -83,7 +83,8 @@ def parse_item_status(obj):
         obj.id_channel
     except:
         print ("bad idc", obj.meta)
-    pskey = "playout_status/{}".format(obj.id_channel)
+        return UNKNOWN
+    pskey = f"playout_status/{obj.id_channel}"
 
     if asset["status"] == OFFLINE:
         return OFFLINE
@@ -280,11 +281,14 @@ class FormatTitle(CellFormat):
                 return "placeholder-sm"
 
 #REMOVED: use state-based colors in status coulmn only
-#    def foreground(self, obj, **kwargs):
-#        if obj.object_type == "asset":
-#            return STATUS_FG_COLORS[obj["status"]]
-#        elif obj.object_type == "item" and obj["id_asset"]:
-#            return STATUS_FG_COLORS[parse_item_status(obj)]
+    def foreground(self, obj, **kwargs):
+        if obj.object_type == "asset":
+            return STATUS_FG_COLORS[obj["status"]]
+        elif obj.object_type == "item" and obj["id_asset"]:
+            item_status = parse_item_status(obj)
+            if item_status == REMOTE:
+                return STATUS_FG_COLORS[ONLINE]
+            return STATUS_FG_COLORS[item_status]
 
     def font(self, obj, **kwargs):
         if obj.object_type == "event":
