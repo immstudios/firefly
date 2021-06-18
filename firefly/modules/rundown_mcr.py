@@ -235,8 +235,8 @@ class MCR(QWidget):
 
         self.pos = 0
         self.dur = 0
-        self.current  = "(loading)"
-        self.cued     = "(loading)"
+        self.current = "(loading)"
+        self.cued = "(loading)"
         self.request_time = 0
         self.paused = False
         self.cueing = False
@@ -246,6 +246,11 @@ class MCR(QWidget):
         self.first_update = True
         self.fps = 25.0
         self.parent().setWindowTitle("On air ctrl")
+
+        self.progress_bar.setValue(0)
+        self.progress_bar.setMaximum(0)
+        self.display_current.set_text(f"<font color='yellow'>{self.current}</font>")
+        self.display_cued.set_text(f"<font color='yellow'>{self.cued}</font>")
 
     def update_display(self):
         now = time.time()
