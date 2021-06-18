@@ -208,6 +208,11 @@ class SchedulerModule(BaseModule):
         self.main_window.main_widget.switch_tab(self.main_window.main_widget.rundown, perform_on_switch_tab=False)
 
     def set_channel(self, id_channel):
+        #TODO: is this used? may be removed?
+        pass
+
+    def on_channel_changed(self):
+        logging.debug(f"[SCHEDULER] setting channel to {self.id_channel}")
         self.load()
 
     def refresh_events(self, events):

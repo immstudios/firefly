@@ -61,21 +61,6 @@ class MCR(QWidget):
     def __init__(self, parent):
         super(MCR, self).__init__(parent)
 
-        self.pos = 0
-        self.dur = 0
-        self.current  = "(loading)"
-        self.cued     = "(loading)"
-        self.request_time = 0
-        self.paused = False
-        self.cueing = False
-        self.local_request_time = time.time()
-        self.updating = False
-        self.request_display_resize = False
-        self.first_update = True
-
-        self.fps = 25.0
-
-        self.parent().setWindowTitle("On air ctrl")
 
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setTextVisible(False)
@@ -89,14 +74,6 @@ class MCR(QWidget):
         self.btn_loop    = MCRButton("Loop",   self, self.on_loop, checkable=True)
         self.btn_cue_backward = MCRButton("<",  self, self.on_cue_backward)
         self.btn_cue_forward = MCRButton(">",  self, self.on_cue_forward)
-
-        can_mcr = True #TODO: ACL
-        self.btn_take.setEnabled(can_mcr)
-        self.btn_freeze.setEnabled(can_mcr)
-        self.btn_retake.setEnabled(can_mcr)
-        self.btn_abort.setEnabled(can_mcr)
-        self.btn_cue_backward.setEnabled(can_mcr)
-        self.btn_cue_forward.setEnabled(can_mcr)
 
         self.btn_cue_backward.setShortcut('Ctrl+J')
         self.btn_take.setShortcut('Ctrl+K')
@@ -147,6 +124,8 @@ class MCR(QWidget):
         layout.addWidget(self.progress_bar, 0)
         layout.addLayout(btns_layout, 0)
         self.setLayout(layout)
+
+        self.on_channel_changed()
 
         self.display_timer = QTimer(self)
         self.display_timer.timeout.connect(self.update_display)
@@ -239,6 +218,34 @@ class MCR(QWidget):
         super(MCR, self).hide(*args, **kwargs)
         self.display_timer.stop()
 
+
+    def on_channel_changed(self):
+        if hasattr(self, "id_channel"):
+            can_mcr = has_right("mcr", self.id_channel)
+            self.btn_take.setEnabled(can_mcr)
+            self.btn_freeze.setEnabled(can_mcr)
+            self.btn_retake.setEnabled(can_mcr)
+            self.btn_abort.setEnabled(can_mcr)
+            self.btn_loop.setEnabled(can_mcr)
+            self.btn_cue_backward.setEnabled(can_mcr)
+            self.btn_cue_forward.setEnabled(can_mcr)
+
+            if hasattr(self, "plugins"):
+                self.plugins.load()
+
+        self.pos = 0
+        self.dur = 0
+        self.current  = "(loading)"
+        self.cued     = "(loading)"
+        self.request_time = 0
+        self.paused = False
+        self.cueing = False
+        self.local_request_time = time.time()
+        self.updating = False
+        self.request_display_resize = False
+        self.first_update = True
+        self.fps = 25.0
+        self.parent().setWindowTitle("On air ctrl")
 
     def update_display(self):
         now = time.time()

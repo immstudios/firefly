@@ -250,11 +250,11 @@ class FireflyMainWindow(MainWindow):
             for action in self.menu_scheduler.actions():
                 if hasattr(action, "id_channel") and action.id_channel == id_channel:
                     action.setChecked(True)
-            if self.scheduler:
-                self.scheduler.set_channel(id_channel)
-            if self.rundown:
-                self.rundown.set_channel(id_channel)
             self.id_channel = id_channel
+            if self.scheduler:
+                self.scheduler.on_channel_changed()
+            if self.rundown:
+                self.rundown.on_channel_changed()
 
     def show_detail(self):
         if self.main_widget.tabs.currentIndex() == 0:
