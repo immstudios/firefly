@@ -166,6 +166,7 @@ class RundownModule(BaseModule):
 
     def on_channel_changed(self):
         self.load(do_update_header=True)
+        self.plugins.load()
 
         if self.mcr:
             self.mcr.on_channel_changed()
@@ -258,7 +259,7 @@ class RundownModule(BaseModule):
                     selection = QItemSelection()
                     i1 = self.view.model().index(i + start_row, 0, QModelIndex())
                     i2 = self.view.model().index(i + start_row, len(self.view.model().header_data)-1, QModelIndex())
-                    self.view.scrollTo(i1 , QAbstractItemView.PositionAtTop  )
+                    self.view.scrollTo(i1 , QAbstractItemView.PositionAtTop)
                     selection.select(i1, i2)
                     self.view.selectionModel().select(selection, QItemSelectionModel.ClearAndSelect)
                     break
