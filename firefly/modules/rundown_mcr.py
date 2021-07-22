@@ -203,7 +203,7 @@ class MCR(QWidget):
         if self.cued != status["cued_title"] or self.cueing != cueing:
             self.cued = status["cued_title"]
             if cueing:
-                self.display_cued.set_text("<font color='yellow'>{}</font>".format(self.cued))
+                self.display_cued.set_text(f"<font color='yellow'>{self.cued}</font>")
             else:
                 self.display_cued.set_text(self.cued)
             self.cueing = cueing
@@ -262,14 +262,15 @@ class MCR(QWidget):
         if not self.paused:
             rpos += adv
 
-        clock = time.strftime("%H:%M:%S:{:02d}", time.localtime(rtime)).format(int(self.fps*(rtime-math.floor(rtime))))
+        frame = int(self.fps*(rtime-math.floor(rtime)))
+        clock = time.strftime(f"%H:%M:%S:{frame:02d}", time.localtime(rtime))
         self.display_clock.set_text(clock)
         self.display_pos.set_text(s2tc(min(self.dur, rpos), self.fps))
 
         rem = self.dur - rpos
         t = s2tc(max(0, rem), self.fps)
         if rem < 10:
-            self.display_rem.set_text("<font color='red'>{}</font>".format(t))
+            self.display_rem.set_text(f"<font color='red'>{t}</font>")
         else:
             self.display_rem.set_text(t)
 

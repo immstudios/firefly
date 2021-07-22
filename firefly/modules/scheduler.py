@@ -182,7 +182,7 @@ class SchedulerModule(BaseModule):
         self.calendar.load(*args, **kwargs)
         date = datetime.date.fromtimestamp(self.calendar.week_start_time)
         week_no = date.isocalendar()[1]
-        header = "Week {} - {}".format(week_no, self.playout_config["title"])
+        header = f"Week {week_no} - {self.playout_config['title']}"
         self.channel_display.setText(header)
 
     def on_week_prev(self):
@@ -218,7 +218,7 @@ class SchedulerModule(BaseModule):
     def refresh_events(self, events):
         for id_event in events:
             if id_event in self.calendar.event_ids:
-                logging.debug("[SCHEDULER] Event id {} has been changed. Reloading calendar".format(id_event))
+                logging.debug("[SCHEDULER] Event id {id_event} has been changed. Reloading calendar")
                 self.load()
                 break
 
