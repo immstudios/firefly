@@ -36,8 +36,8 @@ Edit **settings.json** file to set your server address and site name.
 ```json
 {
     "sites"  : [{
-        "site_name" : "nebulatv",
-        "hub" : "https://nebulatv.example.com"
+        "site_name" : "nebula",
+        "hub" : "https://nebula.example.com"
     }]
 }
 ```
