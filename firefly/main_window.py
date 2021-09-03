@@ -118,8 +118,6 @@ class FireflyMainWindow(MainWindow):
         super(FireflyMainWindow, self).__init__(parent, MainWidgetClass)
         self.setWindowIcon(QIcon(get_pix("icon")))
         title = f"Firefly {FIREFLY_VERSION}"
-        if FIREFLY_STATUS:
-            title += " " + FIREFLY_STATUS
         title += f" ({user['login']}@{config['site_name']})"
         self.setWindowTitle(title)
         self.setAttribute(Qt.WA_AlwaysShowToolTips)
