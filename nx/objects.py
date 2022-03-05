@@ -1,8 +1,10 @@
 import os
+import json
 import time
 import copy
 import functools
 
+from nxtools import logging, log_traceback
 from nebulacore import *
 from nebulacore.base_objects import *
 
@@ -22,6 +24,7 @@ asset_loading["status"] = CREATING
 
 CACHE_LIMIT = 10000
 
+
 class AssetCache(object):
     def __init__(self):
         self.data = {}
@@ -40,7 +43,7 @@ class AssetCache(object):
 
     def get(self, key):
         key = int(key)
-        return self.data.get(key, Asset(meta={"title" : "Loading...", "id": key}))
+        return self.data.get(key, Asset(meta={"title": "Loading...", "id": key}))
 
     def request(self, requested):
         to_update = []
@@ -57,7 +60,11 @@ class AssetCache(object):
 
         asset_count = len(to_update)
         if asset_count < 10:
-            logging.info("Requesting data for asset(s) ID: {}".format(", ".join([str(k) for k in to_update])))
+            logging.info(
+                "Requesting data for asset(s) ID: {}".format(
+                    ", ".join([str(k) for k in to_update])
+                )
+            )
         else:
             logging.info("Requesting data for {} assets".format(asset_count))
         self.api.get(self.on_response, objects=to_update)
@@ -69,7 +76,7 @@ class AssetCache(object):
         ids = []
         for meta in response.data:
             try:
-                id_asset= int(meta["id"])
+                id_asset = int(meta["id"])
             except KeyError:
                 continue
             self.data[id_asset] = Asset(meta=meta)
@@ -78,7 +85,6 @@ class AssetCache(object):
         if self.handler:
             self.handler(*ids)
         return True
-
 
     @property
     def cache_path(self):
@@ -96,14 +102,18 @@ class AssetCache(object):
 
         for meta in data:
             self.data[int(meta["id"])] = Asset(meta=meta)
-        logging.debug("Loaded {} assets from cache in {:.03f}s".format(len(self.data), time.time() - start_time))
+        logging.debug(
+            "Loaded {} assets from cache in {:.03f}s".format(
+                len(self.data), time.time() - start_time
+            )
+        )
 
     def save(self):
         if len(self.data) > CACHE_LIMIT:
             to_rm = list(self.data.keys())
             to_rm.sort(key=lambda x: self.data[x].meta.get("_last_access", 0))
             for t in to_rm[:-CACHE_LIMIT]:
-                del(self.data[t])
+                del self.data[t]
 
         logging.info("Saving {} assets to local cache".format(len(self.data)))
         start_time = time.time()
@@ -112,9 +122,8 @@ class AssetCache(object):
             json.dump(data, f)
         logging.debug("Cache updated in {:.03f}s".format(time.time() - start_time))
 
+
 asset_cache = AssetCache()
-
-
 
 
 class Item(ItemMixIn, FireflyObject):
@@ -124,11 +133,14 @@ class Item(ItemMixIn, FireflyObject):
             return False
         return asset_cache.get(self["id_asset"])
 
+
 class Bin(BinMixIn, FireflyObject):
     pass
 
+
 class Event(EventMixIn, FireflyObject):
     pass
+
 
 class User(UserMixIn, FireflyObject):
     pass

@@ -2,6 +2,7 @@ from firefly import *
 
 __all__ = ["login_dialog"]
 
+
 class LoginDialog(QDialog):
     def __init__(self):
         QDialog.__init__(self)
@@ -10,10 +11,10 @@ class LoginDialog(QDialog):
         self.login = QLineEdit(self)
         self.password = QLineEdit(self)
         self.password.setEchoMode(QLineEdit.Password)
-        self.btn_login = QPushButton('Login', self)
+        self.btn_login = QPushButton("Login", self)
         self.btn_login.clicked.connect(self.handleLogin)
 
-        #for debug
+        # for debug
         self.login.setText("")
         self.password.setText("")
 
@@ -26,10 +27,8 @@ class LoginDialog(QDialog):
 
     def handleLogin(self):
         response = api.login(
-                api="1",
-                login=self.login.text(),
-                password=self.password.text()
-            )
+            api="1", login=self.login.text(), password=self.password.text()
+        )
         if response and response.data:
             config["session_id"] = response["session_id"]
             self.result = response.data

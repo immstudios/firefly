@@ -1,3 +1,5 @@
+import time
+
 from firefly.common import *
 from firefly.widgets import *
 from firefly.view import *
@@ -5,15 +7,16 @@ from firefly.view import *
 __all__ = ["FireflyJobsView"]
 
 DEFAULT_HEADER_DATA = [
-        "id",
-        "title",
-        "action",
-        "service",
-        "ctime",
-        "stime",
-        "etime",
-        "progress",
-    ]
+    "id",
+    "title",
+    "action",
+    "service",
+    "ctime",
+    "stime",
+    "etime",
+    "progress",
+]
+
 
 def job_format(data, key):
     if key in ["ctime", "stime", "etime"]:
@@ -37,57 +40,56 @@ def job_format(data, key):
         if data["status"] == 1:
             return f"{data['progress']:.02f}%"
         else:
-            return({
-                    0 : "Pending",
-                    1 : "In progress",
-                    2 : "Completed",
-                    3 : "Failed",
-                    4 : "Aborted",
-                    5 : "Restarted",
-                    6 : "Skipped"
-                }[data["status"]])
+            return {
+                0: "Pending",
+                1: "In progress",
+                2: "Completed",
+                3: "Failed",
+                4: "Aborted",
+                5: "Restarted",
+                6: "Skipped",
+            }[data["status"]]
     return "-"
 
 
 header_format = {
-        "id" : "#",
-        "title" : "Title",
-        "action" : "Action",
-        "service" : "Service",
-        "ctime" : "Created",
-        "stime" : "Started",
-        "etime" : "Ended",
-        "progress" : "Progress",
-    }
+    "id": "#",
+    "title": "Title",
+    "action": "Action",
+    "service": "Service",
+    "ctime": "Created",
+    "stime": "Started",
+    "etime": "Ended",
+    "progress": "Progress",
+}
 
 colw = {
-        "id" : 50,
-        "title" : 200,
-        "action" : 80,
-        "service" : 160,
-        "ctime" : 150,
-        "stime" : 150,
-        "etime" : 150,
-        "progress" : 100,
-    }
+    "id": 50,
+    "title": 200,
+    "action": 80,
+    "service": 160,
+    "ctime": 150,
+    "stime": 150,
+    "etime": 150,
+    "progress": 100,
+}
 
 colors = {
-        PENDING     : QColor(COLOR_TEXT_NORMAL),
-        IN_PROGRESS : QColor(COLOR_TEXT_HIGHLIGHT),
-        COMPLETED   : QColor(COLOR_TEXT_GREEN),
-        FAILED      : QColor(COLOR_TEXT_RED),
-        ABORTED     : QColor(COLOR_TEXT_RED),
-        RESTART     : QColor(COLOR_TEXT_NORMAL),
-        SKIPPED     : QColor(COLOR_TEXT_FADED),
-    }
+    PENDING: QColor(COLOR_TEXT_NORMAL),
+    IN_PROGRESS: QColor(COLOR_TEXT_HIGHLIGHT),
+    COMPLETED: QColor(COLOR_TEXT_GREEN),
+    FAILED: QColor(COLOR_TEXT_RED),
+    ABORTED: QColor(COLOR_TEXT_RED),
+    RESTART: QColor(COLOR_TEXT_NORMAL),
+    SKIPPED: QColor(COLOR_TEXT_FADED),
+}
 
 
 class JobsModel(FireflyViewModel):
     def __init__(self, *args, **kwargs):
         super(JobsModel, self).__init__(*args, **kwargs)
-        self.request_data = {
-                    "view" : "active"
-                }
+        self.request_data = {"view": "active"}
+
     def headerData(self, col, orientation=Qt.Horizontal, role=Qt.DisplayRole):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return header_format[self.header_data[col]]
@@ -108,7 +110,6 @@ class JobsModel(FireflyViewModel):
             return colors[obj["status"]]
 
         return None
-
 
     def load(self, **kwargs):
         self.request_data.update(kwargs)
@@ -137,7 +138,7 @@ class FireflyJobsView(FireflyView):
         self.model.header_data = DEFAULT_HEADER_DATA
         self.setModel(self.model)
         for i, h in enumerate(self.model.header_data):
-            if h in colw :
+            if h in colw:
                 self.horizontalHeader().resizeSection(i, colw[h])
 
     def selectionChanged(self, selected, deselected):
@@ -145,8 +146,6 @@ class FireflyJobsView(FireflyView):
         sel = self.selected_jobs
         if len(sel) == 1:
             self.parent().main_window.focus(asset_cache[sel[0]["id_asset"]])
-
-
 
     @property
     def selected_jobs(self):
@@ -166,18 +165,17 @@ class FireflyJobsView(FireflyView):
 
         menu = QMenu(self)
 
-        action_restart = QAction('Restart', self)
-        action_restart.setStatusTip('Restart selected jobs')
+        action_restart = QAction("Restart", self)
+        action_restart.setStatusTip("Restart selected jobs")
         action_restart.triggered.connect(functools.partial(self.on_restart, jobs))
         menu.addAction(action_restart)
 
-        action_abort = QAction('Abort', self)
-        action_abort.setStatusTip('Abort selected jobs')
+        action_abort = QAction("Abort", self)
+        action_abort.setStatusTip("Abort selected jobs")
         action_abort.triggered.connect(functools.partial(self.on_abort, jobs))
         menu.addAction(action_abort)
 
         menu.exec_(event.globalPos())
-
 
     def on_restart(self, jobs):
         response = api.jobs(restart=jobs)
@@ -186,7 +184,6 @@ class FireflyJobsView(FireflyView):
         else:
             logging.info(response.message)
         self.model.load()
-
 
     def on_abort(self, jobs):
         response = api.jobs(abort=jobs)

@@ -6,7 +6,7 @@ __all__ = ["site_select_dialog"]
 
 
 class SiteSelectDialog(QDialog):
-    def __init__(self,  parent, sites=[]):
+    def __init__(self, parent, sites=[]):
         super(SiteSelectDialog, self).__init__(parent)
         self.setWindowTitle("Multiple sites are cofigured")
         self.setStyleSheet(app_skin)
@@ -35,4 +35,3 @@ def site_select_dialog():
     """
     dlg = SiteSelectDialog(None, config["sites"])
     return dlg.exec_()
-

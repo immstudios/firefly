@@ -5,12 +5,13 @@ from firefly import *
 
 from .jobs_model import *
 
+
 class SearchWidget(QLineEdit):
     def __init__(self, parent):
         super(QLineEdit, self).__init__()
 
     def keyPressEvent(self, event):
-        if event.key() in [Qt.Key_Return,Qt.Key_Enter]:
+        if event.key() in [Qt.Key_Return, Qt.Key_Enter]:
             self.parent().parent().load()
         elif event.key() == Qt.Key_Escape:
             self.line_edit.setText("")
@@ -49,7 +50,7 @@ class JobsModule(BaseModule):
         toolbar.addWidget(ToolBarStretcher(self))
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(0,0,0,0)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(toolbar, 0)
         layout.addWidget(self.view, 1)
         self.setLayout(layout)
@@ -79,9 +80,9 @@ class JobsModule(BaseModule):
                 row["message"] = d.get("message", "")
                 row["progress"] = d.get("progress", 0)
                 self.view.model.dataChanged.emit(
-                        self.view.model.index(i, 0),
-                        self.view.model.index(i, len(self.view.model.header_data) - 1)
-                    )
+                    self.view.model.index(i, 0),
+                    self.view.model.index(i, len(self.view.model.header_data) - 1),
+                )
                 if row["status"] != d.get("status", False):
                     do_reload = True
                 break

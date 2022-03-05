@@ -12,6 +12,7 @@ if config.get("debug"):
 
 __all__ = ["SeismicListener"]
 
+
 def readlines(f):
     buff = b""
     for ch in f.iter_content(1):
@@ -27,6 +28,7 @@ def readlines(f):
 class SeismicMessage(object):
     def __init__(self, packet):
         self.timestamp, self.site_name, self.host, self.method, self.data = packet
+
 
 class SeismicListener(QThread):
     def __init__(self):
@@ -44,17 +46,16 @@ class SeismicListener(QThread):
             logging.debug(f"[LISTENER] Connecting to {addr}", handlers=False)
             self.halted = False
             self.ws = websocket.WebSocketApp(
-                    addr,
-                    on_message = self.on_message,
-                    on_error = self.on_error,
-                    on_close = self.on_close
-                )
+                addr,
+                on_message=self.on_message,
+                on_error=self.on_error,
+                on_close=self.on_close,
+            )
             self.ws.run_forever()
             self.active = False
 
         logging.debug("[LISTENER] halted", handlers=False)
         self.halted = True
-
 
     def on_message(self, *args):
         data = args[-1]

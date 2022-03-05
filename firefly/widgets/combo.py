@@ -15,12 +15,11 @@ class FireflyRadio(QWidget):
         self.current_index = -1
         self.buttons = []
         self.layout = QHBoxLayout()
-        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
         if kwargs.get("data", []):
             self.set_data(kwargs["data"])
         self.default = self.get_value()
-
 
     def clear(self):
         for i, button in enumerate(self.buttons):
@@ -53,8 +52,7 @@ class FireflyRadio(QWidget):
             self.buttons[-1].setAutoExclusive(True)
             self.buttons[-1].clicked.connect(functools.partial(self.switch, i))
             self.layout.addWidget(self.buttons[-1])
-            i+= 1
-
+            i += 1
 
     def switch(self, index):
         self.current_index = index
@@ -73,9 +71,9 @@ class FireflyRadio(QWidget):
         else:
             self.current_index = -1
             for button in self.buttons:
-                button.setAutoExclusive(False);
-                button.setChecked(False);
-                button.setAutoExclusive(True);
+                button.setAutoExclusive(False)
+                button.setChecked(False)
+                button.setAutoExclusive(True)
         self.default = self.get_value()
 
     def get_value(self):
@@ -130,7 +128,7 @@ class FireflySelect(QComboBox):
             self.addItem(alias)
             self.cdata.append(value)
 
-            self.setItemData(i, indent ,Qt.UserRole)
+            self.setItemData(i, indent, Qt.UserRole)
             self.setItemData(i, f"<p>{description}</p>", Qt.ToolTipRole)
 
             if role == "header":
@@ -143,7 +141,7 @@ class FireflySelect(QComboBox):
 
             if row.get("selected"):
                 self.setCurrentIndex(i)
-            i+=1
+            i += 1
 
     def set_value(self, value):
         if value == self.get_value():
@@ -212,7 +210,7 @@ class FireflyList(CheckComboBox):
                 if row["role"] == "header":
                     self.setItemData(i, fonts["bold"], Qt.FontRole)
                 self.setItemCheckState(i, row.get("selected"))
-            i+=1
+            i += 1
 
     def set_value(self, value):
         if type(value) == str:

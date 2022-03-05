@@ -12,7 +12,9 @@ import traceback
 ###
 
 version_info = sys.version_info[:2]
-PYTHON_VERSION = version_info[0] + float("." + str(version_info[1])) # TODO: make this nice
+PYTHON_VERSION = version_info[0] + float(
+    "." + str(version_info[1])
+)  # TODO: make this nice
 
 if PYTHON_VERSION >= 3:
     from urllib.request import urlopen
@@ -30,41 +32,43 @@ else:
 DEBUG, INFO, WARNING, ERROR, GOOD_NEWS = range(5)
 PLATFORM = "windows" if sys.platform == "win32" else "unix"
 
-def indent(src, l=4):
-    return "\n".join(["{}{}".format(l*" ", s.rstrip()) for s in src.split("\n")])
 
-class Logging():
+def indent(src, l=4):
+    return "\n".join(["{}{}".format(l * " ", s.rstrip()) for s in src.split("\n")])
+
+
+class Logging:
     def __init__(self, user="REX"):
         self.user = user
         self.formats = {
-            INFO      : "INFO       {0:<15} {1}",
-            DEBUG     : "\033[34mDEBUG      {0:<15} {1}\033[0m",
-            WARNING   : "\033[33mWARNING\033[0m    {0:<15} {1}",
-            ERROR     : "\033[31mERROR\033[0m      {0:<15} {1}",
-            GOOD_NEWS : "\033[32mGOOD NEWS\033[0m  {0:<15} {1}"
-            }
+            INFO: "INFO       {0:<15} {1}",
+            DEBUG: "\033[34mDEBUG      {0:<15} {1}\033[0m",
+            WARNING: "\033[33mWARNING\033[0m    {0:<15} {1}",
+            ERROR: "\033[31mERROR\033[0m      {0:<15} {1}",
+            GOOD_NEWS: "\033[32mGOOD NEWS\033[0m  {0:<15} {1}",
+        }
 
         self.formats_win = {
-            DEBUG     : "DEBUG      {0:<10} {1}",
-            INFO      : "INFO       {0:<10} {1}",
-            WARNING   : "WARNING    {0:<10} {1}",
-            ERROR     : "ERROR      {0:<10} {1}",
-            GOOD_NEWS : "GOOD NEWS  {0:<10} {1}"
-            }
+            DEBUG: "DEBUG      {0:<10} {1}",
+            INFO: "INFO       {0:<10} {1}",
+            WARNING: "WARNING    {0:<10} {1}",
+            ERROR: "ERROR      {0:<10} {1}",
+            GOOD_NEWS: "GOOD NEWS  {0:<10} {1}",
+        }
 
     def _send(self, msgtype, *args, **kwargs):
         message = " ".join([str(arg) for arg in args])
         user = kwargs.get("user", self.user)
         if PLATFORM == "unix":
             try:
-                print (self.formats[msgtype].format(user, message), file=sys.stderr)
+                print(self.formats[msgtype].format(user, message), file=sys.stderr)
             except:
-                print (message.encode("utf-8"),file=sys.stderr)
+                print(message.encode("utf-8"), file=sys.stderr)
         else:
             try:
-                print (self.formats_win[msgtype].format(user, message), file=sys.stderr)
+                print(self.formats_win[msgtype].format(user, message), file=sys.stderr)
             except:
-                print (message.encode("utf-8"), file=sys.stderr)
+                print(message.encode("utf-8"), file=sys.stderr)
 
     def debug(self, *args, **kwargs):
         self._send(DEBUG, *args, **kwargs)
@@ -99,7 +103,7 @@ def critical_error(msg, **kwargs):
 
 
 class Repository(object):
-    def __init__(self, parent,  url, **kwargs):
+    def __init__(self, parent, url, **kwargs):
         self.parent = parent
         self.url = url
         self.settings = kwargs
@@ -116,7 +120,7 @@ class Repository(object):
 class Rex(object):
     def __init__(self):
         self.app_dir = os.path.abspath(os.getcwd())
-        self.vendor_dir =os.path.join(self.app_dir, "vendor")
+        self.vendor_dir = os.path.join(self.app_dir, "vendor")
         self.manifest_path = os.path.join(self.app_dir, "rex.json")
         self.self_update()
         self.main()
@@ -196,7 +200,7 @@ class Rex(object):
 
         p = subprocess.Popen(cmd)
         while p.poll() == None:
-            time.sleep(.1)
+            time.sleep(0.1)
         if p.returncode:
             critical_error("Unable to update {}".format(repo))
         if repo["branch"]:
@@ -204,14 +208,16 @@ class Rex(object):
             cmd = ["git", "checkout", repo["branch"]]
             p = subprocess.Popen(cmd)
             while p.poll() == None:
-                time.sleep(.1)
+                time.sleep(0.1)
         return True
 
     def post_install(self, repo):
         if (repo["python-path"] or repo["python_path"]) and not repo.path in sys.path:
             sys.path.insert(0, repo.path)
 
+
 rex = Rex()
+
 
 def require(url, **kwargs):
     if not "python_path" in kwargs:

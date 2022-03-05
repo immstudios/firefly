@@ -2,6 +2,7 @@ from .common import *
 
 __all__ = ["BaseModule"]
 
+
 class BaseModule(QWidget):
     def __init__(self, parent):
         super(BaseModule, self).__init__(parent)

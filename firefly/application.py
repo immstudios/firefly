@@ -1,4 +1,5 @@
 import sys
+import time
 import locale
 
 from .common import *
@@ -20,11 +21,7 @@ def check_login(wnd):
             config["session_id"] = session_id
         return user_meta
     if data["response"] > 403:
-        QMessageBox.critical(
-                wnd,
-                f"Error {data['response']}",
-                data["message"]
-            )
+        QMessageBox.critical(wnd, f"Error {data['response']}", data["message"])
         return False
     return login_dialog()
 
@@ -33,8 +30,8 @@ class FireflyApplication(Application):
     def __init__(self, **kwargs):
         title = f"Firefly {FIREFLY_VERSION}"
         super(FireflyApplication, self).__init__(name="firefly", title=title)
-        locale.setlocale(locale.LC_NUMERIC, 'C')
-        self.splash = QSplashScreen(pix_lib['splash'])
+        locale.setlocale(locale.LC_NUMERIC, "C")
+        self.splash = QSplashScreen(pix_lib["splash"])
         self.splash.show()
 
         # Which site we are running
@@ -48,10 +45,12 @@ class FireflyApplication(Application):
 
         self.local_keys = list(config["sites"][i].keys())
         config.update(config["sites"][i])
-        del(config["sites"])
+        del config["sites"]
 
-        self.app_state_path = os.path.join(app_dir, f"ffdata.{config['site_name']}.appstate")
-        self.auth_key_path = os.path.join(app_dir,  f"ffdata.{config['site_name']}.key")
+        self.app_state_path = os.path.join(
+            app_dir, f"ffdata.{config['site_name']}.appstate"
+        )
+        self.auth_key_path = os.path.join(app_dir, f"ffdata.{config['site_name']}.key")
 
         # Login
 
@@ -63,7 +62,6 @@ class FireflyApplication(Application):
         except Exception:
             log_traceback()
         config["session_id"] = session_id
-
 
         user_meta = check_login(self.splash)
         if not user_meta:
@@ -80,7 +78,6 @@ class FireflyApplication(Application):
         asset_cache.load()
         self.splash_message("Loading user workspace...")
         self.main_window = FireflyMainWindow(self, FireflyMainWidget)
-
 
     def start(self):
         self.splash.hide()
@@ -102,20 +99,20 @@ class FireflyApplication(Application):
             self.main_window.listener.halt()
             i = 0
             while not self.main_window.listener.halted:
-                time.sleep(.1)
+                time.sleep(0.1)
                 if i > 10:
-                    logging.warning("Unable to shutdown listener. Forcing quit", handlers=False)
+                    logging.warning(
+                        "Unable to shutdown listener. Forcing quit", handlers=False
+                    )
                     break
-                i+=1
+                i += 1
         sys.exit(0)
 
     def splash_message(self, msg):
         if self.splash.isVisible:
             self.splash.showMessage(
-                    msg,
-                    alignment=Qt.AlignBottom|Qt.AlignLeft,
-                    color=Qt.white
-                )
+                msg, alignment=Qt.AlignBottom | Qt.AlignLeft, color=Qt.white
+            )
 
     def load_settings(self):
         self.splash_message("Loading site settings")
@@ -132,14 +129,14 @@ class FireflyApplication(Application):
 
         # Fix indices
         for config_group in [
-                    "storages",
-                    "playout_channels",
-                    "ingest_channels",
-                    "folders",
-                    "views",
-                    "actions",
-                    "services",
-                ]:
+            "storages",
+            "playout_channels",
+            "ingest_channels",
+            "folders",
+            "views",
+            "actions",
+            "services",
+        ]:
             ng = {}
             for id in config[config_group]:
                 ng[int(id)] = config[config_group][id]

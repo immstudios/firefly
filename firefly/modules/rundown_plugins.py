@@ -3,6 +3,7 @@ import functools
 from firefly.common import *
 from firefly.widgets import *
 
+
 class PlayoutPlugin(QWidget):
     def __init__(self, parent, data):
         super(PlayoutPlugin, self).__init__(parent)
@@ -23,11 +24,8 @@ class PlayoutPlugin(QWidget):
             if slot_type == "action":
                 self.buttons.append(QPushButton(slot["title"]))
                 self.buttons[-1].clicked.connect(
-                    functools.partial(
-                            self.execute,
-                            slot_name
-                        )
-                    )
+                    functools.partial(self.execute, slot_name)
+                )
                 button_layout.addWidget(self.buttons[-1])
                 continue
 
@@ -36,7 +34,10 @@ class PlayoutPlugin(QWidget):
             elif slot_type == "select":
                 if not slot["values"]:
                     continue
-                values = [{"value" : val, "alias" : ali, "role" : "option"} for val, ali in slot["values"]]
+                values = [
+                    {"value": val, "alias": ali, "role": "option"}
+                    for val, ali in slot["values"]
+                ]
                 self.slots[slot_name] = FireflySelect(self, data=values)
                 self.slots[slot_name].set_value(min([r["value"] for r in values]))
             else:
@@ -47,7 +48,6 @@ class PlayoutPlugin(QWidget):
             layout.addRow("", button_layout)
         self.setLayout(layout)
 
-
     def execute(self, name):
         value = False
         data = {}
@@ -55,17 +55,18 @@ class PlayoutPlugin(QWidget):
             data[slot] = self.slots[slot].get_value()
 
         response = api.playout(
-                action="plugin_exec",
-                id_channel=self.id_channel,
-                id_plugin=self.id_plugin,
-                action_name=name,
-                data=json.dumps(data)
-            )
+            action="plugin_exec",
+            id_channel=self.id_channel,
+            id_plugin=self.id_plugin,
+            action_name=name,
+            data=json.dumps(data),
+        )
         if response:
             logging.info(f"{self.title} action '{name}' executed succesfully.")
         else:
-            logging.error(f"[PLUGINS] Plugin error {response.response}\n\n{response.message}")
-
+            logging.error(
+                f"[PLUGINS] Plugin error {response.response}\n\n{response.message}"
+            )
 
 
 class PlayoutPlugins(QTabWidget):
@@ -89,7 +90,9 @@ class PlayoutPlugins(QTabWidget):
 
         response = api.playout(action="plugin_list", id_channel=self.id_channel)
         if not response:
-            logging.error(f"[PLUGINS] Unable to load playout plugins:\n{response.message}")
+            logging.error(
+                f"[PLUGINS] Unable to load playout plugins:\n{response.message}"
+            )
             return
 
         for plugin in response.data or []:

@@ -10,8 +10,12 @@ if PLATFORM == "windows":
 
     def get_available_drives():
         drive_bitmask = ctypes.cdll.kernel32.GetLogicalDrives()
-        return list(itertools.compress(string.ascii_uppercase,
-            map(lambda x:ord(x) - ord('0'), bin(drive_bitmask)[:1:-1])))
+        return list(
+            itertools.compress(
+                string.ascii_uppercase,
+                map(lambda x: ord(x) - ord("0"), bin(drive_bitmask)[:1:-1]),
+            )
+        )
 
 
 def load_filesystem(handler=False):

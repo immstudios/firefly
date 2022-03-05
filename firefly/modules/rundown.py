@@ -51,7 +51,6 @@ class RundownModule(BaseModule):
         layout.addWidget(self.view, 1)
         self.setLayout(layout)
 
-
     def toggle_rundown_edit(self, val=None):
         if val is None:
             self.edit_enabled = not self.edit_enabled
@@ -62,8 +61,6 @@ class RundownModule(BaseModule):
         self.app_state["edit_enabled"] = self.edit_wanted
         self.view.setDragEnabled(self.edit_enabled)
         self.main_window.action_rundown_edit.setChecked(self.edit_enabled)
-
-
 
     @property
     def can_edit(self):
@@ -80,10 +77,12 @@ class RundownModule(BaseModule):
         selection = []
         for idx in self.view.selectionModel().selectedIndexes():
             if self.view.model().object_data[idx.row()].id:
-                selection.append([
+                selection.append(
+                    [
                         self.view.model().object_data[idx.row()].object_type,
-                        self.view.model().object_data[idx.row()].id
-                    ])
+                        self.view.model().object_data[idx.row()].id,
+                    ]
+                )
 
         do_update_header = kwargs.get("do_update_header", False)
         if "id_channel" in kwargs and kwargs["id_channel"] != self.id_channel:
@@ -91,7 +90,9 @@ class RundownModule(BaseModule):
             self.id_channel = kwargs["id_channel"]
 
         if "start_time" in kwargs:
-            new_start = day_start(kwargs["start_time"], self.playout_config["day_start"])
+            new_start = day_start(
+                kwargs["start_time"], self.playout_config["day_start"]
+            )
             if new_start != self.start_time:
                 do_update_header = True
                 self.start_time = new_start
@@ -100,16 +101,18 @@ class RundownModule(BaseModule):
             do_update_header = True
             self.start_time = day_start(time.time(), self.playout_config["day_start"])
 
-        self.view.model().load(functools.partial(self.load_callback, do_update_header, selection, event, go_to_now))
-
-
+        self.view.model().load(
+            functools.partial(
+                self.load_callback, do_update_header, selection, event, go_to_now
+            )
+        )
 
     def load_callback(self, do_update_header, selection, event=False, go_to_now=False):
         if do_update_header:
             self.update_header()
 
         if self.first_load:
-            #TODO: Load from appstate
+            # TODO: Load from appstate
             self.view.horizontalHeader().resizeSection(0, 300)
             self.first_load = False
 
@@ -117,9 +120,9 @@ class RundownModule(BaseModule):
             for i, r in enumerate(self.view.model().object_data):
                 if event.id == r.id and r.object_type == "event":
                     self.view.scrollTo(
-                            self.view.model().index(i, 0, QModelIndex()),
-                            QAbstractItemView.PositionAtTop
-                        )
+                        self.view.model().index(i, 0, QModelIndex()),
+                        QAbstractItemView.PositionAtTop,
+                    )
                     break
 
         # Restore selection
@@ -127,20 +130,25 @@ class RundownModule(BaseModule):
             item_selection = QItemSelection()
             for i, row in enumerate(self.view.model().object_data):
                 if [row.object_type, row.id] in selection:
-                   i1 = self.view.model().index(i, 0, QModelIndex())
-                   i2 = self.view.model().index(i, len(self.view.model().header_data)-1, QModelIndex())
-                   item_selection.select(i1,i2)
+                    i1 = self.view.model().index(i, 0, QModelIndex())
+                    i2 = self.view.model().index(
+                        i, len(self.view.model().header_data) - 1, QModelIndex()
+                    )
+                    item_selection.select(i1, i2)
             self.view.focus_enabled = False
-            self.view.selectionModel().select(item_selection, QItemSelectionModel.ClearAndSelect)
+            self.view.selectionModel().select(
+                item_selection, QItemSelectionModel.ClearAndSelect
+            )
         self.view.focus_enabled = True
 
-
         if go_to_now:
-            for i,r in enumerate(self.view.model().object_data):
-                if self.current_item == r.id and r.object_type=="item":
-                    self.view.scrollTo(self.view.model().index(i, 0, QModelIndex()), QAbstractItemView.PositionAtTop  )
+            for i, r in enumerate(self.view.model().object_data):
+                if self.current_item == r.id and r.object_type == "item":
+                    self.view.scrollTo(
+                        self.view.model().index(i, 0, QModelIndex()),
+                        QAbstractItemView.PositionAtTop,
+                    )
                     break
-
 
     def update_header(self):
         ch = self.playout_config["title"]
@@ -175,30 +183,31 @@ class RundownModule(BaseModule):
         self.main_window.action_rundown_edit.setEnabled(can_rundown_edit)
         self.toggle_rundown_edit(can_rundown_edit and self.edit_wanted)
 
-
     def go_day_prev(self):
-        self.load(start_time=self.start_time - (3600*24))
+        self.load(start_time=self.start_time - (3600 * 24))
 
     def go_day_next(self):
-        self.load(start_time=self.start_time + (3600*24))
+        self.load(start_time=self.start_time + (3600 * 24))
 
     def go_now(self):
         if not (self.start_time + 86400 > time.time() > self.start_time):
-            #do not use day_start here. it will be used in the load method
+            # do not use day_start here. it will be used in the load method
             self.load(start_time=int(time.time()), go_to_now=True)
         else:
-            for i,r in enumerate(self.view.model().object_data):
-                if self.current_item == r.id and r.object_type=="item":
-                    self.view.scrollTo(self.view.model().index(i, 0, QModelIndex()), QAbstractItemView.PositionAtTop  )
+            for i, r in enumerate(self.view.model().object_data):
+                if self.current_item == r.id and r.object_type == "item":
+                    self.view.scrollTo(
+                        self.view.model().index(i, 0, QModelIndex()),
+                        QAbstractItemView.PositionAtTop,
+                    )
                     break
-
 
     def show_calendar(self):
         y, m, d = get_date()
         if not y:
             return
         hh, mm = self.playout_config["day_start"]
-        dt = datetime.datetime(y,m,d,hh,mm)
+        dt = datetime.datetime(y, m, d, hh, mm)
         self.load(start_time=time.mktime(dt.timetuple()))
 
     def toggle_mcr(self):
@@ -222,18 +231,14 @@ class RundownModule(BaseModule):
             self.plugins.show()
             self.app_state["show_plugins"] = True
 
-
     #
     # Search rundown
     #
 
     def find(self):
         text, result = QInputDialog.getText(
-                self,
-                "Rundown search",
-                "Search query:",
-                text=self.last_search
-            )
+            self, "Rundown search", "Search query:", text=self.last_search
+        )
         if result and text:
             self.do_find(text)
         else:
@@ -258,10 +263,16 @@ class RundownModule(BaseModule):
                 if str(row[key]).lower().find(search_string) > -1:
                     selection = QItemSelection()
                     i1 = self.view.model().index(i + start_row, 0, QModelIndex())
-                    i2 = self.view.model().index(i + start_row, len(self.view.model().header_data)-1, QModelIndex())
-                    self.view.scrollTo(i1 , QAbstractItemView.PositionAtTop)
+                    i2 = self.view.model().index(
+                        i + start_row,
+                        len(self.view.model().header_data) - 1,
+                        QModelIndex(),
+                    )
+                    self.view.scrollTo(i1, QAbstractItemView.PositionAtTop)
                     selection.select(i1, i2)
-                    self.view.selectionModel().select(selection, QItemSelectionModel.ClearAndSelect)
+                    self.view.selectionModel().select(
+                        selection, QItemSelectionModel.ClearAndSelect
+                    )
                     break
             else:
                 continue
@@ -304,7 +315,11 @@ class RundownModule(BaseModule):
             if message.data["object_type"] == "event":
                 for id_event in message.data["objects"]:
                     if id_event in self.view.model().event_ids:
-                        logging.debug("Event id {} has been changed. Reloading rundown.".format(id_event))
+                        logging.debug(
+                            "Event id {} has been changed. Reloading rundown.".format(
+                                id_event
+                            )
+                        )
                         self.load()
                         break
             elif message.data["object_type"] == "asset":
@@ -316,9 +331,13 @@ class RundownModule(BaseModule):
                 model = self.view.model()
                 for row, obj in enumerate(model.object_data):
                     if obj["id_asset"] == message.data["id_asset"]:
-                        model.object_data[row]["transfer_progress"] = message.data["progress"]
-                        model.dataChanged.emit(model.index(row, 0), model.index(row, len(model.header_data)-1))
-
+                        model.object_data[row]["transfer_progress"] = message.data[
+                            "progress"
+                        ]
+                        model.dataChanged.emit(
+                            model.index(row, 0),
+                            model.index(row, len(model.header_data) - 1),
+                        )
 
     def refresh_assets(self, *assets):
         model = self.view.model()

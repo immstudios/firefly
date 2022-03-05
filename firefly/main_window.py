@@ -1,3 +1,4 @@
+import time
 import queue
 
 from .common import *
@@ -38,14 +39,26 @@ class FireflyMainWidget(QWidget):
         # Channel control modules
 
         if config["playout_channels"]:
-            if user.has_right("scheduler_view", anyval=True) or user.has_right("scheduler_edit", anyval=True):
+            if user.has_right("scheduler_view", anyval=True) or user.has_right(
+                "scheduler_edit", anyval=True
+            ):
                 self.scheduler = SchedulerModule(self)
                 self.main_window.add_subscriber(self.scheduler, ["objects_changed"])
                 self.tabs.addTab(self.scheduler, "SCHEDULER")
 
-            if user.has_right("rundown_view", anyval=True) or user.has_right("rundown_edit", anyval=True):
+            if user.has_right("rundown_view", anyval=True) or user.has_right(
+                "rundown_edit", anyval=True
+            ):
                 self.rundown = RundownModule(self)
-                self.main_window.add_subscriber(self.rundown, ["objects_changed", "rundown_changed", "playout_status", "job_progress"])
+                self.main_window.add_subscriber(
+                    self.rundown,
+                    [
+                        "objects_changed",
+                        "rundown_changed",
+                        "playout_status",
+                        "job_progress",
+                    ],
+                )
                 self.tabs.addTab(self.rundown, "RUNDOWN")
 
         # Layout
@@ -131,10 +144,12 @@ class FireflyMainWindow(MainWindow):
         self.load_window_state()
 
         for id_channel in config["playout_channels"]:
-            if user.has_right("rundown_view", id_channel) \
-              or user.has_right("rundown_edit", id_channel) \
-              or user.has_right("scheduler_view", id_channel) \
-              or user.has_right("scheduler_edit", id_channel):
+            if (
+                user.has_right("rundown_view", id_channel)
+                or user.has_right("rundown_edit", id_channel)
+                or user.has_right("scheduler_view", id_channel)
+                or user.has_right("scheduler_edit", id_channel)
+            ):
                 self.id_channel = min(config["playout_channels"].keys())
                 self.set_channel(self.id_channel)
                 break
@@ -145,13 +160,11 @@ class FireflyMainWindow(MainWindow):
         self.window_state = self.app_state.get("window_state", {})
         self.showMaximized()
         one_third = self.width() / 3
-        sizes = self.window_state.get("splitter_sizes", [one_third, one_third*2])
+        sizes = self.window_state.get("splitter_sizes", [one_third, one_third * 2])
         self.main_widget.main_splitter.setSizes(sizes)
 
     def save_window_state(self, *args, **kwargs):
-        state = {
-                "splitter_sizes" : self.main_widget.main_splitter.sizes()
-            }
+        state = {"splitter_sizes": self.main_widget.main_splitter.sizes()}
         self.app_state["window_state"] = state
 
     @property
@@ -223,12 +236,17 @@ class FireflyMainWindow(MainWindow):
         search_box.selectAll()
 
     def now(self):
-        if config["playout_channels"] and (user.has_right("rundown_view", self.id_channel) or user.has_right("rundown_edit", self.id_channel)):
+        if config["playout_channels"] and (
+            user.has_right("rundown_view", self.id_channel)
+            or user.has_right("rundown_edit", self.id_channel)
+        ):
             self.show_rundown()
             self.rundown.go_now()
 
     def toggle_rundown_edit(self):
-        if config["playout_channels"] and user.has_right("rundown_edit", self.id_channel):
+        if config["playout_channels"] and user.has_right(
+            "rundown_edit", self.id_channel
+        ):
             cstate = self.rundown.toggle_rundown_edit()
 
     def toggle_debug_mode(self):
@@ -255,11 +273,17 @@ class FireflyMainWindow(MainWindow):
             self.main_widget.tabs.setCurrentIndex(0)
 
     def show_scheduler(self):
-        if config["playout_channels"] and (user.has_right("scheduler_view", self.id_channel) or user.has_right("scheduler_edit", self.id_channel)):
+        if config["playout_channels"] and (
+            user.has_right("scheduler_view", self.id_channel)
+            or user.has_right("scheduler_edit", self.id_channel)
+        ):
             self.main_widget.switch_tab(self.scheduler)
 
     def show_rundown(self):
-        if config["playout_channels"] and (user.has_right("rundown_view", self.id_channel) or user.has_right("rundown_edit", self.id_channel)):
+        if config["playout_channels"] and (
+            user.has_right("rundown_view", self.id_channel)
+            or user.has_right("rundown_edit", self.id_channel)
+        ):
             self.main_widget.switch_tab(self.rundown)
 
     def refresh(self):
@@ -291,7 +315,9 @@ class FireflyMainWindow(MainWindow):
     def on_seismic_timer(self):
         now = time.time()
         if now - self.listener.last_msg > 5:
-            logging.debug("[MAIN WINDOW] No seismic message received. Something may be wrong")
+            logging.debug(
+                "[MAIN WINDOW] No seismic message received. Something may be wrong"
+            )
             self.listener.last_msg = time.time()
         while True:
             try:
@@ -305,7 +331,10 @@ class FireflyMainWindow(MainWindow):
         self.subscribers.append([module, frozenset(methods)])
 
     def seismic_handler(self, message):
-        if message.method == "objects_changed" and message.data["object_type"] == "asset":
+        if (
+            message.method == "objects_changed"
+            and message.data["object_type"] == "asset"
+        ):
             objects = message.data["objects"]
             logging.debug(f"[MAIN WINDOW] {len(objects)} asset(s) have been changed")
             asset_cache.request([[aid, message.timestamp + 1] for aid in objects])

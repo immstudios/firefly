@@ -3,13 +3,22 @@ from .widgets import *
 
 from pprint import pformat
 
-__all__ = ["FireflyViewModel", "FireflySortModel", "FireflyView", "format_header", "format_description"]
+__all__ = [
+    "FireflyViewModel",
+    "FireflySortModel",
+    "FireflyView",
+    "format_header",
+    "format_description",
+]
+
 
 def format_header(key):
     return meta_types[key].header()
 
+
 def format_description(key):
     return meta_types[key].description()
+
 
 class FireflyViewModel(QAbstractTableModel):
     def __init__(self, parent):
@@ -63,7 +72,6 @@ class FireflyViewModel(QAbstractTableModel):
                 return obj.format_tooltip(key, model=self)
         return None
 
-
     def setData(self, index, data, role=False):
         key = self.header_data[index.column()]
         id_object = self.object_data[index.row()].id
@@ -91,10 +99,10 @@ class FireflySortModel(QSortFilterProxyModel):
 
     @property
     def object_data(self):
-       return self.sourceModel().object_data
+        return self.sourceModel().object_data
 
     def mimeData(self, indexes):
-        return self.sourceModel().mimeData([self.mapToSource(idx) for idx in indexes ])
+        return self.sourceModel().mimeData([self.mapToSource(idx) for idx in indexes])
 
 
 class FireflyView(QTableView):

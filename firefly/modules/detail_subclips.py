@@ -7,22 +7,22 @@ from firefly.view import *
 __all__ = ["FireflySubclipsView"]
 
 DEFAULT_HEADER_DATA = [
-        "mark_in",
-        "mark_out",
-        "title",
-    ]
+    "mark_in",
+    "mark_out",
+    "title",
+]
 
 header_format = {
-        "mark_in" : "In",
-        "mark_out" : "Out",
-        "title" : "Title",
-    }
+    "mark_in": "In",
+    "mark_out": "Out",
+    "title": "Title",
+}
 
 colw = {
-        "mark_in" : 120,
-        "mark_out" : 120,
-        "title" : 300,
-    }
+    "mark_in": 120,
+    "mark_out": 120,
+    "title": 300,
+}
 
 
 class SubclipsModel(FireflyViewModel):
@@ -62,7 +62,7 @@ class FireflySubclipsView(FireflyView):
         self.setModel(self.model)
         self.activated.connect(self.on_activate)
         for i, h in enumerate(self.model.header_data):
-            if h in colw :
+            if h in colw:
                 self.horizontalHeader().resizeSection(i, colw[h])
         self.horizontalHeader().setStretchLastSection(True)
 
@@ -77,29 +77,23 @@ class FireflySubclipsView(FireflyView):
     def update_source(self):
         self.parent().changed["subclips"] = self.model.object_data
 
-
     def create_subclip(self, mark_in, mark_out):
         fps = self.parent().current_asset["video/fps_f"]
         if mark_in and mark_out and mark_in > mark_out:
             logging.error("Unable to create subclip. In point must precede out point")
             return
         text, ok = QInputDialog.getText(
-                self,
-                f"Create a subclip",
-                f"{s2tc(mark_in, fps)} - {s2tc(mark_out, fps)}\n\nEnter the subclip name:"
-            )
+            self,
+            f"Create a subclip",
+            f"{s2tc(mark_in, fps)} - {s2tc(mark_out, fps)}\n\nEnter the subclip name:",
+        )
         if not ok:
             return
         text = text.strip()
         cdata = self.model.object_data
-        cdata.append({
-                "mark_in" : mark_in,
-                "mark_out" : mark_out,
-                "title" : text
-            })
+        cdata.append({"mark_in": mark_in, "mark_out": mark_out, "title": text})
         self.load(cdata)
         self.update_source()
-
 
     def on_activate(self, mi):
         obj = self.model.object_data[mi.row()]
@@ -107,7 +101,6 @@ class FireflySubclipsView(FireflyView):
         self.parent().player.mark_out = obj["mark_out"]
         self.parent().player.region_bar.update()
         self.parent().player.seek(obj["mark_in"])
-
 
     @property
     def selected_indexes(self):
@@ -124,23 +117,24 @@ class FireflySubclipsView(FireflyView):
 
         menu = QMenu(self)
         if len(self.selected_indexes) == 1:
-            action_update_marks = QAction('Update marks', self)
-            action_update_marks.setStatusTip('Update subclip marks using current selection')
+            action_update_marks = QAction("Update marks", self)
+            action_update_marks.setStatusTip(
+                "Update subclip marks using current selection"
+            )
             action_update_marks.triggered.connect(self.on_update_marks)
             menu.addAction(action_update_marks)
 
-            action_rename_subclip = QAction('Rename', self)
-            action_rename_subclip.setStatusTip('Rename selected subclip')
+            action_rename_subclip = QAction("Rename", self)
+            action_rename_subclip.setStatusTip("Rename selected subclip")
             action_rename_subclip.triggered.connect(self.on_rename_subclip)
             menu.addAction(action_rename_subclip)
 
-        action_delete_subclip = QAction('Delete', self)
-        action_delete_subclip.setStatusTip('Delete selected subclip(s)')
+        action_delete_subclip = QAction("Delete", self)
+        action_delete_subclip.setStatusTip("Delete selected subclip(s)")
         action_delete_subclip.triggered.connect(self.on_delete_subclip)
         menu.addAction(action_delete_subclip)
 
         menu.exec_(event.globalPos())
-
 
     def on_update_marks(self):
         try:
@@ -158,8 +152,6 @@ class FireflySubclipsView(FireflyView):
         self.model.object_data[idx]["mark_out"] = mark_out
         self.model.endResetModel()
         self.update_source()
-
-
 
     def on_delete_subclip(self):
         idxs = self.selected_indexes
@@ -179,10 +171,10 @@ class FireflySubclipsView(FireflyView):
             return
         old_name = self.model.object_data[idx]["title"]
         text, ok = QInputDialog.getText(
-                self,
-                "Rename the subclip",
-                f"Original name: {old_name}\n\nEnter the subclip name:"
-            )
+            self,
+            "Rename the subclip",
+            f"Original name: {old_name}\n\nEnter the subclip name:",
+        )
         if not ok:
             return
 
