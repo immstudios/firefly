@@ -12,6 +12,7 @@ from firefly.qt import (
     QCheckBox,
     QPushButton,
     QColorDialog,
+    QColor,
 )
 
 

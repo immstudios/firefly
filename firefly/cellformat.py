@@ -6,42 +6,24 @@ from firefly.common import Colors
 
 from firefly.core.common import config
 from firefly.core.base_objects import BaseObject
-from firefly.legacy.constants import (
-    get_object_state_name,
-    OFFLINE,
-    ONLINE,
-    CREATING,
-    TRASHED,
-    ARCHIVED,
-    RESET,
-    REMOTE,
-    UNKNOWN,
-    CORRUPTED,
-    AIRED,
-    ONAIR,
-    RETRIEVING,
-    RUN_SKIP,
-    RUN_SOFT,
-    RUN_HARD,
-    RUN_MANUAL,
-)
+from firefly.core.enum import ObjectStatus, RunMode
 
 
 RUNDOWN_EVENT_BACKGROUND_COLOR = "#0f0f0f"
 
 STATUS_FG_COLORS = {
-    OFFLINE: Colors.TEXT_RED,
-    ONLINE: Colors.TEXT_NORMAL,
-    CREATING: Colors.TEXT_YELLOW,
-    TRASHED: Colors.TEXT_FADED,
-    ARCHIVED: Colors.TEXT_FADED,
-    RESET: Colors.TEXT_YELLOW,
-    REMOTE: Colors.TEXT_YELLOW,
-    UNKNOWN: Colors.TEXT_RED,
-    CORRUPTED: Colors.TEXT_RED,
-    AIRED: Colors.TEXT_FADED2,
-    ONAIR: Colors.TEXT_RED,
-    RETRIEVING: Colors.TEXT_YELLOW,
+    ObjectStatus.OFFLINE: Colors.TEXT_RED,
+    ObjectStatus.ONLINE: Colors.TEXT_NORMAL,
+    ObjectStatus.CREATING: Colors.TEXT_YELLOW,
+    ObjectStatus.TRASHED: Colors.TEXT_FADED,
+    ObjectStatus.ARCHIVED: Colors.TEXT_FADED,
+    ObjectStatus.RESET: Colors.TEXT_YELLOW,
+    ObjectStatus.REMOTE: Colors.TEXT_YELLOW,
+    ObjectStatus.UNKNOWN: Colors.TEXT_RED,
+    ObjectStatus.CORRUPTED: Colors.TEXT_RED,
+    ObjectStatus.AIRED: Colors.TEXT_FADED2,
+    ObjectStatus.ONAIR: Colors.TEXT_RED,
+    ObjectStatus.RETRIEVING: Colors.TEXT_YELLOW,
 }
 
 DEFAULT_FOLDER = {"color": 0xAAAAAA, "title": "-"}
@@ -108,24 +90,24 @@ def parse_item_status(obj):
     try:
         obj.id_channel
     except Exception:
-        return UNKNOWN
+        return ObjectStatus.UNKNOWN
     pskey = f"playout_status/{obj.id_channel}"
 
-    if asset["status"] == OFFLINE:
-        return OFFLINE
+    if asset["status"] == ObjectStatus.OFFLINE:
+        return ObjectStatus.OFFLINE
 
     if pskey not in asset.meta:
-        return REMOTE
-    elif asset[pskey]["status"] == OFFLINE:
-        return REMOTE
-    elif asset[pskey]["status"] == ONLINE:
-        return ONLINE
-    elif asset[pskey]["status"] == CORRUPTED:
-        return CORRUPTED
-    elif asset[pskey]["status"] == CREATING:
-        return CREATING
+        return ObjectStatus.REMOTE
+    elif asset[pskey]["status"] == ObjectStatus.OFFLINE:
+        return ObjectStatus.REMOTE
+    elif asset[pskey]["status"] == ObjectStatus.ONLINE:
+        return ObjectStatus.ONLINE
+    elif asset[pskey]["status"] == ObjectStatus.CORRUPTED:
+        return ObjectStatus.CORRUPTED
+    elif asset[pskey]["status"] == ObjectStatus.CREATING:
+        return ObjectStatus.CREATING
 
-    return UNKNOWN
+    return ObjectStatus.UNKNOWN
 
 
 class FormatStatus(CellFormat):
@@ -150,7 +132,7 @@ class FormatStatus(CellFormat):
             elif xfrp < 100:
                 xfr = f" ({xfrp:.01f}%)"
 
-        return get_object_state_name(state).upper() + xfr
+        return ObjectStatus(state).name + xfr
 
     def foreground(self, obj, **kwargs):
         if obj.object_type == "asset":
@@ -165,7 +147,7 @@ class FormatRundownDifference(CellFormat):
 
     def display(self, obj, **kwargs):
         if obj[self.key]:
-            if obj["run_mode"] == RUN_SKIP:
+            if obj["run_mode"] == RunMode.RUN_SKIP:
                 return ""
             return s2tc(abs(obj[self.key]))
         return ""
@@ -181,7 +163,7 @@ class FormatRundownScheduled(CellFormat):
 
     def display(self, obj, **kwargs):
         if obj.id:
-            if obj["run_mode"] == RUN_SKIP:
+            if obj["run_mode"] == RunMode.RUN_SKIP:
                 return ""
             return obj.show(self.key)
         return ""
@@ -192,7 +174,7 @@ class FormatRundownBroadcast(CellFormat):
 
     def display(self, obj, **kwargs):
         if obj.id:
-            if obj["run_mode"] == RUN_SKIP:
+            if obj["run_mode"] == RunMode.RUN_SKIP:
                 return ""
             return obj.show(self.key)
         return ""
@@ -202,13 +184,13 @@ class FormatRunMode(CellFormat):
     key = "run_mode"
 
     def display(self, obj, **kwargs):
-        if obj[self.key] == RUN_MANUAL:
+        if obj[self.key] == RunMode.RUN_MANUAL:
             return "MANUAL"
-        if obj[self.key] == RUN_SOFT:
+        if obj[self.key] == RunMode.RUN_SOFT:
             return "SOFT"
-        elif obj[self.key] == RUN_HARD:
+        elif obj[self.key] == RunMode.RUN_HARD:
             return "HARD"
-        elif obj[self.key] == RUN_SKIP:
+        elif obj[self.key] == RunMode.RUN_SKIP:
             return "SKIP"
         if obj.id:
             return "AUTO"
@@ -219,7 +201,7 @@ class FormatDuration(CellFormat):
     key = "duration"
 
     def display(self, obj, **kwargs):
-        if obj["loop"]:
+        if obj.get("loop"):
             return "--:--:--:--"
         if obj.object_type in ["asset", "item"] and obj["duration"]:
             t = s2time(obj.duration)
@@ -296,9 +278,9 @@ class FormatTitle(CellFormat):
     def decoration(self, obj, **kwargs):
         if obj.object_type == "event":
             return ["unstar-sm", "star-sm"][int(obj["promoted"])]
-        elif obj["status"] == ARCHIVED:
+        elif obj["status"] == ObjectStatus.ARCHIVED:
             return "archive-sm"
-        elif obj["status"] == TRASHED:
+        elif obj["status"] == ObjectStatus.TRASHED:
             return "trash-sm"
 
         if obj.object_type == "item":
@@ -319,8 +301,8 @@ class FormatTitle(CellFormat):
             return STATUS_FG_COLORS[obj["status"]]
         elif obj.object_type == "item" and obj["id_asset"]:
             item_status = parse_item_status(obj)
-            if item_status == REMOTE:
-                return STATUS_FG_COLORS[ONLINE]
+            if item_status == ObjectStatus.REMOTE:
+                return STATUS_FG_COLORS[ObjectStatus.ONLINE]
             return STATUS_FG_COLORS[item_status]
 
     def font(self, obj, **kwargs):
@@ -366,13 +348,13 @@ class FireflyObject(BaseObject):
         model = kwargs.get("model")
         if self.object_type == "item":
             if (
-                self["status"] == AIRED
+                self["status"] == ObjectStatus.AIRED
                 and model
                 and model.cued_item != self.id
                 and model.current_item != self.id
             ):
-                return STATUS_FG_COLORS[AIRED]
-            if self["run_mode"] == RUN_SKIP:
+                return STATUS_FG_COLORS[ObjectStatus.AIRED]
+            if self["run_mode"] == RunMode.RUN_SKIP:
                 return Colors.TEXT_FADED
         if key in format_helpers:
             return format_helpers[key].foreground(self, **kwargs)
@@ -402,7 +384,7 @@ class FireflyObject(BaseObject):
 
     def format_font(self, key, **kwargs):
         if self.object_type == "item":
-            if self["run_mode"] == RUN_SKIP and key == "title":
+            if self["run_mode"] == RunMode.RUN_SKIP and key == "title":
                 return "strikeout"
             if self["id_asset"] == self["rundown_event_asset"]:
                 return "bold"

@@ -5,7 +5,7 @@ import time
 from nxtools import logging, log_traceback
 
 from firefly.cellformat import FireflyObject
-from firefly.core.enum import AssetState
+from firefly.core.enum import ObjectStatus
 from firefly.core.common import config
 from firefly.core.base_objects import (
     AssetMixIn,
@@ -22,7 +22,7 @@ class Asset(AssetMixIn, FireflyObject):
 
 asset_loading = Asset()
 asset_loading["title"] = "Loading..."
-asset_loading["status"] = AssetState.CREATING
+asset_loading["status"] = ObjectStatus.CREATING
 
 
 CACHE_LIMIT = 10000

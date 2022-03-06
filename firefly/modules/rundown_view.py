@@ -257,6 +257,7 @@ class RundownView(FireflyView):
         mode = not self.selected_objects[0]["loop"]
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.WaitCursor)
+        print("loop:", mode)
         response = api.set(
             object_type=self.selected_objects[0].object_type,
             objects=[obj.id for obj in self.selected_objects],

@@ -6,7 +6,7 @@ from nxtools import logging, log_traceback
 from firefly.api import api
 from firefly.common import pixlib
 from firefly.core.common import config
-from firefly.core.enum import AssetState
+from firefly.core.enum import ObjectStatus
 from firefly.dialogs.send_to import show_send_to_dialog
 from firefly.dialogs.batch_ops import show_batch_ops_dialog
 
@@ -338,20 +338,20 @@ class BrowserTab(QWidget):
 
         states = set([obj["status"] for obj in objs])
 
-        if states == set([AssetState.TRASHED]):
+        if states == set([ObjectStatus.TRASHED]):
             action_untrash = QAction("Untrash", self)
             action_untrash.setStatusTip("Take selected asset(s) from trash")
             action_untrash.triggered.connect(self.on_untrash)
             menu.addAction(action_untrash)
 
-        if states == set([AssetState.ARCHIVED]):
+        if states == set([ObjectStatus.ARCHIVED]):
             action_unarchive = QAction("Unarchive", self)
             action_unarchive.setStatusTip("Take selected asset(s) from archive")
             action_unarchive.triggered.connect(self.on_unarchive)
             menu.addAction(action_unarchive)
 
         elif states.issubset(
-            [AssetState.ONLINE, AssetState.CREATING, AssetState.OFFLINE]
+            [ObjectStatus.ONLINE, ObjectStatus.CREATING, ObjectStatus.OFFLINE]
         ):
             action_move_to_trash = QAction("Move to trash", self)
             action_move_to_trash.setStatusTip("Move selected asset(s) to trash")
@@ -415,11 +415,11 @@ class BrowserTab(QWidget):
             obj.id
             for obj in self.view.selected_objects
             if obj["status"]
-            not in [AssetState.ARCHIVED, AssetState.TRASHED, AssetState.RESET]
+            not in [ObjectStatus.ARCHIVED, ObjectStatus.TRASHED, ObjectStatus.RESET]
         ]
         if not objects:
             return
-        response = api.set(objects=objects, data={"status": AssetState.RESET})
+        response = api.set(objects=objects, data={"status": ObjectStatus.RESET})
         if not response:
             return
         self.refresh_assets(*objects, request_data=True)
@@ -428,7 +428,7 @@ class BrowserTab(QWidget):
         objects = [
             obj.id
             for obj in self.view.selected_objects
-            if obj["status"] not in [AssetState.ARCHIVED, AssetState.TRASHED]
+            if obj["status"] not in [ObjectStatus.ARCHIVED, ObjectStatus.TRASHED]
         ]
         if not objects:
             return
@@ -439,7 +439,7 @@ class BrowserTab(QWidget):
             QMessageBox.Yes | QMessageBox.No,
         )
         if ret == QMessageBox.Yes:
-            response = api.set(objects=objects, data={"status": AssetState.TRASHED})
+            response = api.set(objects=objects, data={"status": ObjectStatus.TRASHED})
         else:
             return
         if not response:
@@ -451,11 +451,11 @@ class BrowserTab(QWidget):
         objects = [
             obj.id
             for obj in self.view.selected_objects
-            if obj["status"] in [AssetState.TRASHED]
+            if obj["status"] in [ObjectStatus.TRASHED]
         ]
         if not objects:
             return
-        response = api.set(objects=objects, data={"status": AssetState.CREATING})
+        response = api.set(objects=objects, data={"status": ObjectStatus.CREATING})
         if not response:
             logging.error("Unable to untrash:\n\n" + response.message)
             return
@@ -465,7 +465,7 @@ class BrowserTab(QWidget):
         objects = [
             obj.id
             for obj in self.view.selected_objects
-            if obj["status"] not in [AssetState.ARCHIVED, AssetState.TRASHED]
+            if obj["status"] not in [ObjectStatus.ARCHIVED, ObjectStatus.TRASHED]
         ]
         if not objects:
             return
@@ -476,7 +476,7 @@ class BrowserTab(QWidget):
             QMessageBox.Yes | QMessageBox.No,
         )
         if ret == QMessageBox.Yes:
-            response = api.set(objects=objects, data={"status": AssetState.ARCHIVED})
+            response = api.set(objects=objects, data={"status": ObjectStatus.ARCHIVED})
         else:
             return
         if not response:
@@ -488,11 +488,11 @@ class BrowserTab(QWidget):
         objects = [
             obj.id
             for obj in self.view.selected_objects
-            if obj["status"] in [AssetState.ARCHIVED]
+            if obj["status"] in [ObjectStatus.ARCHIVED]
         ]
         if not objects:
             return
-        response = api.set(objects=objects, data={"status": AssetState.RETRIEVING})
+        response = api.set(objects=objects, data={"status": ObjectStatus.RETRIEVING})
         if not response:
             logging.error("Unable to unarchive:\n\n" + response.message)
             return

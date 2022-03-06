@@ -6,7 +6,7 @@ from firefly.api import api
 from firefly.common import pixlib
 from firefly.core.common import config
 from firefly.core.metadata import meta_types
-from firefly.core.enum import MetaClass, AssetState
+from firefly.core.enum import MetaClass, ObjectStatus
 from firefly.base_module import BaseModule
 from firefly.modules.detail_toolbars import detail_toolbar, preview_toolbar
 from firefly.modules.detail_subclips import FireflySubclipsView
@@ -417,7 +417,7 @@ class DetailModule(BaseModule):
         self.duration.fps = self.asset.fps
         self.duration.set_value(self.asset.duration)
         self.duration.show()
-        if (self.asset["status"] == AssetState.OFFLINE) or (not self.asset.id):
+        if (self.asset["status"] == ObjectStatus.OFFLINE) or (not self.asset.id):
             self.duration.setEnabled(True)
         else:
             self.duration.setEnabled(False)
