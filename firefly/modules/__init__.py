@@ -3,7 +3,7 @@ __all__ = [
     "DetailModule",
     "JobsModule",
     "SchedulerModule",
-    "RundownModule"
+    "RundownModule",
 ]
 
 

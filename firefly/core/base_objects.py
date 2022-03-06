@@ -169,10 +169,7 @@ class BaseObject:
 class AssetMixIn:
     object_type_id = 0
     required = ["media_type", "content_type", "id_folder"]
-    defaults = {
-        "media_type": MediaType.VIRTUAL,
-        "content_type": ContentType.TEXT
-    }
+    defaults = {"media_type": MediaType.VIRTUAL, "content_type": ContentType.TEXT}
 
     def mark_in(self, new_val=False):
         if new_val:
