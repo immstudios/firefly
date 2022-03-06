@@ -1,8 +1,22 @@
-from firefly import *
+from nxtools import logging
+
+from firefly.api import api
+from firefly.core.common import config
+from firefly.core.metadata import meta_types
+from firefly.core.enum import MetaClass
+from firefly.widgets import MetaEditor
+from firefly.qt import (
+    Qt,
+    QDialog,
+    QScrollArea,
+    QFrame,
+    QDialogButtonBox,
+    QVBoxLayout,
+    QMessageBox,
+)
+
 
 ERR = "** ERROR **"
-
-__all__ = ["batch_ops_dialog"]
 
 
 class BatchOpsDialog(QDialog):
@@ -16,7 +30,7 @@ class BatchOpsDialog(QDialog):
 
         if self.form:
             for key, conf in self.keys:
-                if meta_types[key]["class"] in [SELECT, LIST]:
+                if meta_types[key]["class"] in [MetaClass.SELECT, MetaClass.LIST]:
                     self.form.inputs[key].auto_data(
                         meta_types[key], id_folder=id_folder
                     )
@@ -85,7 +99,7 @@ class BatchOpsDialog(QDialog):
         self.close()
 
 
-def batch_ops_dialog(objects):
+def show_batch_ops_dialog(objects):
     dlg = BatchOpsDialog(None, objects)
     dlg.exec_()
     return dlg.response

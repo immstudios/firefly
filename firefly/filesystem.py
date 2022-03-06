@@ -1,6 +1,7 @@
 import os
 
-from .common import *
+from nxtools import PLATFORM, logging
+from firefly.core.common import config
 
 
 if PLATFORM == "windows":
@@ -35,7 +36,7 @@ def load_filesystem(handler=False):
                 try:
                     site, id_storage = line.split(":")
                     id_storage = int(id_storage)
-                except:
+                except Exception:
                     continue
 
                 if site != config["site_name"]:

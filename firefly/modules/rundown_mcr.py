@@ -1,7 +1,21 @@
 import time
 import math
 
-from firefly import *
+from nxtools import s2tc
+
+from firefly.api import api
+from firefly.objects import has_right
+from firefly.qt import (
+    QApplication,
+    QPushButton,
+    QLabel,
+    QWidget,
+    QProgressBar,
+    QHBoxLayout,
+    QGridLayout,
+    QVBoxLayout,
+    QTimer,
+)
 
 PROGRESS_BAR_RESOLUTION = 1000
 
@@ -181,13 +195,10 @@ class MCR(QWidget):
             self.pos = status["position"] + (1 / self.fps)
             dur = status["duration"]
 
-        if (
-            status.get("loop") != None
-        ):  # TODO: remove this condition in 5.4 as it should be always present
-            self.btn_loop.setEnabled(True)
-            if status.get("loop") != self.btn_loop.isChecked():
-                print("Loop", status.get("loop"))
-                self.btn_loop.setChecked(status.get("loop"))
+        self.btn_loop.setEnabled(True)
+        if status.get("loop") != self.btn_loop.isChecked():
+            print("Loop", status.get("loop"))
+            self.btn_loop.setChecked(status.get("loop"))
         else:
             self.btn_loop.setEnabled(False)
 

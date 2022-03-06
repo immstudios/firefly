@@ -1,11 +1,19 @@
 import functools
-from firefly import *
+from nxtools import logging, s2time
 
 from .rundown_model import RundownModel
 
-from firefly.dialogs.event import *
-from firefly.dialogs.rundown import *
-from firefly.dialogs.send_to import *
+from firefly.api import api
+from firefly.core.common import config
+from firefly.core.enum import RunMode
+from firefly.objects import has_right
+
+from firefly.dialogs.event import show_event_dialog
+from firefly.dialogs.send_to import show_send_to_dialog
+from firefly.dialogs.rundown import PlaceholderDialog, show_trim_dialog
+
+from firefly.view import FireflyView
+from firefly.qt import Qt, QAbstractItemView, QMenu, QAction, QApplication, QMessageBox
 
 
 class RundownView(FireflyView):
@@ -123,10 +131,10 @@ class RundownView(FireflyView):
                 action_mode_auto.setStatusTip("Set run mode to auto")
                 action_mode_auto.setCheckable(True)
                 action_mode_auto.setChecked(
-                    self.selected_objects[0]["run_mode"] == RUN_AUTO
+                    self.selected_objects[0]["run_mode"] == RunMode.RUN_AUTO
                 )
                 action_mode_auto.triggered.connect(
-                    functools.partial(self.on_set_mode, RUN_AUTO)
+                    functools.partial(self.on_set_mode, RunMode.RUN_AUTO)
                 )
                 mode_menu.addAction(action_mode_auto)
 
@@ -134,10 +142,10 @@ class RundownView(FireflyView):
                 action_mode_manual.setStatusTip("Set run mode to manual")
                 action_mode_manual.setCheckable(True)
                 action_mode_manual.setChecked(
-                    self.selected_objects[0]["run_mode"] == RUN_MANUAL
+                    self.selected_objects[0]["run_mode"] == RunMode.RUN_MANUAL
                 )
                 action_mode_manual.triggered.connect(
-                    functools.partial(self.on_set_mode, RUN_MANUAL)
+                    functools.partial(self.on_set_mode, RunMode.RUN_MANUAL)
                 )
                 mode_menu.addAction(action_mode_manual)
 
@@ -145,10 +153,10 @@ class RundownView(FireflyView):
                 action_mode_skip.setStatusTip("Set run mode to skip")
                 action_mode_skip.setCheckable(True)
                 action_mode_skip.setChecked(
-                    self.selected_objects[0]["run_mode"] == RUN_SKIP
+                    self.selected_objects[0]["run_mode"] == RunMode.RUN_SKIP
                 )
                 action_mode_skip.triggered.connect(
-                    functools.partial(self.on_set_mode, RUN_SKIP)
+                    functools.partial(self.on_set_mode, RunMode.RUN_SKIP)
                 )
                 mode_menu.addAction(action_mode_skip)
 
@@ -168,10 +176,10 @@ class RundownView(FireflyView):
                 action_mode_auto.setStatusTip("Set run mode to auto")
                 action_mode_auto.setCheckable(True)
                 action_mode_auto.setChecked(
-                    self.selected_objects[0]["run_mode"] == RUN_AUTO
+                    self.selected_objects[0]["run_mode"] == RunMode.RUN_AUTO
                 )
                 action_mode_auto.triggered.connect(
-                    functools.partial(self.on_set_mode, RUN_AUTO)
+                    functools.partial(self.on_set_mode, RunMode.RUN_AUTO)
                 )
                 mode_menu.addAction(action_mode_auto)
 
@@ -179,10 +187,10 @@ class RundownView(FireflyView):
                 action_mode_manual.setStatusTip("Set run mode to manual")
                 action_mode_manual.setCheckable(True)
                 action_mode_manual.setChecked(
-                    self.selected_objects[0]["run_mode"] == RUN_MANUAL
+                    self.selected_objects[0]["run_mode"] == RunMode.RUN_MANUAL
                 )
                 action_mode_manual.triggered.connect(
-                    functools.partial(self.on_set_mode, RUN_MANUAL)
+                    functools.partial(self.on_set_mode, RunMode.RUN_MANUAL)
                 )
                 mode_menu.addAction(action_mode_manual)
 
@@ -190,10 +198,10 @@ class RundownView(FireflyView):
                 action_mode_soft.setStatusTip("Set run mode to soft")
                 action_mode_soft.setCheckable(True)
                 action_mode_soft.setChecked(
-                    self.selected_objects[0]["run_mode"] == RUN_SOFT
+                    self.selected_objects[0]["run_mode"] == RunMode.RUN_SOFT
                 )
                 action_mode_soft.triggered.connect(
-                    functools.partial(self.on_set_mode, RUN_SOFT)
+                    functools.partial(self.on_set_mode, RunMode.RUN_SOFT)
                 )
                 mode_menu.addAction(action_mode_soft)
 
@@ -201,10 +209,10 @@ class RundownView(FireflyView):
                 action_mode_hard.setStatusTip("Set run mode to hard")
                 action_mode_hard.setCheckable(True)
                 action_mode_hard.setChecked(
-                    self.selected_objects[0]["run_mode"] == RUN_HARD
+                    self.selected_objects[0]["run_mode"] == RunMode.RUN_HARD
                 )
                 action_mode_hard.triggered.connect(
-                    functools.partial(self.on_set_mode, RUN_HARD)
+                    functools.partial(self.on_set_mode, RunMode.RUN_HARD)
                 )
                 mode_menu.addAction(action_mode_hard)
 
@@ -279,7 +287,7 @@ class RundownView(FireflyView):
 
     def on_trim(self):
         item = self.selected_objects[0]
-        trim_dialog(item)
+        show_trim_dialog(item)
         self.model().load()
 
     def on_solve(self, solver):
@@ -311,9 +319,9 @@ class RundownView(FireflyView):
             ret = QMessageBox.question(
                 self,
                 "Delete",
-                "Do you REALLY want to delete {} items and {} events?\nThis operation CANNOT be undone".format(
-                    len(items), len(events)
-                ),
+                "Do you REALLY want to delete "
+                f"{len(items)} items and {len(events)} events?\n"
+                "This operation CANNOT be undone",
                 QMessageBox.Yes | QMessageBox.No,
             )
 
@@ -354,7 +362,7 @@ class RundownView(FireflyView):
                 if obj.object_type == "item" and obj["id_asset"]
             ]
         )
-        send_to_dialog(objs)
+        show_send_to_dialog(objs)
         self.model().load()
 
     def on_edit_item(self):
@@ -384,13 +392,13 @@ class RundownView(FireflyView):
 
     def on_edit_event(self):
         objs = [obj for obj in self.selected_objects if obj.object_type == "event"]
-        if event_dialog(event=objs[0]):
+        if show_event_dialog(event=objs[0]):
             self.model().load()
         self.parent().main_window.scheduler.load()
 
     def on_activate(self, mi):
         obj = self.model().object_data[mi.row()]
-        can_mcr = user.has_right("mcr", self.id_channel)
+        can_mcr = has_right("mcr", self.id_channel)
         if obj.object_type == "item":
 
             if obj.id:

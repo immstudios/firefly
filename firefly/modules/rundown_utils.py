@@ -1,7 +1,23 @@
 import time
+import json
 import datetime
 
-from firefly import *
+from firefly.common import pixlib
+from firefly.objects import has_right
+from firefly.widgets import ToolBarStretcher, ChannelDisplay
+from firefly.qt import (
+    Qt,
+    QAction,
+    QToolBar,
+    QDialog,
+    QCalendarWidget,
+    QVBoxLayout,
+    QDate,
+    QToolButton,
+    QIcon,
+    QDrag,
+    QMimeData,
+)
 
 
 ITEM_BUTTONS = [
@@ -71,7 +87,7 @@ class ItemButton(QToolButton):
         super(ItemButton, self).__init__()
         self.button_config = config
         self.pressed.connect(self.startDrag)
-        self.setIcon(QIcon(pix_lib[self.button_config["icon"]]))
+        self.setIcon(QIcon(pixlib[self.button_config["icon"]]))
         self.setToolTip(self.button_config["tooltip"])
 
     def startDrag(self):
@@ -81,7 +97,7 @@ class ItemButton(QToolButton):
                 item_data[key] = self.button_config[key]
         drag = QDrag(self)
         mimeData = QMimeData()
-        mimeData.setData("application/nx.item", encode_if_py3(json.dumps([item_data])))
+        mimeData.setData("application/nx.item", bytes(json.dumps([item_data])))
         drag.setMimeData(mimeData)
         if drag.exec_(Qt.CopyAction):
             pass  # nejak to rozumne ukonc
@@ -100,35 +116,35 @@ def rundown_toolbar(wnd):
 
     toolbar = QToolBar(wnd)
 
-    action_day_prev = QAction(QIcon(pix_lib["previous"]), "&Previous day", wnd)
+    action_day_prev = QAction(QIcon(pixlib["previous"]), "&Previous day", wnd)
     action_day_prev.setShortcut("Alt+Left")
     action_day_prev.setStatusTip("Go to previous day")
     action_day_prev.triggered.connect(wnd.go_day_prev)
     toolbar.addAction(action_day_prev)
 
-    action_now = QAction(QIcon(pix_lib["now"]), "&Now", wnd)
+    action_now = QAction(QIcon(pixlib["now"]), "&Now", wnd)
     action_now.setStatusTip("Go to now")
     action_now.triggered.connect(wnd.go_now)
     toolbar.addAction(action_now)
 
-    action_calendar = QAction(QIcon(pix_lib["calendar"]), "&Calendar", wnd)
+    action_calendar = QAction(QIcon(pixlib["calendar"]), "&Calendar", wnd)
     action_calendar.setShortcut("Ctrl+D")
     action_calendar.setStatusTip("Open calendar")
     action_calendar.triggered.connect(wnd.show_calendar)
     toolbar.addAction(action_calendar)
 
-    action_refresh = QAction(QIcon(pix_lib["refresh"]), "&Refresh", wnd)
+    action_refresh = QAction(QIcon(pixlib["refresh"]), "&Refresh", wnd)
     action_refresh.setStatusTip("Refresh rundown")
     action_refresh.triggered.connect(wnd.load)
     toolbar.addAction(action_refresh)
 
-    action_day_next = QAction(QIcon(pix_lib["next"]), "&Next day", wnd)
+    action_day_next = QAction(QIcon(pixlib["next"]), "&Next day", wnd)
     action_day_next.setShortcut("Alt+Right")
     action_day_next.setStatusTip("Go to next day")
     action_day_next.triggered.connect(wnd.go_day_next)
     toolbar.addAction(action_day_next)
 
-    if user.has_right("rundown_edit", anyval=True):
+    if has_right("rundown_edit", anyval=True):
 
         toolbar.addSeparator()
 
@@ -137,13 +153,13 @@ def rundown_toolbar(wnd):
 
         toolbar.addSeparator()
 
-        action_toggle_mcr = QAction(QIcon(pix_lib["mcr"]), "&Playout controls", wnd)
+        action_toggle_mcr = QAction(QIcon(pixlib["mcr"]), "&Playout controls", wnd)
         action_toggle_mcr.setStatusTip("Toggle playout controls")
         action_toggle_mcr.triggered.connect(wnd.toggle_mcr)
         toolbar.addAction(action_toggle_mcr)
 
         action_toggle_plugins = QAction(
-            QIcon(pix_lib["plugins"]), "&Plugins controls", wnd
+            QIcon(pixlib["plugins"]), "&Plugins controls", wnd
         )
         action_toggle_plugins.setShortcut("F4")
         action_toggle_plugins.setStatusTip("Toggle plugins controls")

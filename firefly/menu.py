@@ -1,6 +1,12 @@
 from functools import partial
 
-from .common import *
+from firefly.core.common import config
+from firefly.dialogs.about import show_about_dialog
+from firefly.objects import has_right
+from firefly.qt import (
+    QAction,
+    QActionGroup,
+)
 
 
 def create_menu(wnd):
@@ -112,10 +118,10 @@ def create_menu(wnd):
             a.id_channel = id_channel
             a.triggered.connect(partial(wnd.set_channel, id_channel))
             if (
-                user.has_right("rundown_view", a.id_channel)
-                or user.has_right("rundown_edit", a.id_channel)
-                or user.has_right("scheduler_view", a.id_channel)
-                or user.has_right("scheduler_edit", a.id_channel)
+                has_right("rundown_view", a.id_channel)
+                or has_right("rundown_edit", a.id_channel)
+                or has_right("scheduler_view", a.id_channel)
+                or has_right("scheduler_edit", a.id_channel)
             ):
                 a.setEnabled(True)
             else:
@@ -179,5 +185,5 @@ def create_menu(wnd):
 
     action_about = QAction("&About", wnd)
     action_about.setStatusTip("About Firefly")
-    action_about.triggered.connect(partial(about_dialog, wnd))
+    action_about.triggered.connect(partial(show_about_dialog, wnd))
     menu_help.addAction(action_about)

@@ -1,6 +1,24 @@
 __all__ = ["ComboMenuDelegate", "CheckComboBox"]
 
-from firefly.common import *
+
+from firefly.qt import (
+    Qt,
+    QAbstractItemDelegate,
+    QApplication,
+    QStyle,
+    QStyleOptionMenuItem,
+    QBrush,
+    QColor,
+    QPixmap,
+    QPalette,
+    QIcon,
+    QFontMetrics,
+    QComboBox,
+    QTimer,
+    QStyleOptionComboBox,
+    QStylePainter,
+    QEvent,
+)
 
 
 class ComboMenuDelegate(QAbstractItemDelegate):

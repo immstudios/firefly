@@ -1,13 +1,27 @@
-from firefly import *
-
 __all__ = ["PlaceholderDialog", "SubclipSelectDialog", "trim_dialog"]
+
+import functools
+
+from nxtools import s2tc, logging
+
+from firefly.api import api
+from firefly.core.metadata import meta_types
+from firefly.core.enum import MetaClass
+from firefly.widgets import MetaEditor
+from firefly.qt import (
+    Qt,
+    QDialog,
+    QDialogButtonBox,
+    QVBoxLayout,
+    QPushButton,
+    QApplication,
+)
 
 
 class PlaceholderDialog(QDialog):
     def __init__(self, parent, meta):
         super(PlaceholderDialog, self).__init__(parent)
         self.setWindowTitle("Rundown placeholder")
-        item_role = meta.get("item_role", "placeholder")
 
         self.ok = False
 
@@ -18,7 +32,7 @@ class PlaceholderDialog(QDialog):
 
         self.form = MetaEditor(parent, keys)
         for k in keys:
-            if meta_types[k[0]]["class"] == SELECT:
+            if meta_types[k[0]]["class"] == MetaClass.SELECT:
                 self.form.inputs[k[0]].auto_data(meta_types[k[0]])
             k = k[0]
             self.form[k] = meta[k]
@@ -170,6 +184,6 @@ class TrimDialog(QDialog):
         self.close()
 
 
-def trim_dialog(item):
+def show_trim_dialog(item):
     dlg = TrimDialog(None, item)
     dlg.exec_()

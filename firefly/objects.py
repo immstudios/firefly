@@ -1,16 +1,19 @@
 import os
 import json
 import time
-import copy
-import functools
 
 from nxtools import logging, log_traceback
-from nebulacore import *
-from nebulacore.base_objects import *
 
-from .cellformat import *
-
-__all__ = ["Asset", "Item", "Bin", "Event", "User", "asset_cache"]
+from firefly.cellformat import FireflyObject
+from firefly.core.enum import AssetState
+from firefly.core.common import config
+from firefly.core.base_objects import (
+    AssetMixIn,
+    ItemMixIn,
+    BinMixIn,
+    EventMixIn,
+    UserMixIn,
+)
 
 
 class Asset(AssetMixIn, FireflyObject):
@@ -19,7 +22,7 @@ class Asset(AssetMixIn, FireflyObject):
 
 asset_loading = Asset()
 asset_loading["title"] = "Loading..."
-asset_loading["status"] = CREATING
+asset_loading["status"] = AssetState.CREATING
 
 
 CACHE_LIMIT = 10000
@@ -33,7 +36,7 @@ class AssetCache(object):
 
     def __getitem__(self, key):
         key = int(key)
-        if not key in self.data:
+        if key not in self.data:
             logging.debug("Direct loading asset id", key)
             self.request([[key, 0]])
             return Asset()
@@ -49,7 +52,7 @@ class AssetCache(object):
         to_update = []
         for id, mtime in requested:
             id = int(id)
-            if not id in self.data:
+            if id not in self.data:
                 to_update.append(id)
             elif not mtime:
                 to_update.append(id)
@@ -96,7 +99,7 @@ class AssetCache(object):
         start_time = time.time()
         try:
             data = json.load(open(self.cache_path))
-        except:
+        except Exception:
             log_traceback("Corrupted cache file '{}'".format(self.cache_path))
             return
 
@@ -144,3 +147,10 @@ class Event(EventMixIn, FireflyObject):
 
 class User(UserMixIn, FireflyObject):
     pass
+
+
+user = User()
+
+
+def has_right(*args, **kwargs):
+    return user.has_right(*args, **kwargs)

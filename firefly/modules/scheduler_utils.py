@@ -1,5 +1,9 @@
 import re
-from firefly import *
+
+from nxtools import format_time
+
+from firefly.core.metadata import meta_types
+from firefly.qt import Qt, QColor, QPen, QFontMetrics
 
 COLOR_CALENDAR_BACKGROUND = QColor("#161616")
 COLOR_DAY_BACKGROUND = QColor("#323232")
@@ -70,7 +74,7 @@ def dump_template(calendar):
                 if meta_types[key]["ns"] != "m":
                     continue
                 value = event[key]
-                if type(value) in string_types:
+                if type(value) is str:
                     value = value.replace("&", "&amp;")
                 result += f'            <meta key="{key}">{value}</meta>\n'
             result += "        </event>\n"

@@ -1,9 +1,16 @@
-import math
 import functools
 
-from firefly import *
+from firefly.base_module import BaseModule
+from firefly.widgets import ToolBarStretcher
+from firefly.qt import (
+    Qt,
+    QLineEdit,
+    QToolBar,
+    QPushButton,
+    QVBoxLayout,
+)
 
-from .jobs_model import *
+from .jobs_model import FireflyJobsView
 
 
 class SearchWidget(QLineEdit):

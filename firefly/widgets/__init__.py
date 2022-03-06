@@ -1,9 +1,37 @@
 import copy
+import functools
 
-from nx import *
+from firefly.core.common import config
+from firefly.core.enum import MetaClass
+from firefly.core.metadata import meta_types
 
-from firefly.widgets.simple import *
-from firefly.widgets.combo import *
+from firefly.qt import (
+    Qt,
+    QMenu,
+    QAction,
+    QWidget,
+    QLabel,
+    QPushButton,
+    QSizePolicy,
+    QGridLayout,
+)
+
+from .simple import (
+    FireflyString,
+    FireflyText,
+    FireflyInteger,
+    FireflyNumeric,
+    FireflyBoolean,
+    FireflyDatetime,
+    FireflyTimecode,
+    FireflyColorPicker,
+)
+
+from .combo import (
+    FireflySelect,
+    FireflyList,
+    FireflyRadio,
+)
 
 
 class ChannelDisplay(QLabel):
@@ -47,18 +75,18 @@ class FireflyFraction(FireflyNotImplementedEditor):
 
 
 meta_editors = {
-    STRING: FireflyString,
-    TEXT: FireflyText,
-    INTEGER: FireflyInteger,
-    NUMERIC: FireflyNumeric,
-    BOOLEAN: FireflyBoolean,
-    DATETIME: FireflyDatetime,
-    TIMECODE: FireflyTimecode,
-    REGIONS: FireflyRegions,
-    FRACTION: FireflyFraction,
-    SELECT: FireflySelect,
-    LIST: FireflyList,
-    COLOR: FireflyColorPicker,
+    MetaClass.STRING: FireflyString,
+    MetaClass.TEXT: FireflyText,
+    MetaClass.INTEGER: FireflyInteger,
+    MetaClass.NUMERIC: FireflyNumeric,
+    MetaClass.BOOLEAN: FireflyBoolean,
+    MetaClass.DATETIME: FireflyDatetime,
+    MetaClass.TIMECODE: FireflyTimecode,
+    MetaClass.OBJECT: FireflyRegions,
+    MetaClass.FRACTION: FireflyFraction,
+    MetaClass.SELECT: FireflySelect,
+    MetaClass.LIST: FireflyList,
+    MetaClass.COLOR: FireflyColorPicker,
     "radio": FireflyRadio,
 }
 

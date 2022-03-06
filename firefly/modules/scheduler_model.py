@@ -3,11 +3,49 @@ import json
 import datetime
 import functools
 
-from firefly import *
-from firefly.modules.scheduler_utils import *
-from firefly.dialogs.event import *
+from nxtools import s2time, s2tc, format_time, logging
 
-__all__ = ["SchedulerCalendar"]
+from firefly.api import api
+from firefly.objects import Event, Asset, has_right
+from firefly.dialogs.event import show_event_dialog
+
+from firefly.qt import (
+    Qt,
+    QWidget,
+    QPainter,
+    QFont,
+    QColor,
+    QRect,
+    QLinearGradient,
+    QMimeData,
+    QDrag,
+    QMessageBox,
+    QMenu,
+    QAction,
+    QApplication,
+    QLabel,
+    QHBoxLayout,
+    QSizePolicy,
+    QScrollArea,
+    QFrame,
+    QSlider,
+    QVBoxLayout,
+    app_skin,
+)
+
+from firefly.modules.scheduler_utils import (
+    COLOR_CALENDAR_BACKGROUND,
+    COLOR_DAY_BACKGROUND,
+    TIME_PENS,
+    RUN_PENS,
+    SECS_PER_DAY,
+    MINS_PER_DAY,
+    SECS_PER_WEEK,
+    SAFE_OVERRUN,
+    CLOCKBAR_WIDTH,
+    text_shorten,
+    suggested_duration,
+)
 
 
 class SchedulerVerticalBar(QWidget):
@@ -197,7 +235,6 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         logging.debug(f"Start time: {e_start_time} End time: {e_end_time}")
 
     def mouseMoveEvent(self, e):
-        mx = e.x()
         my = e.y()
         ts = (my / self.min_size * 60) + self.start_time
         for i, event in enumerate(self.calendar.events):
@@ -215,7 +252,8 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                     diff = "Over: " + s2tc(diff)
 
                 self.setToolTip(
-                    f"<b>{event['title']}</b><br>Start: {format_time(event['start'], '%H:%M')}<br>{diff}"
+                    f"<b>{event['title']}</b>"
+                    f"<br>Start: {format_time(event['start'], '%H:%M')}<br>{diff}"
                 )
                 break
             self.cursor_event = False
@@ -242,10 +280,10 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         drag.setMimeData(mimeData)
         drag.setHotSpot(e.pos() - self.rect().topLeft())
         self.calendar.drag_source = self
-        dropAction = drag.exec_(Qt.MoveAction)
+        drag.exec_(Qt.MoveAction)
 
     def dragTargetChanged(self, evt):
-        if not user.has_right("scheduler_edit", self.calendar.id_channel):
+        if not has_right("scheduler_edit", self.calendar.id_channel):
             return
         if type(evt) == SchedulerDayWidget:
             self.drag_outside = False
@@ -254,7 +292,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             self.calendar.drag_source.update()
 
     def dragEnterEvent(self, evt):
-        if not user.has_right("scheduler_edit", self.calendar.id_channel):
+        if not has_right("scheduler_edit", self.calendar.id_channel):
             return
         if evt.mimeData().hasFormat("application/nx.asset"):
             d = evt.mimeData().data("application/nx.asset").data()
@@ -292,7 +330,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             self.calendar.drag_source.update()
 
     def dragMoveEvent(self, evt):
-        if not user.has_right("scheduler_edit", self.calendar.id_channel):
+        if not has_right("scheduler_edit", self.calendar.id_channel):
             return
         self.dragging = True
         self.calendar.focus_data = []
@@ -322,21 +360,20 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         )
         do_reload = False
 
-        if not user.has_right("scheduler_edit", self.id_channel):
+        if not has_right("scheduler_edit", self.id_channel):
             logging.error("You are not allowed to modify schedule of this channel.")
             self.calendar.drag_source = False
             self.calendar.dragging = False
             return
 
         elif type(self.calendar.dragging) == Asset:
-
             for event in self.calendar.events:
                 if event["start"] == drop_ts:
                     if event["duration"]:
                         ret = QMessageBox.question(
                             self,
                             "Overwrite",
-                            f"Do you really want to overwrite a non-empty event?\n{event}",
+                            f"Do you really want to overwrite {event}",
                             QMessageBox.Yes | QMessageBox.No,
                         )
                         if ret == QMessageBox.Yes:
@@ -349,9 +386,10 @@ class SchedulerDayWidget(SchedulerVerticalBar):
 
             if evt.keyboardModifiers() & Qt.AltModifier:
                 logging.info(
-                    f"Creating event from {self.calendar.dragging} at time {format_time(self.cursor_time)}"
+                    f"Creating event from {self.calendar.dragging}"
+                    f"at time {format_time(self.cursor_time)}"
                 )
-                if event_dialog(
+                if show_event_dialog(
                     asset=self.calendar.dragging,
                     id_channel=self.id_channel,
                     start=drop_ts,
@@ -385,7 +423,9 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 ret = QMessageBox.question(
                     self,
                     "Move event",
-                    f"Do you really want to move {self.cursor_event}?\n\nFrom: {format_time(event['start'])}\nTo: {format_time(drop_ts)}",
+                    f"Do you really want to move {self.cursor_event}?"
+                    f"\n\nFrom: {format_time(event['start'])}"
+                    f"\nTo: {format_time(drop_ts)}",
                     QMessageBox.Yes | QMessageBox.No,
                 )
                 if ret == QMessageBox.Yes:
@@ -398,7 +438,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 if not event.id:
                     logging.debug("Creating empty event")
                     # Create empty event. Event edit dialog is enforced.
-                    if event_dialog(id_channel=self.id_channel, start=drop_ts):
+                    if show_event_dialog(id_channel=self.id_channel, start=drop_ts):
                         do_reload = True
                 else:
                     # Just dragging events around. Instant save
@@ -439,7 +479,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         action_edit_event.triggered.connect(self.on_edit_event)
         menu.addAction(action_edit_event)
 
-        if user.has_right("scheduler_edit", self.calendar.id_channel):
+        if has_right("scheduler_edit", self.calendar.id_channel):
             menu.addSeparator()
             action_delete_event = QAction("Delete event", self)
             action_delete_event.triggered.connect(self.on_delete_event)
@@ -456,21 +496,22 @@ class SchedulerDayWidget(SchedulerVerticalBar):
     def on_edit_event(self):
         if not self.calendar.selected_event:
             return
-        if event_dialog(event=self.calendar.selected_event):
+        if show_event_dialog(event=self.calendar.selected_event):
             self.calendar.load()
 
     def on_delete_event(self):
         if not self.calendar.selected_event:
             return
         cursor_event = self.calendar.selected_event
-        if not user.has_right("scheduler_edit", self.id_channel):
+        if not has_right("scheduler_edit", self.id_channel):
             logging.error("You are not allowed to modify schedule of this channel.")
             return
 
         ret = QMessageBox.question(
             self,
             "Delete event",
-            f"Do you really want to delete {cursor_event}?\nThis operation cannot be undone.",
+            f"Do you really want to delete {cursor_event}?"
+            "\nThis operation cannot be undone.",
             QMessageBox.Yes | QMessageBox.No,
         )
         if ret == QMessageBox.Yes:

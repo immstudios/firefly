@@ -1,5 +1,32 @@
-from firefly.modules.detail_toolbars import *
-from firefly.modules.detail_subclips import *
+import time
+
+from nxtools import logging, format_time
+
+from firefly.api import api
+from firefly.common import pixlib
+from firefly.core.common import config
+from firefly.core.metadata import meta_types
+from firefly.core.enum import MetaClass, AssetState
+from firefly.base_module import BaseModule
+from firefly.modules.detail_toolbars import detail_toolbar, preview_toolbar
+from firefly.modules.detail_subclips import FireflySubclipsView
+from firefly.widgets import MetaEditor, FireflySelect, FireflyTimecode
+from firefly.objects import has_right, Asset, asset_cache, user
+
+from firefly.qt import (
+    Qt,
+    QWidget,
+    QApplication,
+    QVBoxLayout,
+    QScrollArea,
+    QFrame,
+    QTextEdit,
+    QFontDatabase,
+    QTabWidget,
+    QHBoxLayout,
+    QMessageBox,
+    QIcon,
+)
 
 from proxyplayer import VideoPlayer
 
@@ -55,7 +82,7 @@ class DetailTabMain(QWidget):
 
         if self.form:
             for key, conf in self.keys:
-                if meta_types[key]["class"] in [SELECT, LIST]:
+                if meta_types[key]["class"] in [MetaClass.SELECT, MetaClass.LIST]:
                     self.form.inputs[key].set_data(asset.show(key, result="full"))
                 self.form[key] = asset[key]
             self.form.set_defaults()
@@ -113,7 +140,7 @@ class DetailTabExtended(MetaList):
         data = ""
         for tag_group in ["core", "other"]:
             for tag in self.tag_groups[tag_group]:
-                if not tag in asset.meta:
+                if tag not in asset.meta:
                     continue
                 tag_title = meta_types[tag].alias()
                 value = asset.format_display(tag) or asset["tag"] or ""
@@ -138,7 +165,7 @@ class DetailTabTechnical(MetaList):
             return
         for tag_group in ["File", "Format", "QC"]:
             for tag in self.tag_groups[tag_group]:
-                if not tag in asset.meta:
+                if tag not in asset.meta:
                     continue
                 tag_title = meta_types[tag].alias()
                 value = asset.format_display(tag) or asset["tag"] or ""
@@ -261,7 +288,7 @@ class DetailTabs(QTabWidget):
     def on_switch(self, *args):
         try:
             index = int(args[0])
-        except:
+        except IndexError:
             index = self.currentIndex()
 
         if index == -1:
@@ -297,7 +324,7 @@ class DetailModule(BaseModule):
         self.folder_select = FireflySelect(self, data=fdata)
         for i, fd in enumerate(fdata):
             self.folder_select.setItemIcon(
-                i, QIcon(pix_lib["folder_" + str(fd["value"])])
+                i, QIcon(pixlib["folder_" + str(fd["value"])])
             )
         self.folder_select.currentIndexChanged.connect(self.on_folder_changed)
         self.folder_select.setEnabled(False)
@@ -390,7 +417,7 @@ class DetailModule(BaseModule):
         self.duration.fps = self.asset.fps
         self.duration.set_value(self.asset.duration)
         self.duration.show()
-        if self.asset["status"] == OFFLINE or not self.asset.id:
+        if (self.asset["status"] == AssetState.OFFLINE) or (not self.asset.id):
             self.duration.setEnabled(True)
         else:
             self.duration.setEnabled(False)
@@ -493,7 +520,11 @@ class DetailModule(BaseModule):
 
     def on_set_qc(self, state):
         state_name = {0: "New", 3: "Rejected", 4: "Approved"}[state]
-        report = f"{format_time(time.time())} : {user['login']} flagged the asset as {state_name}"
+        report = (
+            f"{format_time(time.time())} : {user['login']} "
+            f"flagged the asset as {state_name}"
+        )
+
         if self.asset["qc/report"]:
             report = self.asset["qc/report"] + "\n" + report
 

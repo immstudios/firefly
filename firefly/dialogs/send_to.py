@@ -1,7 +1,10 @@
 import functools
-from firefly import *
 
-__all__ = ["send_to_dialog"]
+from nxtools import logging
+
+from firefly.api import api
+from firefly.widgets import ActionButton
+from firefly.qt import Qt, QDialog, QVBoxLayout, QCheckBox, QApplication
 
 
 class SendToDialog(QDialog):
@@ -69,6 +72,6 @@ class SendToDialog(QDialog):
         QApplication.processEvents()
 
 
-def send_to_dialog(objects):
+def show_send_to_dialog(objects):
     dlg = SendToDialog(None, objects)
     dlg.exec_()

@@ -1,6 +1,18 @@
-from nx import *
-from firefly.common import *
-from firefly.dialogs.text_editor import TextEditorDialog
+import time
+
+from nxtools import logging, s2tc
+
+from firefly.qt import (
+    Qt,
+    QLineEdit,
+    QTextEdit,
+    QFontDatabase,
+    QFont,
+    QSpinBox,
+    QCheckBox,
+    QPushButton,
+    QColorDialog,
+)
 
 
 class FireflyString(QLineEdit):

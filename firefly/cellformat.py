@@ -2,18 +2,11 @@ __all__ = ["FireflyObject"]
 
 from nxtools import s2time, s2tc
 
-from .common import (
-    COLOR_TEXT_RED,
-    COLOR_TEXT_NORMAL,
-    COLOR_TEXT_YELLOW,
-    COLOR_TEXT_FADED,
-    COLOR_TEXT_FADED2,
-    COLOR_LIVE_BACKGROUND,
-)
+from firefly.common import Colors
 
-from nebulacore.common import config
-from nebulacore.base_objects import BaseObject
-from nebulacore.constants import (
+from firefly.core.common import config
+from firefly.core.base_objects import BaseObject
+from firefly.legacy.constants import (
     get_object_state_name,
     OFFLINE,
     ONLINE,
@@ -30,25 +23,25 @@ from nebulacore.constants import (
     RUN_SKIP,
     RUN_SOFT,
     RUN_HARD,
-    RUN_MANUAL
+    RUN_MANUAL,
 )
 
 
 RUNDOWN_EVENT_BACKGROUND_COLOR = "#0f0f0f"
 
 STATUS_FG_COLORS = {
-    OFFLINE: COLOR_TEXT_RED,
-    ONLINE: COLOR_TEXT_NORMAL,
-    CREATING: COLOR_TEXT_YELLOW,
-    TRASHED: COLOR_TEXT_FADED,
-    ARCHIVED: COLOR_TEXT_FADED,
-    RESET: COLOR_TEXT_YELLOW,
-    REMOTE: COLOR_TEXT_YELLOW,
-    UNKNOWN: COLOR_TEXT_RED,
-    CORRUPTED: COLOR_TEXT_RED,
-    AIRED: COLOR_TEXT_FADED2,
-    ONAIR: COLOR_TEXT_RED,
-    RETRIEVING: COLOR_TEXT_YELLOW,
+    OFFLINE: Colors.TEXT_RED,
+    ONLINE: Colors.TEXT_NORMAL,
+    CREATING: Colors.TEXT_YELLOW,
+    TRASHED: Colors.TEXT_FADED,
+    ARCHIVED: Colors.TEXT_FADED,
+    RESET: Colors.TEXT_YELLOW,
+    REMOTE: Colors.TEXT_YELLOW,
+    UNKNOWN: Colors.TEXT_RED,
+    CORRUPTED: Colors.TEXT_RED,
+    AIRED: Colors.TEXT_FADED2,
+    ONAIR: Colors.TEXT_RED,
+    RETRIEVING: Colors.TEXT_YELLOW,
 }
 
 DEFAULT_FOLDER = {"color": 0xAAAAAA, "title": "-"}
@@ -238,7 +231,7 @@ class FormatDuration(CellFormat):
 
     def foreground(self, obj, **kwargs):
         if obj["loop"]:
-            return COLOR_TEXT_YELLOW
+            return Colors.TEXT_YELLOW
         if obj["mark_in"] or obj["mark_out"]:
             return "#00ccaa"
 
@@ -380,7 +373,7 @@ class FireflyObject(BaseObject):
             ):
                 return STATUS_FG_COLORS[AIRED]
             if self["run_mode"] == RUN_SKIP:
-                return COLOR_TEXT_FADED
+                return Colors.TEXT_FADED
         if key in format_helpers:
             return format_helpers[key].foreground(self, **kwargs)
 
@@ -397,7 +390,7 @@ class FireflyObject(BaseObject):
             elif model.current_item == self.id:
                 return "#900505"
             elif self.object_type == "item" and self["item_role"] == "live":
-                return COLOR_LIVE_BACKGROUND
+                return Colors.LIVE_BACKGROUND
             elif not self["id_asset"]:
                 return "#303030"
         return None

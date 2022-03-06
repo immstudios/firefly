@@ -1,12 +1,38 @@
-import math
 import copy
 import functools
 
-from firefly import *
-from firefly.dialogs.send_to import *
-from firefly.dialogs.batch_ops import *
+from nxtools import logging, log_traceback
 
-from .browser_model import *
+from firefly.api import api
+from firefly.common import pixlib
+from firefly.core.common import config
+from firefly.core.enum import AssetState
+from firefly.dialogs.send_to import show_send_to_dialog
+from firefly.dialogs.batch_ops import show_batch_ops_dialog
+
+from firefly.base_module import BaseModule
+from firefly.objects import asset_cache
+from firefly.view import FireflyView
+from firefly.qt import (
+    Qt,
+    QLineEdit,
+    QAbstractItemView,
+    QApplication,
+    QPushButton,
+    QHBoxLayout,
+    QIcon,
+    QLabel,
+    QWidget,
+    QAction,
+    QMenu,
+    QToolBar,
+    QVBoxLayout,
+    QMessageBox,
+    QTabWidget,
+    app_skin,
+)
+
+from .browser_model import BrowserModel
 
 
 class SearchWidget(QLineEdit):
@@ -48,14 +74,12 @@ class FireflyBrowserView(FireflyView):
             if obj.object_type in ["asset", "item"]:
                 tot_dur += obj.duration
 
-        days = math.floor(tot_dur / (24 * 3600))
-        durstr = f"{days} days {s2time(tot_dur)}" if days else s2time(tot_dur)
-
         if self.selected_objects:
             self.main_window.focus(asset_cache[self.selected_objects[-1].id])
             if len(self.selected_objects) > 1 and tot_dur:
                 logging.debug(
-                    f"[BROWSER] {len(self.selected_objects)} objects selected. Total duration {durstr}"
+                    f"[BROWSER] {len(self.selected_objects)} objects selected. "
+                    "Total duration {durstr}"
                 )
         super(FireflyView, self).selectionChanged(selected, deselected)
 
@@ -119,7 +143,7 @@ class Pager(QWidget):
         self._parent = parent
 
         self.btn_prev = PagerButton()
-        self.btn_prev.setIcon(QIcon(pix_lib["previous"]))
+        self.btn_prev.setIcon(QIcon(pixlib["previous"]))
         self.btn_prev.clicked.connect(self.on_prev)
         layout.addWidget(self.btn_prev, 0)
 
@@ -128,7 +152,7 @@ class Pager(QWidget):
         layout.addWidget(self.info, 1)
 
         self.btn_next = PagerButton()
-        self.btn_next.setIcon(QIcon(pix_lib["next"]))
+        self.btn_next.setIcon(QIcon(pixlib["next"]))
         self.btn_next.clicked.connect(self.on_next)
         layout.addWidget(self.btn_next, 0)
 
@@ -174,12 +198,12 @@ class BrowserTab(QWidget):
             self.on_section_resize
         )
 
-        action_clear = QAction(QIcon(pix_lib["cancel"]), "&Clear search query", parent)
+        action_clear = QAction(QIcon(pixlib["cancel"]), "&Clear search query", parent)
         action_clear.triggered.connect(self.on_clear)
 
         self.action_search = QMenu("Views")
         self.action_search.setStyleSheet(app_skin)
-        self.action_search.menuAction().setIcon(QIcon(pix_lib["search"]))
+        self.action_search.menuAction().setIcon(QIcon(pixlib["search"]))
         self.action_search.menuAction().triggered.connect(self.load)
         self.load_view_menu()
 
@@ -241,9 +265,9 @@ class BrowserTab(QWidget):
     def on_section_resize(self, *args, **kwargs):
         if self.loading:
             return
-        if not "browser_view_sizes" in self.app_state:
+        if "browser_view_sizes" not in self.app_state:
             self.app_state["browser_view_sizes"] = {}
-        if not "browser_default_sizes" in self.app_state:
+        if "browser_default_sizes" not in self.app_state:
             self.app_state["browser_default_sizes"] = {}
 
         data = {}
@@ -314,19 +338,21 @@ class BrowserTab(QWidget):
 
         states = set([obj["status"] for obj in objs])
 
-        if states == set([TRASHED]):
+        if states == set([AssetState.TRASHED]):
             action_untrash = QAction("Untrash", self)
             action_untrash.setStatusTip("Take selected asset(s) from trash")
             action_untrash.triggered.connect(self.on_untrash)
             menu.addAction(action_untrash)
 
-        if states == set([ARCHIVED]):
+        if states == set([AssetState.ARCHIVED]):
             action_unarchive = QAction("Unarchive", self)
             action_unarchive.setStatusTip("Take selected asset(s) from archive")
             action_unarchive.triggered.connect(self.on_unarchive)
             menu.addAction(action_unarchive)
 
-        elif states.issubset([ONLINE, CREATING, OFFLINE]):
+        elif states.issubset(
+            [AssetState.ONLINE, AssetState.CREATING, AssetState.OFFLINE]
+        ):
             action_move_to_trash = QAction("Move to trash", self)
             action_move_to_trash.setStatusTip("Move selected asset(s) to trash")
             action_move_to_trash.triggered.connect(self.on_trash)
@@ -376,23 +402,24 @@ class BrowserTab(QWidget):
     def on_send_to(self):
         objs = self.view.selected_objects
         if objs:
-            send_to_dialog(objs)
+            show_send_to_dialog(objs)
 
     def on_batch_ops(self):
         objs = self.view.selected_objects
         if objs:
-            if batch_ops_dialog(objs):
+            if show_batch_ops_dialog(objs):
                 self.load()
 
     def on_reset(self):
         objects = [
             obj.id
             for obj in self.view.selected_objects
-            if obj["status"] not in [ARCHIVED, TRASHED, RESET]
+            if obj["status"]
+            not in [AssetState.ARCHIVED, AssetState.TRASHED, AssetState.RESET]
         ]
         if not objects:
             return
-        response = api.set(objects=objects, data={"status": RESET})
+        response = api.set(objects=objects, data={"status": AssetState.RESET})
         if not response:
             return
         self.refresh_assets(*objects, request_data=True)
@@ -401,7 +428,7 @@ class BrowserTab(QWidget):
         objects = [
             obj.id
             for obj in self.view.selected_objects
-            if obj["status"] not in [ARCHIVED, TRASHED]
+            if obj["status"] not in [AssetState.ARCHIVED, AssetState.TRASHED]
         ]
         if not objects:
             return
@@ -412,7 +439,7 @@ class BrowserTab(QWidget):
             QMessageBox.Yes | QMessageBox.No,
         )
         if ret == QMessageBox.Yes:
-            response = api.set(objects=objects, data={"status": TRASHED})
+            response = api.set(objects=objects, data={"status": AssetState.TRASHED})
         else:
             return
         if not response:
@@ -422,11 +449,13 @@ class BrowserTab(QWidget):
 
     def on_untrash(self):
         objects = [
-            obj.id for obj in self.view.selected_objects if obj["status"] in [TRASHED]
+            obj.id
+            for obj in self.view.selected_objects
+            if obj["status"] in [AssetState.TRASHED]
         ]
         if not objects:
             return
-        response = api.set(objects=objects, data={"status": CREATING})
+        response = api.set(objects=objects, data={"status": AssetState.CREATING})
         if not response:
             logging.error("Unable to untrash:\n\n" + response.message)
             return
@@ -436,7 +465,7 @@ class BrowserTab(QWidget):
         objects = [
             obj.id
             for obj in self.view.selected_objects
-            if obj["status"] not in [ARCHIVED, TRASHED]
+            if obj["status"] not in [AssetState.ARCHIVED, AssetState.TRASHED]
         ]
         if not objects:
             return
@@ -447,7 +476,7 @@ class BrowserTab(QWidget):
             QMessageBox.Yes | QMessageBox.No,
         )
         if ret == QMessageBox.Yes:
-            response = api.set(objects=objects, data={"status": ARCHIVED})
+            response = api.set(objects=objects, data={"status": AssetState.ARCHIVED})
         else:
             return
         if not response:
@@ -457,11 +486,13 @@ class BrowserTab(QWidget):
 
     def on_unarchive(self):
         objects = [
-            obj.id for obj in self.view.selected_objects if obj["status"] in [ARCHIVED]
+            obj.id
+            for obj in self.view.selected_objects
+            if obj["status"] in [AssetState.ARCHIVED]
         ]
         if not objects:
             return
-        response = api.set(objects=objects, data={"status": RETRIEVING})
+        response = api.set(objects=objects, data={"status": AssetState.RETRIEVING})
         if not response:
             logging.error("Unable to unarchive:\n\n" + response.message)
             return
@@ -544,7 +575,7 @@ class BrowserModule(BaseModule):
         self.tabs.setCurrentIndex(current_index)
 
     def new_tab(self, title=False, **kwargs):
-        if not "id_view" in kwargs:
+        if "id_view" not in kwargs:
             try:
                 id_view = self.tabs.currentWidget().id_view
             except AttributeError:

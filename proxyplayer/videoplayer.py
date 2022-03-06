@@ -1,6 +1,20 @@
 #!/usr/bin/env python3
 
-from .utils import *
+import functools
+
+from nxtools import logging, log_traceback
+from .utils import (
+    Qt,
+    QWidget,
+    QSlider,
+    QTimer,
+    QHBoxLayout,
+    QVBoxLayout,
+    QIcon,
+    RegionBar,
+    TimecodeWindow,
+    get_navbar,
+)
 
 try:
     from .mpv import MPV
@@ -54,7 +68,7 @@ class VideoPlayer(QWidget):
                 self.player = MPV(
                     keep_open=True, wid=str(int(self.video_window.winId()))
                 )
-            except:
+            except Exception:
                 log_traceback(handlers=False)
                 self.player = DummyPlayer()
 
@@ -147,7 +161,7 @@ class VideoPlayer(QWidget):
             self.on_duration_change(value)
 
         @self.player.property_observer("pause")
-        def duration_observer(_name, value):
+        def pause_observer(_name, value):
             self.on_pause_change(value)
 
         # Displays updater
@@ -337,23 +351,3 @@ class VideoPlayer(QWidget):
         ):
             self.update_marks()
             self.duration_changed = False
-
-
-if __name__ == "__main__":
-    path = "https://sport5.nebulabroadcast.com/proxy/0001/1000.mp4"
-
-    class Test(QMainWindow):
-        def __init__(self, parent=None):
-            super().__init__(parent)
-            self.player = VideoPlayer(self)
-            self.setCentralWidget(self.player)
-            self.player.load(path)
-
-    app = QApplication(sys.argv)
-
-    import locale
-
-    locale.setlocale(locale.LC_NUMERIC, "C")
-    win = Test()
-    win.show()
-    sys.exit(app.exec_())

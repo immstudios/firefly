@@ -1,4 +1,5 @@
-from .common import *
+from firefly.core.common import config
+from firefly.qt import QWidget
 
 __all__ = ["BaseModule"]
 

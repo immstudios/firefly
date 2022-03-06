@@ -2,9 +2,20 @@ import time
 import datetime
 import functools
 
-from firefly import *
+from nxtools import logging
 
-from .rundown_utils import *
+from firefly.base_module import BaseModule
+from firefly.objects import has_right
+from firefly.qt import (
+    QVBoxLayout,
+    QModelIndex,
+    QAbstractItemView,
+    QItemSelection,
+    QItemSelectionModel,
+    QInputDialog,
+)
+
+from .rundown_utils import rundown_toolbar, day_start, get_date
 from .rundown_mcr import MCR
 from .rundown_plugins import PlayoutPlugins
 from .rundown_view import RundownView
@@ -33,7 +44,7 @@ class RundownModule(BaseModule):
 
         self.mcr = self.plugins = False
 
-        if user.has_right("mcr", anyval=True):
+        if has_right("mcr", anyval=True):
             self.mcr = MCR(self)
             self.plugins = PlayoutPlugins(self)
             if self.app_state.get("show_mcr", False):
@@ -64,11 +75,11 @@ class RundownModule(BaseModule):
 
     @property
     def can_edit(self):
-        return user.has_right("rundown_edit", self.id_channel)
+        return has_right("rundown_edit", self.id_channel)
 
     @property
     def can_schedule(self):
-        return user.has_right("scheduler_edit", self.id_channel)
+        return has_right("scheduler_edit", self.id_channel)
 
     def load(self, **kwargs):
         event = kwargs.get("event", False)

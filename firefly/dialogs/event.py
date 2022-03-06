@@ -1,9 +1,11 @@
-import time
-import datetime
+from nxtools import logging
 
-from firefly import *
-
-__all__ = ["event_dialog"]
+from firefly.api import api
+from firefly.core.common import config
+from firefly.core.metadata import meta_types
+from firefly.objects import user, Event
+from firefly.widgets import MetaEditor
+from firefly.qt import Qt, QDialog, QDialogButtonBox, QVBoxLayout, app_skin
 
 
 default_meta_set = [
@@ -37,7 +39,7 @@ class EventDialog(QDialog):
         if "asset" in self.kwargs:
             asset = self.kwargs["asset"]
             for key in [k for k in meta_types if meta_types[k]["ns"] == "m"]:
-                if not key in asset.meta:
+                if key not in asset.meta:
                     continue
                 self.event[key] = asset[key]
 
@@ -72,7 +74,7 @@ class EventDialog(QDialog):
 
         meta = self.form.meta
         for key in ["id_channel", "start", "id"]:
-            if not key in meta:
+            if key not in meta:
                 meta[key] = self.event[key]
 
         for key in meta:
@@ -89,7 +91,7 @@ class EventDialog(QDialog):
         self.close()
 
 
-def event_dialog(**kwargs):
+def show_event_dialog(**kwargs):
     dlg = EventDialog(None, **kwargs)
     dlg.exec_()
     return dlg.accepted

@@ -1,8 +1,19 @@
-import time
 import json
-import math
+import functools
 
-from firefly import *
+from nxtools import logging, log_traceback
+
+from firefly.api import api
+from firefly.common import pixlib
+from firefly.core.common import config
+from firefly.objects import asset_cache
+from firefly.view import FireflyViewModel, format_header, format_description
+from firefly.qt import (
+    Qt,
+    QApplication,
+    QUrl,
+    QMimeData,
+)
 
 DEFAULT_HEADER_DATA = ["title", "duration", "id_folder"]
 RECORDS_PER_PAGE = 1000
@@ -10,7 +21,6 @@ RECORDS_PER_PAGE = 1000
 
 class BrowserModel(FireflyViewModel):
     def load(self, callback, **kwargs):
-        start_time = time.time()
 
         try:
             self.header_data = config["views"][kwargs["id_view"]]["columns"]
@@ -19,7 +29,7 @@ class BrowserModel(FireflyViewModel):
 
         search_query = kwargs
         search_query["result"] = ["id", "mtime"]
-        response = api.get(
+        api.get(
             functools.partial(self.load_callback, callback),
             **search_query,
             count=False,
@@ -72,7 +82,7 @@ class BrowserModel(FireflyViewModel):
             elif role == Qt.DecorationRole:
                 order, trend = self.parent().current_order
                 if self.header_data[col] == order:
-                    return pix_lib[
+                    return pixlib[
                         ["smallarrow-up", "smallarrow-down"][int(trend == "desc")]
                     ]
         return None

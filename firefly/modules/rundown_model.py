@@ -1,9 +1,14 @@
 import json
 import time
-import functools
 
-from firefly import *
-from firefly.dialogs.rundown import *
+from nxtools import logging
+
+from firefly.api import api
+from firefly.core.common import config
+from firefly.dialogs.rundown import PlaceholderDialog, SubclipSelectDialog
+from firefly.objects import Asset, Item, Event, asset_cache
+from firefly.view import FireflyViewModel
+from firefly.qt import Qt, QApplication, QUrl, QMimeData
 
 DEFAULT_COLUMNS = [
     "title",
@@ -60,7 +65,6 @@ class RundownModel(FireflyViewModel):
         self.beginResetModel()
         logging.info("Loading rundown. Please wait...")
 
-        reset = True
         required_assets = []
 
         self.header_data = config["playout_channels"][self.id_channel].get(
@@ -227,7 +231,7 @@ class RundownModel(FireflyViewModel):
             ):
                 break
             p_item = current_object.id
-            if not p_item in [item.id for item in drop_objects]:
+            if p_item not in [item.id for item in drop_objects]:
                 if p_item:
                     sorted_items.append(
                         {"object_type": "item", "id_object": p_item, "meta": {}}
@@ -244,7 +248,6 @@ class RundownModel(FireflyViewModel):
                 )
 
             elif data.hasFormat("application/nx.asset"):
-                metas = []
                 if obj["subclips"]:
                     dlg = SubclipSelectDialog(self.parent(), obj)
                     dlg.exec_()
@@ -279,7 +282,7 @@ class RundownModel(FireflyViewModel):
             ):
                 break
             p_item = current_object.id
-            if not p_item in [item.id for item in drop_objects]:
+            if p_item not in [item.id for item in drop_objects]:
                 if p_item:
                     sorted_items.append(
                         {"object_type": "item", "id_object": p_item, "meta": {}}
@@ -296,7 +299,7 @@ class RundownModel(FireflyViewModel):
             return
         self.parent().setCursor(Qt.BusyCursor)
         QApplication.processEvents()
-        response = api.order(
+        api.order(
             self.order_callback,
             id_channel=self.id_channel,
             id_bin=to_bin,

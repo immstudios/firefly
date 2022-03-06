@@ -3,14 +3,15 @@ import queue
 import time
 import websocket
 
-from .common import *
-from nx import CLIENT_ID
+from nxtools import logging, log_traceback
+
+from firefly.core.common import config
+from firefly.common import CLIENT_ID
+from firefly.qt import QThread
 
 
 if config.get("debug"):
     websocket.enableTrace(True)
-
-__all__ = ["SeismicListener"]
 
 
 def readlines(f):

@@ -1,12 +1,41 @@
 import time
 import queue
 
-from .common import *
-from .modules import *
-from .menu import create_menu
-from .listener import SeismicListener, SeismicMessage
+from nxtools import logging, log_traceback
+from nxtools.logging import INFO, WARNING, ERROR
 
-__all__ = ["FireflyMainWidget", "FireflyMainWindow"]
+from firefly.api import api
+from firefly.core.common import config
+from firefly.common import pixlib
+from firefly.menu import create_menu
+from firefly.listener import SeismicListener
+from firefly.objects import asset_cache, user
+from firefly.version import FIREFLY_VERSION
+
+from firefly.modules import (
+    BrowserModule,
+    DetailModule,
+    JobsModule,
+    RundownModule,
+    SchedulerModule,
+)
+
+from firefly.qt import (
+    Qt,
+    QMainWindow,
+    QMessageBox,
+    QApplication,
+    QDesktopWidget,
+    QWidget,
+    QTabWidget,
+    QSplitter,
+    QVBoxLayout,
+    QIcon,
+    QTimer,
+    get_app_state,
+    app_settings,
+    app_skin,
+)
 
 
 class FireflyMainWidget(QWidget):
@@ -122,14 +151,23 @@ class FireflyMainWidget(QWidget):
         self.perform_on_switch_tab = True
 
 
-class FireflyMainWindow(MainWindow):
+class FireflyMainWindow(QMainWindow):
     def __init__(self, parent, MainWidgetClass):
+        super(FireflyMainWindow, self).__init__()
+
         self.subscribers = []
         asset_cache.api = api
         asset_cache.handler = self.on_assets_update
 
-        super(FireflyMainWindow, self).__init__(parent, MainWidgetClass)
-        self.setWindowIcon(QIcon(get_pix("icon")))
+        self.setWindowTitle(app_settings["title"])
+        self.setStyleSheet(app_skin)
+        self.app = parent
+        self.restore_state()
+        self.main_widget = MainWidgetClass(self)
+        self.setCentralWidget(self.main_widget)
+        self.show()
+
+        self.setWindowIcon(QIcon(pixlib["icon"]))
         title = f"Firefly {FIREFLY_VERSION}"
         title += f" ({user['login']}@{config['site_name']})"
         self.setWindowTitle(title)
@@ -155,6 +193,62 @@ class FireflyMainWindow(MainWindow):
                 break
 
         logging.info("[MAIN WINDOW] Firefly is ready")
+
+    #
+    #
+    #
+
+    @property
+    def app_state(self):
+        return self.app.app_state
+
+    @app_state.setter
+    def app_state(self, value):
+        self.app.app_state = value
+
+    def save_state(self):
+        state = get_app_state(self.app.app_state_path)
+        state.setValue("main_window/state", self.saveState())
+        state.setValue("main_window/geometry", self.saveGeometry())
+        state.setValue("main_window/app", self.app_state)
+
+    def restore_state(self):
+        state = get_app_state(self.app.app_state_path)
+        if "main_window/geometry" in state.allKeys():
+            self.restoreGeometry(state.value("main_window/geometry"))
+            self.restoreState(state.value("main_window/state"))
+        else:
+            self.resize(800, 600)
+            qr = self.frameGeometry()
+            cp = QDesktopWidget().availableGeometry().center()
+            qr.moveCenter(cp)
+            self.move(qr.topLeft())
+        if "main_window/app" in state.allKeys():
+            try:
+                self.app_state = state.value("main_window/app")
+            except Exception:
+                log_traceback()
+
+    def log_handler(self, **kwargs):
+        message_type = kwargs.get("message_type", INFO)
+        message = kwargs.get("message", "")
+        if not message:
+            return
+        if message_type == WARNING:
+            QMessageBox.warning(self, "Warning", message)
+        elif message_type == ERROR:
+            QMessageBox.critical(self, "Error", message)
+        else:
+            self.statusBar().showMessage(message, 10000)
+
+    def closeEvent(self, event):
+        self.save_state()
+        if hasattr(self.main_widget, "on_close"):
+            self.main_widget.on_close()
+
+    #
+    #
+    #
 
     def load_window_state(self):
         self.window_state = self.app_state.get("window_state", {})
@@ -247,7 +341,7 @@ class FireflyMainWindow(MainWindow):
         if config["playout_channels"] and user.has_right(
             "rundown_edit", self.id_channel
         ):
-            cstate = self.rundown.toggle_rundown_edit()
+            self.rundown.toggle_rundown_edit()
 
     def toggle_debug_mode(self):
         config["debug"] = not config.get("debug")

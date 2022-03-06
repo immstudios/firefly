@@ -1,10 +1,25 @@
-import time
+import functools
 
-from firefly.common import *
-from firefly.widgets import *
-from firefly.view import *
+from nxtools import format_time, logging
 
-__all__ = ["FireflyJobsView"]
+from firefly.api import api
+from firefly.core.common import config
+from firefly.core.enum import JobState
+from firefly.common import Colors
+from firefly.objects import asset_cache
+from firefly.view import FireflyViewModel, FireflyView
+from firefly.qt import (
+    Qt,
+    QColor,
+    QApplication,
+    QMenu,
+    QAction,
+)
+
+# from firefly.common import *
+# from firefly.widgets import *
+# from firefly.view import *
+
 
 DEFAULT_HEADER_DATA = [
     "id",
@@ -75,13 +90,13 @@ colw = {
 }
 
 colors = {
-    PENDING: QColor(COLOR_TEXT_NORMAL),
-    IN_PROGRESS: QColor(COLOR_TEXT_HIGHLIGHT),
-    COMPLETED: QColor(COLOR_TEXT_GREEN),
-    FAILED: QColor(COLOR_TEXT_RED),
-    ABORTED: QColor(COLOR_TEXT_RED),
-    RESTART: QColor(COLOR_TEXT_NORMAL),
-    SKIPPED: QColor(COLOR_TEXT_FADED),
+    JobState.PENDING: QColor(Colors.TEXT_NORMAL.value),
+    JobState.IN_PROGRESS: QColor(Colors.TEXT_HIGHLIGHT.value),
+    JobState.COMPLETED: QColor(Colors.TEXT_GREEN.value),
+    JobState.FAILED: QColor(Colors.TEXT_RED.value),
+    JobState.ABORTED: QColor(Colors.TEXT_RED.value),
+    JobState.RESTART: QColor(Colors.TEXT_NORMAL.value),
+    JobState.SKIPPED: QColor(Colors.TEXT_FADED.value),
 }
 
 
@@ -113,7 +128,6 @@ class JobsModel(FireflyViewModel):
 
     def load(self, **kwargs):
         self.request_data.update(kwargs)
-        start_time = time.time()
         self.beginResetModel()
         QApplication.setOverrideCursor(Qt.WaitCursor)
         data = []
@@ -153,7 +167,7 @@ class FireflyJobsView(FireflyView):
         result = []
         for idx in self.selectionModel().selectedIndexes():
             i = idx.row()
-            if not i in used:
+            if i not in used:
                 used.append(i)
                 result.append(self.model.object_data[i])
         return result

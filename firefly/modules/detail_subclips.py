@@ -1,8 +1,10 @@
 import copy
 
-from firefly.common import *
-from firefly.widgets import *
-from firefly.view import *
+from nxtools import logging, s2tc
+
+from firefly.core.metadata import meta_types
+from firefly.view import FireflyViewModel, FireflyView
+from firefly.qt import Qt, QInputDialog, QMenu, QAction
 
 __all__ = ["FireflySubclipsView"]
 
@@ -84,7 +86,7 @@ class FireflySubclipsView(FireflyView):
             return
         text, ok = QInputDialog.getText(
             self,
-            f"Create a subclip",
+            "Create a subclip",
             f"{s2tc(mark_in, fps)} - {s2tc(mark_out, fps)}\n\nEnter the subclip name:",
         )
         if not ok:
@@ -107,7 +109,7 @@ class FireflySubclipsView(FireflyView):
         result = []
         for idx in self.selectionModel().selectedIndexes():
             i = idx.row()
-            if not i in result:
+            if i not in result:
                 result.append(i)
         return result
 

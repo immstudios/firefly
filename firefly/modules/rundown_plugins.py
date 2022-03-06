@@ -1,7 +1,12 @@
+import json
 import functools
 
-from firefly.common import *
-from firefly.widgets import *
+from nxtools import logging
+
+from firefly.api import api
+from firefly.objects import has_right
+from firefly.widgets import FireflyString, FireflySelect
+from firefly.qt import QWidget, QHBoxLayout, QFormLayout, QPushButton, QTabWidget
 
 
 class PlayoutPlugin(QWidget):
@@ -49,7 +54,6 @@ class PlayoutPlugin(QWidget):
         self.setLayout(layout)
 
     def execute(self, name):
-        value = False
         data = {}
         for slot in self.slots:
             data[slot] = self.slots[slot].get_value()
@@ -79,7 +83,7 @@ class PlayoutPlugins(QTabWidget):
         return self.parent().id_channel
 
     def load(self):
-        if not user.has_right("mcr", self.id_channel):
+        if not has_right("mcr", self.id_channel):
             return
 
         logging.debug("[PLUGINS] Loading playout plugins")

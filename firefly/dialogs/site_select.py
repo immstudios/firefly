@@ -1,8 +1,8 @@
 import functools
 
-from firefly import *
-
-__all__ = ["site_select_dialog"]
+from firefly.core.common import config
+from firefly.qt import QVBoxLayout, QDialog, QIcon, app_skin
+from firefly.widgets import ActionButton
 
 
 class SiteSelectDialog(QDialog):
@@ -28,7 +28,7 @@ class SiteSelectDialog(QDialog):
         self.setResult(id_site)
 
 
-def site_select_dialog():
+def show_site_select_dialog():
     """
     Executes a simple dialog with selection of available sites.
     Returns an index of the selected site configuration.
