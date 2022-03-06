@@ -4,6 +4,7 @@ import datetime
 from nxtools import log_traceback, xml, logging
 
 from firefly.api import api
+from firefly.core.enum import ObjectStatus, ContentType, MediaType, JobState
 from firefly.common import pixlib
 from firefly.objects import Event, Item
 from firefly.base_module import BaseModule
@@ -24,7 +25,6 @@ from firefly.qt import (
 from .scheduler_model import SchedulerCalendar
 from .scheduler_utils import dump_template
 
-from nx.core.enum import ObjectStatus, ContentType, MediaType, JobState
 
 # Backwards compatibility
 OFFLINE = 0
