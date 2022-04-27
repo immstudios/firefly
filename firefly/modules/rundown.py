@@ -132,7 +132,7 @@ class RundownModule(BaseModule):
                 if event.id == r.id and r.object_type == "event":
                     self.view.scrollTo(
                         self.view.model().index(i, 0, QModelIndex()),
-                        QAbstractItemView.PositionAtTop,
+                        QAbstractItemView.ScrollHint.PositionAtTop,
                     )
                     break
 
@@ -148,7 +148,8 @@ class RundownModule(BaseModule):
                     item_selection.select(i1, i2)
             self.view.focus_enabled = False
             self.view.selectionModel().select(
-                item_selection, QItemSelectionModel.ClearAndSelect
+                item_selection,
+                QItemSelectionModel.SelectionFlag.SelectionFlag.ClearAndSelect,
             )
         self.view.focus_enabled = True
 
@@ -157,7 +158,7 @@ class RundownModule(BaseModule):
                 if self.current_item == r.id and r.object_type == "item":
                     self.view.scrollTo(
                         self.view.model().index(i, 0, QModelIndex()),
-                        QAbstractItemView.PositionAtTop,
+                        QAbstractItemView.ScrollHint.PositionAtTop,
                     )
                     break
 
@@ -209,7 +210,7 @@ class RundownModule(BaseModule):
                 if self.current_item == r.id and r.object_type == "item":
                     self.view.scrollTo(
                         self.view.model().index(i, 0, QModelIndex()),
-                        QAbstractItemView.PositionAtTop,
+                        QAbstractItemView.ScrollHint.PositionAtTop,
                     )
                     break
 
@@ -279,10 +280,11 @@ class RundownModule(BaseModule):
                         len(self.view.model().header_data) - 1,
                         QModelIndex(),
                     )
-                    self.view.scrollTo(i1, QAbstractItemView.PositionAtTop)
+                    self.view.scrollTo(i1, QAbstractItemView.ScrollHint.PositionAtTop)
                     selection.select(i1, i2)
                     self.view.selectionModel().select(
-                        selection, QItemSelectionModel.ClearAndSelect
+                        selection,
+                        QItemSelectionModel.SelectionFlag.SelectionFlag.ClearAndSelect,
                     )
                     break
             else:

@@ -9,14 +9,14 @@ COLOR_CALENDAR_BACKGROUND = QColor("#161616")
 COLOR_DAY_BACKGROUND = QColor("#323232")
 
 TIME_PENS = [
-    (60, QPen(QColor("#999999"), 2, Qt.SolidLine)),
-    (15, QPen(QColor("#999999"), 1, Qt.SolidLine)),
-    (5, QPen(QColor("#444444"), 1, Qt.SolidLine)),
+    (60, QPen(QColor("#999999"), 2, Qt.PenStyle.SolidLine)),
+    (15, QPen(QColor("#999999"), 1, Qt.PenStyle.SolidLine)),
+    (5, QPen(QColor("#444444"), 1, Qt.PenStyle.SolidLine)),
 ]
 
 RUN_PENS = [
-    QPen(QColor("#dddd00"), 2, Qt.SolidLine),
-    QPen(QColor("#dd0000"), 2, Qt.SolidLine),
+    QPen(QColor("#dddd00"), 2, Qt.PenStyle.SolidLine),
+    QPen(QColor("#dd0000"), 2, Qt.PenStyle.SolidLine),
 ]
 
 SECS_PER_DAY = 3600 * 24
@@ -38,7 +38,7 @@ def text_shorten(text, font, target_width):
     exps = [r"\W|_", r"[a-z]([aáeéěiíoóuůú])", r"[a-z]", r"."]
     r = exps.pop(0)
     text = text[::-1]
-    while fm.width(text) > target_width:
+    while fm.boundingRect(text).width() > target_width:
         text, n = re.subn(r, "", text, 1)
         if n == 0:
             r = exps.pop(0)

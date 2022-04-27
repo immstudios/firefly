@@ -45,15 +45,19 @@ class BatchOpsDialog(QDialog):
             self.form.set_defaults()
 
         self.scroll_area = QScrollArea(self)
-        self.scroll_area.setFrameStyle(QFrame.NoFrame)
+        self.scroll_area.setFrameStyle(QFrame.Shape.NoFrame)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setContentsMargins(0, 0, 0, 0)
-        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scroll_area.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
+        )
 
         self.scroll_area.setWidget(self.form)
 
         buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+            Qt.Orientation.Horizontal,
+            self,
         )
         buttons.accepted.connect(self.on_accept)
         buttons.rejected.connect(self.on_cancel)
@@ -78,10 +82,10 @@ class BatchOpsDialog(QDialog):
                     for k in self.form.changed
                 )
             ),
-            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
-        if reply == QMessageBox.Yes:
+        if reply == QMessageBox.StandardButton.Yes:
             pass
         else:
             logging.info("Save aborted")
@@ -101,5 +105,5 @@ class BatchOpsDialog(QDialog):
 
 def show_batch_ops_dialog(objects):
     dlg = BatchOpsDialog(None, objects)
-    dlg.exec_()
+    dlg.exec()
     return dlg.response

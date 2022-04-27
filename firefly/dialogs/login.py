@@ -6,13 +6,13 @@ from firefly.api import api
 
 
 class LoginDialog(QDialog):
-    def __init__(self):
-        QDialog.__init__(self)
+    def __init__(self, parent):
+        QDialog.__init__(self, parent)
         self.setWindowTitle("Please log in")
         self.setStyleSheet(app_skin)
         self.login = QLineEdit(self)
         self.password = QLineEdit(self)
-        self.password.setEchoMode(QLineEdit.Password)
+        self.password.setEchoMode(QLineEdit.EchoMode.Password)
         self.btn_login = QPushButton("Login", self)
         self.btn_login.clicked.connect(self.handleLogin)
 
@@ -29,7 +29,9 @@ class LoginDialog(QDialog):
 
     def handleLogin(self):
         response = api.login(
-            api="1", login=self.login.text(), password=self.password.text()
+            api="1",
+            login=self.login.text(),
+            password=self.password.text(),
         )
         if response and response.data:
             config["session_id"] = response["session_id"]
@@ -39,7 +41,7 @@ class LoginDialog(QDialog):
             QMessageBox.critical(self, "Error", response.message)
 
 
-def show_login_dialog():
-    dlg = LoginDialog()
-    dlg.exec_()
+def show_login_dialog(parent=None):
+    dlg = LoginDialog(parent)
+    dlg.exec()
     return dlg.result

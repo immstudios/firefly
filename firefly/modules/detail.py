@@ -43,10 +43,12 @@ class DetailTabMain(QWidget):
         self.has_focus = False
 
         self.scroll_area = QScrollArea(self)
-        self.scroll_area.setFrameStyle(QFrame.NoFrame)
+        self.scroll_area.setFrameStyle(QFrame.Shape.NoFrame)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setContentsMargins(0, 0, 0, 0)
-        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scroll_area.setVerticalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOn
+        )
 
         mwidget = QWidget()
         mwidget.setLayout(self.layout)
@@ -110,7 +112,7 @@ class DetailTabMain(QWidget):
 class MetaList(QTextEdit):
     def __init__(self, parent):
         super(MetaList, self).__init__(parent)
-        fixed_font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+        fixed_font = QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont)
         self.setCurrentFont(fixed_font)
         self.setReadOnly(True)
         self.setStyleSheet("border:0;")
@@ -380,10 +382,10 @@ class DetailModule(BaseModule):
                 f"Following data has been changed in the {self.asset}"
                 + "\n\n"
                 + "\n".join([meta_types[k].alias() for k in changed]),
-                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
 
-            if reply == QMessageBox.Yes:
+            if reply == QMessageBox.StandardButton.Yes:
                 self.on_apply()
 
     def focus(self, asset, silent=False, force=False):
@@ -498,7 +500,7 @@ class DetailModule(BaseModule):
         if self.preview.changed:
             data.update(self.preview.changed)
 
-        self.setCursor(Qt.BusyCursor)
+        self.setCursor(Qt.CursorShape.BusyCursor)
         response = api.set(objects=[self.asset.id], data=data)
         if not response:
             logging.error(response.message)
@@ -543,7 +545,7 @@ class DetailModule(BaseModule):
         pass
 
     def refresh_assets(self, *objects):
-        self.setCursor(Qt.ArrowCursor)
+        self.setCursor(Qt.CursorShape.ArrowCursor)
         try:
             current_id = self.asset.id
         except AttributeError:

@@ -105,23 +105,31 @@ class JobsModel(FireflyViewModel):
         super(JobsModel, self).__init__(*args, **kwargs)
         self.request_data = {"view": "active"}
 
-    def headerData(self, col, orientation=Qt.Horizontal, role=Qt.DisplayRole):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+    def headerData(
+        self,
+        col,
+        orientation=Qt.Orientation.Horizontal,
+        role=Qt.ItemDataRole.DisplayRole,
+    ):
+        if (
+            orientation == Qt.Orientation.Horizontal
+            and role == Qt.ItemDataRole.DisplayRole
+        ):
             return header_format[self.header_data[col]]
         return None
 
-    def data(self, index, role=Qt.DisplayRole):
+    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         if not index.isValid():
             return None
         row = index.row()
         obj = self.object_data[row]
         key = self.header_data[index.column()]
 
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             return job_format(obj, key)
-        elif role == Qt.ToolTipRole:
+        elif role == Qt.ItemDataRole.ToolTipRole:
             return f"{obj['message']}\n\n{asset_cache[obj['id_asset']]}"
-        elif role == Qt.ForegroundRole:
+        elif role == Qt.ItemDataRole.ForegroundRole:
             return colors[obj["status"]]
 
         return None
@@ -129,7 +137,7 @@ class JobsModel(FireflyViewModel):
     def load(self, **kwargs):
         self.request_data.update(kwargs)
         self.beginResetModel()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         data = []
         response = api.jobs(**self.request_data)
         if not response:
@@ -189,7 +197,7 @@ class FireflyJobsView(FireflyView):
         action_abort.triggered.connect(functools.partial(self.on_abort, jobs))
         menu.addAction(action_abort)
 
-        menu.exec_(event.globalPos())
+        menu.exec(event.globalPos())
 
     def on_restart(self, jobs):
         response = api.jobs(restart=jobs)

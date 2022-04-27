@@ -28,10 +28,10 @@ class SiteSelectDialog(QDialog):
         self.setResult(id_site)
 
 
-def show_site_select_dialog():
+def show_site_select_dialog(parent=None):
     """
     Executes a simple dialog with selection of available sites.
     Returns an index of the selected site configuration.
     """
-    dlg = SiteSelectDialog(None, config["sites"])
-    return dlg.exec_()
+    dlg = SiteSelectDialog(parent, config["sites"])
+    return dlg.exec()

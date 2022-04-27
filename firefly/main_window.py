@@ -25,7 +25,6 @@ from firefly.qt import (
     QMainWindow,
     QMessageBox,
     QApplication,
-    QDesktopWidget,
     QWidget,
     QTabWidget,
     QSplitter,
@@ -92,7 +91,7 @@ class FireflyMainWidget(QWidget):
 
         # Layout
 
-        self.main_splitter = QSplitter(Qt.Horizontal)
+        self.main_splitter = QSplitter(Qt.Orientation.Horizontal)
         self.main_splitter.addWidget(self.browser)
         self.main_splitter.addWidget(self.tabs)
         self.main_splitter.splitterMoved.connect(self.main_window.save_window_state)
@@ -171,7 +170,7 @@ class FireflyMainWindow(QMainWindow):
         title = f"Firefly {FIREFLY_VERSION}"
         title += f" ({user['login']}@{config['site_name']})"
         self.setWindowTitle(title)
-        self.setAttribute(Qt.WA_AlwaysShowToolTips)
+        self.setAttribute(Qt.WidgetAttribute.WA_AlwaysShowToolTips)
         logging.handlers = [self.log_handler]
         self.listener = SeismicListener()
 
@@ -220,8 +219,8 @@ class FireflyMainWindow(QMainWindow):
         else:
             self.resize(800, 600)
             qr = self.frameGeometry()
-            cp = QDesktopWidget().availableGeometry().center()
-            qr.moveCenter(cp)
+            # cp = QDesktopWidget().availableGeometry().center()
+            # qr.moveCenter(cp)
             self.move(qr.topLeft())
         if "main_window/app" in state.allKeys():
             try:

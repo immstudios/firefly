@@ -51,7 +51,9 @@ class EventDialog(QDialog):
             self.form.setEnabled(False)
 
         buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+            Qt.Orientation.Horizontal,
+            self,
         )
         buttons.accepted.connect(self.on_accept)
         buttons.rejected.connect(self.on_cancel)
@@ -93,5 +95,5 @@ class EventDialog(QDialog):
 
 def show_event_dialog(**kwargs):
     dlg = EventDialog(None, **kwargs)
-    dlg.exec_()
+    dlg.exec()
     return dlg.accepted

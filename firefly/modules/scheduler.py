@@ -76,7 +76,7 @@ class EmptyEventButton(QToolButton):
         mimeData = QMimeData()
         mimeData.setData("application/nx.event", EMPTY_EVENT_DATA)
         drag.setMimeData(mimeData)
-        if drag.exec_(Qt.CopyAction):
+        if drag.exec(Qt.DropAction.CopyAction):
             pass  # nejak to rozumne ukoncit
 
 
@@ -165,7 +165,7 @@ class SchedulerModule(BaseModule):
         if not file_path:
             return
 
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             feed = open(file_path, "rb").read().decode("utf-8")
             data = xml(feed)

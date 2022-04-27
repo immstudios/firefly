@@ -65,9 +65,8 @@ class VideoPlayer(QWidget):
             self.player = DummyPlayer()
         else:
             try:
-                self.player = MPV(
-                    keep_open=True, wid=str(int(self.video_window.winId()))
-                )
+                window_id = self.video_window.winId().__int__()
+                self.player = MPV(keep_open=True, wid=f"{window_id}")
             except Exception:
                 log_traceback(handlers=False)
                 self.player = DummyPlayer()
@@ -119,7 +118,7 @@ class VideoPlayer(QWidget):
         # Controls
         #
 
-        self.timeline = QSlider(Qt.Horizontal)
+        self.timeline = QSlider(Qt.Orientation.Horizontal)
         self.timeline.setRange(0, 0)
         self.timeline.sliderMoved.connect(self.on_timeline_seek)
         self.region_bar = RegionBar(self)
@@ -150,7 +149,7 @@ class VideoPlayer(QWidget):
         layout.addLayout(bottom_bar)
 
         self.setLayout(layout)
-        self.navbar.setFocus(True)
+        self.navbar.setFocus()
 
         @self.player.property_observer("time-pos")
         def time_observer(_name, value):

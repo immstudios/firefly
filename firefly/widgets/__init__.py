@@ -41,7 +41,7 @@ class ChannelDisplay(QLabel):
 class ToolBarStretcher(QWidget):
     def __init__(self, parent):
         super(ToolBarStretcher, self).__init__(parent)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
 
 class ActionButton(QPushButton):
@@ -128,7 +128,7 @@ class MetaEditor(QWidget):
 
             label.setToolTip(f"<p>{key_description}</p>")
             if parent.__class__.__name__ == "DetailTabMain":
-                label.setContextMenuPolicy(Qt.CustomContextMenu)
+                label.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
                 label.customContextMenuRequested.connect(
                     functools.partial(self.key_menu, key)
                 )
@@ -136,7 +136,7 @@ class MetaEditor(QWidget):
             self.inputs[key].meta_key = key
             self.labels[key] = label
 
-            layout.addWidget(self.labels[key], i, 0, Qt.AlignTop)
+            layout.addWidget(self.labels[key], i, 0, Qt.AlignmentFlag.AlignTop)
             layout.addWidget(self.inputs[key], i, 1)
 
             i += 1
@@ -159,7 +159,7 @@ class MetaEditor(QWidget):
                 functools.partial(self._parent.search_by_key, key, id_view)
             )
             menu.addAction(action)
-        menu.exec_(self.labels[key].mapToGlobal(position))
+        menu.exec(self.labels[key].mapFromGlobal(position))
 
     def keys(self):
         return self.inputs.keys()

@@ -48,20 +48,20 @@ class RundownModel(FireflyViewModel):
 
     def load(self, callback=None):
         self.load_start_time = time.time()
-        self.parent().setCursor(Qt.BusyCursor)
+        self.parent().setCursor(Qt.CursorShape.BusyCursor)
         self.current_callback = callback
         api.rundown(
             self.load_callback, id_channel=self.id_channel, start_time=self.start_time
         )
 
     def load_callback(self, response):
-        self.parent().setCursor(Qt.ArrowCursor)
+        self.parent().setCursor(Qt.CursorShape.ArrowCursor)
         if not response:
             logging.error(response.message)
             return
 
         QApplication.processEvents()
-        self.parent().setCursor(Qt.WaitCursor)
+        self.parent().setCursor(Qt.CursorShape.WaitCursor)
         self.beginResetModel()
         logging.info("Loading rundown. Please wait...")
 
@@ -101,7 +101,7 @@ class RundownModel(FireflyViewModel):
         asset_cache.request(required_assets)
 
         self.endResetModel()
-        self.parent().setCursor(Qt.ArrowCursor)
+        self.parent().setCursor(Qt.CursorShape.ArrowCursor)
         logging.goodnews(
             "Rundown loaded in {:.03f}s".format(time.time() - self.load_start_time)
         )
@@ -138,16 +138,16 @@ class RundownModel(FireflyViewModel):
         if index.isValid():
             obj = self.object_data[index.row()]
             if obj.id and obj.object_type == "item":
-                flags |= Qt.ItemIsDragEnabled  # Itemy se daji dragovat
+                flags |= Qt.ItemFlag.ItemIsDragEnabled  # Itemy se daji dragovat
         else:
-            flags = Qt.ItemIsDropEnabled  # Dropovat se da jen mezi rowy
+            flags = Qt.ItemFlag.ItemIsDropEnabled  # Dropovat se da jen mezi rowy
         return flags
 
     def mimeTypes(self):
         return ["application/nx.asset", "application/nx.item"]
 
     def supportedDropActions(self):
-        return Qt.CopyAction | Qt.MoveAction
+        return Qt.DropAction.CopyAction | Qt.DropAction.MoveAction
 
     def mimeData(self, indices):
         rows = []
@@ -174,7 +174,7 @@ class RundownModel(FireflyViewModel):
         return mimeData
 
     def dropMimeData(self, data, action, row, column, parent):
-        if action == Qt.IgnoreAction:
+        if action == Qt.DropAction.IgnoreAction:
             return True
 
         if not self.parent().parent().edit_enabled:
@@ -191,13 +191,13 @@ class RundownModel(FireflyViewModel):
                 return False
             else:
                 for obj in items:
-                    if action == Qt.CopyAction:
+                    if action == Qt.DropAction.CopyAction:
                         obj["id"] = False
                     elif not obj.get("id", False):
                         item_role = obj.get("item_role", False)
                         if item_role in ["live", "placeholder"]:
                             dlg = PlaceholderDialog(self.parent(), obj)
-                            dlg.exec_()
+                            dlg.exec()
                             if not dlg.ok:
                                 return False
                             for key in dlg.meta:
@@ -250,7 +250,7 @@ class RundownModel(FireflyViewModel):
             elif data.hasFormat("application/nx.asset"):
                 if obj["subclips"]:
                     dlg = SubclipSelectDialog(self.parent(), obj)
-                    dlg.exec_()
+                    dlg.exec()
                     if dlg.ok:
                         for meta in dlg.result:
                             sorted_items.append(
@@ -297,7 +297,7 @@ class RundownModel(FireflyViewModel):
 
         if not sorted_items:
             return
-        self.parent().setCursor(Qt.BusyCursor)
+        self.parent().setCursor(Qt.CursorShape.BusyCursor)
         QApplication.processEvents()
         api.order(
             self.order_callback,
@@ -308,7 +308,7 @@ class RundownModel(FireflyViewModel):
         return False
 
     def order_callback(self, response):
-        self.parent().setCursor(Qt.ArrowCursor)
+        self.parent().setCursor(Qt.CursorShape.ArrowCursor)
         if not response:
             logging.error("Unable to change bin order: {}".format(response.message))
             return False

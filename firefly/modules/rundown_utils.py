@@ -71,7 +71,7 @@ def get_date():
             self.close()
 
     cal = CalendarDialog()
-    cal.exec_()
+    cal.exec()
     return cal.date
 
 
@@ -99,7 +99,7 @@ class ItemButton(QToolButton):
         mimeData = QMimeData()
         mimeData.setData("application/nx.item", json.dumps([item_data]).encode("utf-8"))
         drag.setMimeData(mimeData)
-        if drag.exec_(Qt.CopyAction):
+        if drag.exec(Qt.DropAction.CopyAction):
             pass  # nejak to rozumne ukonc
 
 

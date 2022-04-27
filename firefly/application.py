@@ -23,6 +23,9 @@ from firefly.qt import (
     QApplication,
     QMessageBox,
     QSplashScreen,
+    QGuiApplication,
+    QMainWindow,
+    QWidget,
     app_settings,
     app_dir,
     app_skin,
@@ -40,7 +43,7 @@ def check_login(wnd):
     if data["response"] > 403:
         QMessageBox.critical(wnd, f"Error {data['response']}", data["message"])
         return False
-    return show_login_dialog()
+    return show_login_dialog(wnd)
 
 
 class FireflyApplication(QApplication):
@@ -50,7 +53,9 @@ class FireflyApplication(QApplication):
         self.app_state_path = os.path.join(app_dir, f"{app_settings['name']}.appstate")
         self.setStyleSheet(app_skin)
         locale.setlocale(locale.LC_NUMERIC, "C")
+
         self.splash = QSplashScreen(pixlib["splash"])
+        self.splash.setFixedSize(640, 360)
         self.splash.show()
 
         # Which site we are running
@@ -58,7 +63,7 @@ class FireflyApplication(QApplication):
         i = 0
         if "sites" in config:
             if len(config["sites"]) > 1:
-                i = show_site_select_dialog()
+                i = show_site_select_dialog(self.splash)
             else:
                 i = 0
 
@@ -96,12 +101,13 @@ class FireflyApplication(QApplication):
         self.splash_message("Loading asset cache...")
         asset_cache.load()
         self.splash_message("Loading user workspace...")
+
         self.main_window = FireflyMainWindow(self, FireflyMainWidget)
 
     def start(self):
         self.splash.hide()
         try:
-            self.exec_()
+            self.exec()
         except Exception:
             log_traceback()
         logging.info("Shutting down")
@@ -130,7 +136,9 @@ class FireflyApplication(QApplication):
     def splash_message(self, msg):
         if self.splash.isVisible:
             self.splash.showMessage(
-                msg, alignment=Qt.AlignBottom | Qt.AlignLeft, color=Qt.white
+                msg,
+                alignment=Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignLeft,
+                color=Qt.GlobalColor.white,
             )
 
     def load_settings(self):

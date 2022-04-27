@@ -39,7 +39,7 @@ class BrowserModel(FireflyViewModel):
 
     def load_callback(self, callback, response):
         self.beginResetModel()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
 
         if not response:
             logging.error(response.message)
@@ -72,14 +72,19 @@ class BrowserModel(FireflyViewModel):
 
         callback()
 
-    def headerData(self, col, orientation=Qt.Horizontal, role=Qt.DisplayRole):
-        if orientation == Qt.Horizontal:
-            if role == Qt.DisplayRole:
+    def headerData(
+        self,
+        col,
+        orientation=Qt.Orientation.Horizontal,
+        role=Qt.ItemDataRole.DisplayRole,
+    ):
+        if orientation == Qt.Orientation.Horizontal:
+            if role == Qt.ItemDataRole.DisplayRole:
                 return format_header(self.header_data[col])
-            elif role == Qt.ToolTipRole:
+            elif role == Qt.ItemDataRole.ToolTipRole:
                 desc = format_description(self.header_data[col])
                 return "<p>{}</p>".format(desc) if desc else None
-            elif role == Qt.DecorationRole:
+            elif role == Qt.ItemDataRole.DecorationRole:
                 order, trend = self.parent().current_order
                 if self.header_data[col] == order:
                     return pixlib[
@@ -91,7 +96,7 @@ class BrowserModel(FireflyViewModel):
         flags = super(BrowserModel, self).flags(index)
         if index.isValid():
             if self.object_data[index.row()].id:
-                flags |= Qt.ItemIsDragEnabled
+                flags |= Qt.ItemFlag.ItemIsDragEnabled
         return flags
 
     def mimeTypes(self):

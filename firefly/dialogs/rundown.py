@@ -38,7 +38,9 @@ class PlaceholderDialog(QDialog):
             self.form[k] = meta[k]
 
         buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+            Qt.Orientation.Horizontal,
+            self,
         )
         buttons.accepted.connect(self.on_accept)
         buttons.rejected.connect(self.on_cancel)
@@ -150,7 +152,9 @@ class TrimDialog(QDialog):
             self.form[k] = item[k]
 
         buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, self
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+            Qt.Orientation.Horizontal,
+            self,
         )
         buttons.accepted.connect(self.on_accept)
         buttons.rejected.connect(self.on_cancel)
@@ -172,7 +176,7 @@ class TrimDialog(QDialog):
 
     def on_accept(self):
         QApplication.processEvents()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         response = api.set(
             object_type="item",
             objects=[self.item.id],
@@ -184,6 +188,6 @@ class TrimDialog(QDialog):
         self.close()
 
 
-def show_trim_dialog(item):
-    dlg = TrimDialog(None, item)
-    dlg.exec_()
+def show_trim_dialog(parent, item):
+    dlg = TrimDialog(parent, item)
+    dlg.exec()

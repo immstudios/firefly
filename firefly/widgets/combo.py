@@ -94,7 +94,7 @@ class FireflyRadio(QWidget):
 class FireflySelect(QComboBox):
     def __init__(self, parent, **kwargs):
         super(FireflySelect, self).__init__(parent)
-        self.setFocusPolicy(Qt.StrongFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.cdata = []
         if kwargs.get("data", []):
             self.set_data(kwargs["data"])
@@ -133,16 +133,16 @@ class FireflySelect(QComboBox):
             self.addItem(alias)
             self.cdata.append(value)
 
-            self.setItemData(i, indent, Qt.UserRole)
-            self.setItemData(i, f"<p>{description}</p>", Qt.ToolTipRole)
+            self.setItemData(i, indent, Qt.ItemDataRole.UserRole)
+            self.setItemData(i, f"<p>{description}</p>", Qt.ItemDataRole.ToolTipRole)
 
             if role == "header":
-                self.setItemData(i, fontlib["bold"], Qt.FontRole)
+                self.setItemData(i, fontlib["bold"], Qt.ItemDataRole.FontRole)
 
             elif role == "label":
                 item = self.model().item(i)
                 item.setEnabled(False)
-                self.setItemData(i, fontlib["boldunderline"], Qt.FontRole)
+                self.setItemData(i, fontlib["boldunderline"], Qt.ItemDataRole.FontRole)
 
             if row.get("selected"):
                 self.setCurrentIndex(i)
@@ -202,18 +202,18 @@ class FireflyList(CheckComboBox):
             self.addItem(alias)
             self.cdata.append(value)
 
-            self.setItemData(i, indent, Qt.UserRole)
+            self.setItemData(i, indent, Qt.ItemDataRole.UserRole)
 
-            self.setItemData(i, f"<p>{description}</p>", Qt.ToolTipRole)
+            self.setItemData(i, f"<p>{description}</p>", Qt.ItemDataRole.ToolTipRole)
 
             if row["role"] == "label":
                 item = self.model().item(i)
-                self.setItemData(i, fontlib["boldunderline"], Qt.FontRole)
+                self.setItemData(i, fontlib["boldunderline"], Qt.ItemDataRole.FontRole)
                 item.setEnabled(False)
             else:
                 self.model().item(i).setCheckable(True)
                 if row["role"] == "header":
-                    self.setItemData(i, fontlib["bold"], Qt.FontRole)
+                    self.setItemData(i, fontlib["bold"], Qt.ItemDataRole.FontRole)
                 self.setItemCheckState(i, row.get("selected"))
             i += 1
 

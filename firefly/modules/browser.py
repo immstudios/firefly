@@ -37,14 +37,14 @@ from .browser_model import BrowserModel
 
 class SearchWidget(QLineEdit):
     def __init__(self, parent):
-        super(QLineEdit, self).__init__()
+        super(SearchWidget, self).__init__()
 
     def keyPressEvent(self, event):
-        if event.key() in [Qt.Key_Return, Qt.Key_Enter]:
+        if event.key() in [Qt.Key.Key_Return, Qt.Key.Key_Enter]:
             self.parent().load()
-        elif event.key() == Qt.Key_Escape:
+        elif event.key() == Qt.Key.Key_Escape:
             self.line_edit.setText("")
-        elif event.key() in [Qt.Key_Down, Qt.Key_Up]:
+        elif event.key() in [Qt.Key.Key_Down, Qt.Key.Key_Up]:
             self.parent().view.setFocus()
         QLineEdit.keyPressEvent(self, event)
 
@@ -54,7 +54,7 @@ class FireflyBrowserView(FireflyView):
         super(FireflyBrowserView, self).__init__(parent)
         self.current_page = 1
         self.page_count = 1
-        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.activated.connect(self.on_activate)
         self.setModel(BrowserModel(self))
         self.horizontalHeader().sectionClicked.connect(self.on_header_clicked)
@@ -148,7 +148,7 @@ class Pager(QWidget):
         layout.addWidget(self.btn_prev, 0)
 
         self.info = QLabel("Page 1")
-        self.info.setAlignment(Qt.AlignCenter)
+        self.info.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.info, 1)
 
         self.btn_next = PagerButton()
@@ -389,7 +389,7 @@ class BrowserTab(QWidget):
         action_send_to.triggered.connect(self.on_send_to)
         menu.addAction(action_send_to)
 
-        menu.exec_(event.globalPos())
+        menu.exec(event.globalPos())
 
     def link_exec(self, obj, **kwargs):
         param = kwargs["target_key"]
@@ -436,9 +436,9 @@ class BrowserTab(QWidget):
             self,
             "Trash",
             f"Do you really want to trash {len(objects)} selected asset(s)?",
-            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
-        if ret == QMessageBox.Yes:
+        if ret == QMessageBox.StandardButton.Yes:
             response = api.set(objects=objects, data={"status": ObjectStatus.TRASHED})
         else:
             return
@@ -473,9 +473,9 @@ class BrowserTab(QWidget):
             self,
             "Archive",
             f"Do you really want to move {len(objects)} selected asset(s) to archive?",
-            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
-        if ret == QMessageBox.Yes:
+        if ret == QMessageBox.StandardButton.Yes:
             response = api.set(objects=objects, data={"status": ObjectStatus.ARCHIVED})
         else:
             return

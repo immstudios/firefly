@@ -2,14 +2,14 @@ import os
 
 from nxtools import logging, log_traceback
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtNetwork import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
+from PySide6.QtNetwork import *
 
-Signal = pyqtSignal
-Slot = pyqtSlot
-Property = pyqtProperty
+#Signal = pyqtSignal
+#Slot = pyqtSlot
+#Property = pyqtProperty
 
 app_dir = os.getcwd()
 
@@ -37,7 +37,7 @@ app_settings = AppSettings()
 
 
 def get_app_state(path):
-    return QSettings(path, QSettings.IniFormat)
+    return QSettings(path, QSettings.Format.IniFormat)
 
 
 logging.name = app_settings["name"]

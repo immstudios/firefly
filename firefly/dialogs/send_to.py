@@ -55,7 +55,7 @@ class SendToDialog(QDialog):
 
     def on_send(self, id_action):
         QApplication.processEvents()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         response = api.send(
             id_action=id_action,
             objects=self.assets,
@@ -74,4 +74,4 @@ class SendToDialog(QDialog):
 
 def show_send_to_dialog(objects):
     dlg = SendToDialog(None, objects)
-    dlg.exec_()
+    dlg.exec()

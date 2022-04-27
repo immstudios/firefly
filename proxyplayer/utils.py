@@ -1,10 +1,6 @@
-import sys
-import time
-import functools
-
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PySide6.QtWidgets import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
 
 from nxtools import s2tc
 
@@ -36,7 +32,7 @@ class TimecodeWindow(QLineEdit):
 class ToolBarStretcher(QWidget):
     def __init__(self, parent):
         super(ToolBarStretcher, self).__init__(parent)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
 
 class RegionBar(QWidget):
@@ -68,14 +64,14 @@ class RegionBar(QWidget):
     def draw_timeline(self, qp):
         if not self.duration:
             return
-        qp.setPen(Qt.NoPen)
+        qp.setPen(Qt.PenStyle.NoPen)
 
         w = self.width()
         h = self.height()
 
         # in/out
-        x1 = (float(w) / self.duration) * (self.mark_in)
-        x2 = (float(w) / self.duration) * (self.mark_out - self.mark_in)
+        x1 = int((float(w) / self.duration) * (self.mark_in))
+        x2 = int((float(w) / self.duration) * (self.mark_out - self.mark_in))
         if self.mark_in and self.mark_out and self.mark_in > self.mark_out:
             qp.setBrush(self.bad_marks_color)
         else:
@@ -86,7 +82,7 @@ class RegionBar(QWidget):
         for marker_id in self.parent().markers:
             marker = self.parent().markers[marker_id]
             qp.setBrush(QColor(marker.get("color", "#ccaa00")))
-            x = (float(w) / self.duration) * marker["position"]
+            x = int((float(w) / self.duration) * marker["position"])
             qp.drawRect(x, 0, 2, h)
 
 

@@ -20,10 +20,10 @@ class RundownView(FireflyView):
     def __init__(self, parent):
         super(RundownView, self).__init__(parent)
         self.activated.connect(self.on_activate)
-        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setModel(RundownModel(self))
         self.focus_enabled = True
-        self.setDefaultDropAction(Qt.MoveAction)
+        self.setDefaultDropAction(Qt.DropAction.MoveAction)
 
     @property
     def id_channel(self):
@@ -90,7 +90,7 @@ class RundownView(FireflyView):
     #
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Delete:
+        if event.key() == Qt.Key.Key_Delete:
             self.on_delete()
         FireflyView.keyPressEvent(self, event)
 
@@ -248,7 +248,7 @@ class RundownView(FireflyView):
                     action_edit.triggered.connect(self.on_edit_item)
                     menu.addAction(action_edit)
 
-        menu.exec_(event.globalPos())
+        menu.exec(event.globalPos())
 
     def on_set_loop(self):
         if not self.parent().can_edit:
@@ -256,7 +256,7 @@ class RundownView(FireflyView):
             return
         mode = not self.selected_objects[0]["loop"]
         QApplication.processEvents()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         print("loop:", mode)
         response = api.set(
             object_type=self.selected_objects[0].object_type,
@@ -274,7 +274,7 @@ class RundownView(FireflyView):
             logging.error("You are not allowed to modify this rundown")
             return
         QApplication.processEvents()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         response = api.set(
             object_type=self.selected_objects[0].object_type,
             objects=[obj.id for obj in self.selected_objects],
@@ -288,12 +288,12 @@ class RundownView(FireflyView):
 
     def on_trim(self):
         item = self.selected_objects[0]
-        show_trim_dialog(item)
+        show_trim_dialog(self, item)
         self.model().load()
 
     def on_solve(self, solver):
         QApplication.processEvents()
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         response = api.solve(id_item=self.selected_objects[0]["id"], solver=solver)
         QApplication.restoreOverrideCursor()
         if not response:
@@ -323,15 +323,15 @@ class RundownView(FireflyView):
                 "Do you REALLY want to delete "
                 f"{len(items)} items and {len(events)} events?\n"
                 "This operation CANNOT be undone",
-                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
 
-            if ret != QMessageBox.Yes:
+            if ret != QMessageBox.StandardButton.Yes:
                 return
 
         if items:
             QApplication.processEvents()
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             response = api.delete(object_type="item", objects=items)
             QApplication.restoreOverrideCursor()
             if not response:
@@ -342,7 +342,7 @@ class RundownView(FireflyView):
 
         if events:
             QApplication.processEvents()
-            QApplication.setOverrideCursor(Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             response = api.schedule(delete=events, id_channel=self.parent().id_channel)
             QApplication.restoreOverrideCursor()
             if not response:
@@ -376,7 +376,7 @@ class RundownView(FireflyView):
             return
         obj = objs[0]
         dlg = PlaceholderDialog(self, obj.meta)
-        dlg.exec_()
+        dlg.exec()
         if not dlg.ok:
             return False
         data = {}
@@ -428,11 +428,11 @@ class RundownView(FireflyView):
     def dragMoveEvent(self, event):
         super(RundownView, self).dragMoveEvent(event)
         if event.mimeData().hasFormat("application/nx.item"):
-            if event.keyboardModifiers() & Qt.AltModifier:
-                event.setDropAction(Qt.CopyAction)
+            if event.keyboardModifiers() & Qt.KeyboardModifier.AltModifier:
+                event.setDropAction(Qt.DropAction.CopyAction)
             else:
-                event.setDropAction(Qt.MoveAction)
+                event.setDropAction(Qt.DropAction.MoveAction)
         elif event.mimeData().hasFormat("application/nx.asset"):
-            event.setDropAction(Qt.CopyAction)
+            event.setDropAction(Qt.DropAction.CopyAction)
         else:
-            event.setDropAction(Qt.IgnoreAction)
+            event.setDropAction(Qt.DropAction.IgnoreAction)
