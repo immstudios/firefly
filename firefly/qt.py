@@ -2,14 +2,88 @@ import os
 
 from nxtools import logging, log_traceback
 
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-from PySide6.QtWidgets import *
-from PySide6.QtNetwork import *
+from PySide6.QtCore import (
+    QSettings,
+    QUrlQuery,
+    QUrl,
+    QTimer,
+    QEvent,
+    QThread,
+    QModelIndex,
+    QItemSelection,
+    QItemSelectionModel,
+    QDate,
+    QMimeData,
+    QAbstractTableModel,
+    QSortFilterProxyModel,
+    QRect,
+)
 
-#Signal = pyqtSignal
-#Slot = pyqtSlot
-#Property = pyqtProperty
+from PySide6.QtGui import (
+    Qt,
+    QFont,
+    QPixmap,
+    QIcon,
+    QColor,
+    QAction,
+    QFontDatabase,
+    QBrush,
+    QPalette,
+    QFontMetrics,
+    QActionGroup,
+    QDrag,
+    QPainter,
+    QLinearGradient,
+    QPen,
+)
+
+from PySide6.QtWidgets import (
+    QDialog,
+    QLineEdit,
+    QPushButton,
+    QFormLayout,
+    QMessageBox,
+    QApplication,
+    QVBoxLayout,
+    QMenu,
+    QWidget,
+    QLabel,
+    QSizePolicy,
+    QGridLayout,
+    QTextEdit,
+    QSpinBox,
+    QCheckBox,
+    QColorDialog,
+    QHBoxLayout,
+    QComboBox,
+    QAbstractItemDelegate,
+    QStyle,
+    QStyleOptionMenuItem,
+    QStyleOptionComboBox,
+    QStylePainter,
+    QAbstractItemView,
+    QInputDialog,
+    QToolBar,
+    QCalendarWidget,
+    QToolButton,
+    QProgressBar,
+    QTabWidget,
+    QDialogButtonBox,
+    QTableView,
+    QFileDialog,
+    QScrollArea,
+    QFrame,
+    QSlider,
+    QMainWindow,
+    QSplitter,
+    QSplashScreen,
+)
+
+from PySide6.QtNetwork import (
+    QNetworkAccessManager,
+    QNetworkRequest,
+)
+
 
 app_dir = os.getcwd()
 
@@ -34,13 +108,12 @@ class AppSettings:
 
 
 app_settings = AppSettings()
+logging.name = app_settings["name"]
 
 
 def get_app_state(path):
     return QSettings(path, QSettings.Format.IniFormat)
 
-
-logging.name = app_settings["name"]
 
 #
 # Skin

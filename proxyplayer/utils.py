@@ -1,8 +1,15 @@
-from PySide6.QtWidgets import *
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-
 from nxtools import s2tc
+from firefly.qt import (
+    QLineEdit,
+    QSizePolicy,
+    QWidget,
+    QColor,
+    QPainter,
+    Qt,
+    QToolBar,
+    QAction,
+    QIcon,
+)
 
 
 class TimecodeWindow(QLineEdit):
