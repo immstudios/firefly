@@ -3,7 +3,7 @@ Firefly
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/nebulabroadcast/firefly?style=for-the-badge)
 ![Maintenance](https://img.shields.io/maintenance/yes/2022?style=for-the-badge)
-![Last commit](https://img.shields.io/github/last-commit/immstudios/nebula?style=for-the-badge)
+![Last commit](https://img.shields.io/github/last-commit/immstudios/firefly?style=for-the-badge)
 ![Python version](https://img.shields.io/badge/python-3.8-blue?style=for-the-badge)
 
 Firefly is a desktop client application for [Nebula](https://github.com/nebulabroadcast/nebula) broadcast automation system.
