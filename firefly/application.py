@@ -6,10 +6,8 @@ import locale
 from nxtools import logging, log_traceback, critical_error
 
 from firefly.filesystem import load_filesystem
-
 from firefly.dialogs.login import show_login_dialog
 from firefly.dialogs.site_select import show_site_select_dialog
-
 from firefly.api import api
 from firefly.common import pixlib
 from firefly.core.common import config
@@ -23,9 +21,6 @@ from firefly.qt import (
     QApplication,
     QMessageBox,
     QSplashScreen,
-    QGuiApplication,
-    QMainWindow,
-    QWidget,
     app_settings,
     app_dir,
     app_skin,

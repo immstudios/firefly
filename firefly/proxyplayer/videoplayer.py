@@ -3,7 +3,8 @@
 import functools
 
 from nxtools import logging, log_traceback
-from .utils import (
+from firefly.proxyplayer.utils import get_navbar, RegionBar, TimecodeWindow
+from firefly.qt import (
     Qt,
     QWidget,
     QSlider,
@@ -11,18 +12,13 @@ from .utils import (
     QHBoxLayout,
     QVBoxLayout,
     QIcon,
-    RegionBar,
-    TimecodeWindow,
-    get_navbar,
 )
 
 try:
     from .mpv import MPV
-
     has_mpv = True
 except OSError:
     has_mpv = False
-    log_traceback()
     logging.warning(
         "Unable to load MPV libraries. Video preview will not be available."
     )

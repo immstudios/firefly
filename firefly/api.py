@@ -14,8 +14,6 @@ from firefly.qt import (
     QApplication,
     QNetworkAccessManager,
     QNetworkRequest,
-    QNetworkReply,
-    #QVariant,
     QUrlQuery,
     QUrl,
 )
@@ -23,10 +21,13 @@ from firefly.qt import (
 
 class NebulaAPI:
     def __init__(self):
-        self.manager = QNetworkAccessManager()
+        self.manager = None
         self.queries = []
 
     def run(self, method, callback, **kwargs):
+        if self.manager is None:
+            self.manager = QNetworkAccessManager()
+
         logging.debug(
             "Executing {}{} query".format("" if callback == -1 else "async ", method)
         )
@@ -35,7 +36,6 @@ class NebulaAPI:
 
         if method in ["ping", "login", "logout"]:
             method = "/" + method
-#            mime = QVariant("application/x-www-form-urlencoded")
             mime = "application/x-www-form-urlencoded"
             post_data = QUrlQuery()
             for key in kwargs:
@@ -45,7 +45,6 @@ class NebulaAPI:
             ).encode("ascii")
         else:
             method = "/api/" + method
-            # mime = QVariant("application/json")
             mime = "application/json"
             data = json.dumps(kwargs).encode("ascii")
 
@@ -80,10 +79,11 @@ class NebulaAPI:
     def handler(self, response, callback):
         bytes_string = response.readAll()
         data = str(bytes_string, "ascii")
+        if not data:
+            return NebulaResponse(500, "Empty response")
         try:
             result = NebulaResponse(**json.loads(data))
         except Exception:
-            logging.error("Unable to parse response: {}".format(data))
             result = NebulaResponse(500, "Unable to parse response")
         self.queries.remove(response)
         if callback and callback != -1:

@@ -1,5 +1,4 @@
 from firefly.qt import QDialog, QLineEdit, QPushButton, QFormLayout, QMessageBox
-
 from firefly.core.common import config
 from firefly.qt import app_skin
 from firefly.api import api

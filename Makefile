@@ -1,3 +1,7 @@
+build:
+	poetry run briefcase create
+	poetry run briefcase build
+
 install:
 	cp firefly.desktop ~/.local/share/applications/firefly.desktop
 	echo 'Path=$(CURDIR)' >> ~/.local/share/applications/firefly.desktop

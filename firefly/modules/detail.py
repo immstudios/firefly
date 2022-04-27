@@ -10,8 +10,9 @@ from firefly.core.enum import MetaClass, ObjectStatus
 from firefly.base_module import BaseModule
 from firefly.modules.detail_toolbars import detail_toolbar, preview_toolbar
 from firefly.modules.detail_subclips import FireflySubclipsView
-from firefly.widgets import MetaEditor, FireflySelect, FireflyTimecode
+from firefly.proxyplayer import VideoPlayer
 from firefly.objects import has_right, Asset, asset_cache, user
+from firefly.widgets import MetaEditor, FireflySelect, FireflyTimecode
 
 from firefly.qt import (
     Qt,
@@ -28,7 +29,6 @@ from firefly.qt import (
     QIcon,
 )
 
-from proxyplayer import VideoPlayer
 
 
 class DetailTabMain(QWidget):

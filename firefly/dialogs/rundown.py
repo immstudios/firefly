@@ -1,4 +1,4 @@
-__all__ = ["PlaceholderDialog", "SubclipSelectDialog", "trim_dialog"]
+__all__ = ["PlaceholderDialog", "SubclipSelectDialog", "show_trim_dialog"]
 
 import functools
 

@@ -25,6 +25,8 @@ from firefly.qt import (
 from .scheduler_model import SchedulerCalendar
 from .scheduler_utils import dump_template
 
+assert ObjectStatus and ContentType and MediaType and JobState
+
 
 # Backwards compatibility
 OFFLINE = 0
