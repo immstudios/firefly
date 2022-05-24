@@ -149,7 +149,7 @@ class RundownModule(BaseModule):
             self.view.focus_enabled = False
             self.view.selectionModel().select(
                 item_selection,
-                QItemSelectionModel.SelectionFlag.SelectionFlag.ClearAndSelect,
+                QItemSelectionModel.SelectionFlag.ClearAndSelect,
             )
         self.view.focus_enabled = True
 
