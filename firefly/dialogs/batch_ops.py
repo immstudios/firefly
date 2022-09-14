@@ -103,7 +103,8 @@ class BatchOpsDialog(QDialog):
         self.close()
 
 
-def show_batch_ops_dialog(objects):
-    dlg = BatchOpsDialog(None, objects)
-    dlg.exec()
-    return dlg.response
+def show_batch_ops_dialog(parent=None, objects=None):
+    if objects:
+        dlg = BatchOpsDialog(parent, objects)
+        dlg.exec()
+        return dlg.response

@@ -93,7 +93,7 @@ class EventDialog(QDialog):
         self.close()
 
 
-def show_event_dialog(**kwargs):
-    dlg = EventDialog(None, **kwargs)
+def show_event_dialog(parent=None, **kwargs):
+    dlg = EventDialog(parent, **kwargs)
     dlg.exec()
     return dlg.accepted

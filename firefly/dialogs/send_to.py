@@ -72,6 +72,7 @@ class SendToDialog(QDialog):
         QApplication.processEvents()
 
 
-def show_send_to_dialog(objects):
-    dlg = SendToDialog(None, objects)
-    dlg.exec()
+def show_send_to_dialog(parent=None, objects=None):
+    if objects:
+        dlg = SendToDialog(None, objects)
+        dlg.exec()

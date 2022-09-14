@@ -396,6 +396,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                     f"at time {format_time(self.cursor_time)}"
                 )
                 if show_event_dialog(
+                    self,
                     asset=self.calendar.dragging,
                     id_channel=self.id_channel,
                     start=drop_ts,
@@ -444,7 +445,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 if not event.id:
                     logging.debug("Creating empty event")
                     # Create empty event. Event edit dialog is enforced.
-                    if show_event_dialog(id_channel=self.id_channel, start=drop_ts):
+                    if show_event_dialog(self, id_channel=self.id_channel, start=drop_ts):
                         do_reload = True
                 else:
                     # Just dragging events around. Instant save
@@ -502,7 +503,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
     def on_edit_event(self):
         if not self.calendar.selected_event:
             return
-        if show_event_dialog(event=self.calendar.selected_event):
+        if show_event_dialog(self, event=self.calendar.selected_event):
             self.calendar.load()
 
     def on_delete_event(self):

@@ -363,7 +363,7 @@ class RundownView(FireflyView):
                 if obj.object_type == "item" and obj["id_asset"]
             ]
         )
-        show_send_to_dialog(objs)
+        show_send_to_dialog(self, objs)
         self.model().load()
 
     def on_edit_item(self):
@@ -393,7 +393,7 @@ class RundownView(FireflyView):
 
     def on_edit_event(self):
         objs = [obj for obj in self.selected_objects if obj.object_type == "event"]
-        if show_event_dialog(event=objs[0]):
+        if show_event_dialog(self, event=objs[0]):
             self.model().load()
         self.parent().main_window.scheduler.load()
 

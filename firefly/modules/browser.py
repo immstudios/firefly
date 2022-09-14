@@ -402,12 +402,12 @@ class BrowserTab(QWidget):
     def on_send_to(self):
         objs = self.view.selected_objects
         if objs:
-            show_send_to_dialog(objs)
+            show_send_to_dialog(self, objs)
 
     def on_batch_ops(self):
         objs = self.view.selected_objects
         if objs:
-            if show_batch_ops_dialog(objs):
+            if show_batch_ops_dialog(self, objs):
                 self.load()
 
     def on_reset(self):
