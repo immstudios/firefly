@@ -203,7 +203,6 @@ class FireflyList(CheckComboBox):
             self.cdata.append(value)
 
             self.setItemData(i, indent, Qt.ItemDataRole.UserRole)
-
             self.setItemData(i, f"<p>{description}</p>", Qt.ItemDataRole.ToolTipRole)
 
             if row["role"] == "label":

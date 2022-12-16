@@ -2,6 +2,8 @@ import re
 
 
 def shorten(instr, nlen):
+    if type(instr) is not str:
+        return instr
     line = instr.split("\n")[0]
     if len(line) < 100:
         return line

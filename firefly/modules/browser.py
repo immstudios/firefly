@@ -5,7 +5,7 @@ from nxtools import logging, log_traceback
 
 from firefly.api import api
 from firefly.common import pixlib
-from firefly.core.common import config
+from firefly.settings import settings
 from firefly.core.enum import ObjectStatus
 from firefly.dialogs.send_to import show_send_to_dialog
 from firefly.dialogs.batch_ops import show_batch_ops_dialog
@@ -83,24 +83,20 @@ class FireflyBrowserView(FireflyView):
                 )
         super(FireflyView, self).selectionChanged(selected, deselected)
 
-    @property
-    def current_order(self):
-        try:
-            return self.parent().search_query.get("order", "ctime desc").split(" ")
-        except Exception:
-            return ["ctime", "desc"]
-
     def on_header_clicked(self, index):
-        old_order, old_trend = self.current_order
-        value = self.model().header_data[index]
-        if value == old_order:
-            if old_trend == "asc":
-                trend = "desc"
+        old_order_by = self.parent().search_query.get("order_by", "ctime")
+        old_order_dir = self.parent().search_query.get("order_dir", "ctime")
+
+        order_by = self.model().header_data[index]
+        if order_by == old_order_by:
+            if old_order_dir == "asc":
+                order_dir = "desc"
             else:
-                trend = "asc"
+                order_dir = "asc"
         else:
-            trend = "asc"
-        self.parent().search_query["order"] = f"{value} {trend}"
+            order_dir = "asc"
+        self.parent().search_query["order_by"] = order_by
+        self.parent().search_query["order_dir"] = order_dir
         self.parent().load()
 
     def on_activate(self, mi):
@@ -179,9 +175,10 @@ class BrowserTab(QWidget):
         # Search query
 
         self.search_query = {
-            "id_view": kwargs.get("id_view", min(config["views"])),
+            "id_view": kwargs.get("id_view", settings.views[0].id),
             "fulltext": kwargs.get("fulltext", ""),
-            "order": kwargs.get("order", "ctime desc"),
+            "order_by": kwargs.get("order_by", "ctime"),
+            "order_dir": kwargs.get("order_dir", "desc"),
             "conds": kwargs.get("conds", []),
         }
 
@@ -247,18 +244,16 @@ class BrowserTab(QWidget):
 
     def load_view_menu(self):
         i = 1
-        for id_view in sorted(
-            config["views"].keys(), key=lambda k: config["views"][k]["position"]
-        ):
-            view = config["views"][id_view]
-            if view.get("separator", False):
-                self.action_search.addSeparator()
-            action = QAction(view["title"], self)
+        for view in settings.views:
+            # TODO
+            # if view.get("separator", False):
+            #     self.action_search.addSeparator()
+            action = QAction(view.name, self)
             action.setCheckable(True)
             if i < 10:
                 action.setShortcut(f"ALT+{i}")
-            action.id_view = id_view
-            action.triggered.connect(functools.partial(self.set_view, id_view))
+            action.id_view = view.id
+            action.triggered.connect(functools.partial(self.set_view, view.id))
             self.action_search.addAction(action)
             i += 1
 
@@ -375,7 +370,7 @@ class BrowserTab(QWidget):
 
         if len(objs) == 1:
             menu.addSeparator()
-            for link in config["folders"][objs[0]["id_folder"]].get("links", []):
+            for link in settings.get_folder[objs[0]["id_folder"]].links:
                 action_link = QAction(link["title"])
                 action_link.triggered.connect(
                     functools.partial(self.link_exec, objs[0], **link)
@@ -548,7 +543,7 @@ class BrowserModule(BaseModule):
         current_index = 0
         for tabcfg in tabscfg:
             try:
-                if tabcfg["id_view"] not in config["views"]:
+                if tabcfg["id_view"] not in [k.id for k in settings.views]:
                     continue
                 if tabcfg.get("active"):
                     current_index = self.tabs.count()
@@ -639,7 +634,7 @@ class BrowserModule(BaseModule):
         views = []
         for i, b in enumerate(self.browsers):
             id_view = b.id_view
-            self.tabs.setTabText(i, b.title or config["views"][id_view]["title"])
+            self.tabs.setTabText(i, b.title or settings.get_view(id_view).name)
             sq = copy.copy(b.search_query)
             if self.tabs.currentIndex() == i:
                 sq["active"] = True

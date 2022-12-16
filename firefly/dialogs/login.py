@@ -28,13 +28,12 @@ class LoginDialog(QDialog):
 
     def handleLogin(self):
         response = api.login(
-            api="1",
-            login=self.login.text(),
+            username=self.login.text(),
             password=self.password.text(),
         )
-        if response and response.data:
-            config["session_id"] = response["session_id"]
-            self.result = response.data
+        if response and response.get("accessToken", False):
+            config["session_id"] = response["accessToken"]
+            self.result = config["session_id"]
             self.close()
         else:
             QMessageBox.critical(self, "Error", response.message)

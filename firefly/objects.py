@@ -70,7 +70,7 @@ class AssetCache(object):
             )
         else:
             logging.info("Requesting data for {} assets".format(asset_count))
-        self.api.get(self.on_response, objects=to_update)
+        self.api.get(self.on_response, ids=to_update)
 
     def on_response(self, response):
         if response.is_error:

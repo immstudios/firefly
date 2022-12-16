@@ -22,11 +22,11 @@ __all__ = [
 
 
 def format_header(key):
-    return meta_types[key].header()
+    return meta_types[key].header
 
 
 def format_description(key):
-    return meta_types[key].description()
+    return meta_types[key].description
 
 
 class FireflyViewModel(QAbstractTableModel):

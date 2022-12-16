@@ -14,21 +14,15 @@ if config.get("debug"):
     websocket.enableTrace(True)
 
 
-def readlines(f):
-    buff = b""
-    for ch in f.iter_content(1):
-        ch = ch
-        if ch == b"\n":
-            yield buff.decode("ascii")
-            buff = b""
-        else:
-            buff += ch
-    yield buff.decode("ascii")
-
-
-class SeismicMessage(object):
-    def __init__(self, packet):
-        self.timestamp, self.site_name, self.host, self.method, self.data = packet
+class SeismicMessage:
+    def __init__(self, **payload):
+        self.timestamp = time.time()
+        self.site_name = config.get("site_name")
+        self.host = payload.get("host", "server")
+        self.method = payload.get("topic", "unknown")
+        payload.pop("topic", None)
+        payload.pop("host", None)
+        self.data = payload
 
 
 class SeismicListener(QThread):
@@ -42,12 +36,13 @@ class SeismicListener(QThread):
         self.start()
 
     def run(self):
-        addr = config["hub"].replace("http", "ws", 1) + "/ws/" + config["site_name"]
+        addr = config["hub"].replace("http", "ws", 1) + "/ws"
         while self.should_run:
             logging.debug(f"[LISTENER] Connecting to {addr}", handlers=False)
             self.halted = False
             self.ws = websocket.WebSocketApp(
                 addr,
+                on_open=self.on_open,
                 on_message=self.on_message,
                 on_error=self.on_error,
                 on_close=self.on_close,
@@ -58,20 +53,28 @@ class SeismicListener(QThread):
         logging.debug("[LISTENER] halted", handlers=False)
         self.halted = True
 
+    def on_open(self, *args):
+        self.ws.send(
+            json.dumps(
+                {
+                    "topic": "auth",
+                    "token": config.get("session_id"),
+                    "subscribe": ["*"],
+                }
+            )
+        )
+
     def on_message(self, *args):
         data = args[-1]
-
         if not self.active:
             logging.goodnews("[LISTENER] connected", handlers=False)
             self.active = True
         try:
-            message = SeismicMessage(json.loads(data))
+            original_payload = json.loads(data)
+            message = SeismicMessage(**original_payload)
         except Exception:
             log_traceback(handlers=False)
             logging.debug(f"[LISTENER] Malformed message: {data}", handlers=False)
-            return
-
-        if message.site_name != self.site_name:
             return
 
         self.last_msg = time.time()

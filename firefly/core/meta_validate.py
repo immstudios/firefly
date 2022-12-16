@@ -1,13 +1,5 @@
-from .enum import MetaClass
-
-
 class NebulaInvalidValueError(Exception):
     pass
-
-
-#
-# Validators
-#
 
 
 def validate_default(meta_type, value):
@@ -64,11 +56,12 @@ def validate_regions(meta_type, value):
 def validate_fract(meta_type, value):
     value = value.replace(":", "/")
     split = value.split("/")
-    assert (
-        len(split) == 2
-        and split[0].replace(".", "", 1).isdigit()
-        and split[1].isdigit()
-    ), "Bad fract: {}".format(value)
+    try:
+        assert len(split) == 2
+        assert split[0].replace(".", "", 1).isdigit()
+        assert split[1].isdigit()
+    except AssertionError:
+        raise NebulaInvalidValueError("Invalid fraction format")
     return value
 
 
@@ -100,17 +93,16 @@ def validate_color(meta_type, value):
 
 
 validators = {
-    -1: validate_default,
-    MetaClass.STRING: validate_string,
-    MetaClass.TEXT: validate_text,
-    MetaClass.INTEGER: validate_integer,
-    MetaClass.NUMERIC: validate_numeric,
-    MetaClass.BOOLEAN: validate_boolean,
-    MetaClass.DATETIME: validate_datetime,
-    MetaClass.TIMECODE: validate_timecode,
-    MetaClass.OBJECT: validate_regions,
-    MetaClass.FRACTION: validate_fract,
-    MetaClass.SELECT: validate_select,
-    MetaClass.LIST: validate_list,
-    MetaClass.COLOR: validate_color,
+    "string": validate_string,
+    "text": validate_text,
+    "integer": validate_integer,
+    "numeric": validate_numeric,
+    "boolean": validate_boolean,
+    "datetime": validate_datetime,
+    "timecode": validate_timecode,
+    "object": validate_regions,
+    "fraction": validate_fract,
+    "select": validate_select,
+    "list": validate_list,
+    "color": validate_color,
 }

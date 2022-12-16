@@ -3,6 +3,7 @@ import sys
 import time
 import locale
 
+from typing import Any
 from nxtools import logging, log_traceback, critical_error
 
 from firefly.filesystem import load_filesystem
@@ -10,6 +11,7 @@ from firefly.dialogs.login import show_login_dialog
 from firefly.dialogs.site_select import show_site_select_dialog
 from firefly.api import api
 from firefly.common import pixlib
+from firefly.settings import update_settings
 from firefly.core.common import config
 from firefly.core.metadata import clear_cs_cache
 from firefly.objects import user
@@ -28,17 +30,20 @@ from firefly.qt import (
 
 
 def check_login(wnd):
-    data = api.ping()
-    user_meta = data.get("data", False)
-    if user_meta:
-        session_id = data.get("session_id", False)
-        if session_id:
-            config["session_id"] = session_id
-        return user_meta
-    if data["response"] > 403:
-        QMessageBox.critical(wnd, f"Error {data['response']}", data["message"])
+    response = api.init()
+    if not response:
+        QMessageBox.critical(wnd, f"Error {response.message}")
         return False
-    return show_login_dialog(wnd)
+    user_meta = response.get("user", False)
+    if user_meta:
+        return response
+    if not show_login_dialog(wnd):
+        return False
+    response = api.init()
+    if not response:
+        QMessageBox.critical(wnd, f"Error {response.message}")
+        return False
+    return response
 
 
 class FireflyApplication(QApplication):
@@ -82,15 +87,16 @@ class FireflyApplication(QApplication):
             log_traceback()
         config["session_id"] = session_id
 
-        user_meta = check_login(self.splash)
-        if not user_meta:
+        if not (init_response := check_login(self.splash)):
             logging.error("Unable to log in")
             sys.exit(0)
-        user.meta = user_meta
+
+        user.meta = init_response["user"]
+        user.meta["is_admin"] = True  # TODO
 
         # Load settings and show main window
         self.splash_message("Loading site settings...")
-        self.load_settings()
+        self.load_settings(init_response["settings"])
         self.splash_message("Loading filesystem...")
         load_filesystem()
         self.splash_message("Loading asset cache...")
@@ -136,31 +142,14 @@ class FireflyApplication(QApplication):
                 color=Qt.GlobalColor.white,
             )
 
-    def load_settings(self):
+    def load_settings(self, source: dict[str, Any] | None = None):
         self.splash_message("Loading site settings")
-        response = api.settings()
-        if not response:
-            QMessageBox.critical(self.splash, "Error", response.message)
-            critical_error("Unable to load site settings")
 
-        for key in response.data:
-            if config.get(key) and key != "site_name":
-                if key in self.local_keys:
-                    continue
-            config[key] = response.data[key]
+        if source is None:
+            response = api.init()
+            if not response:
+                critical_error("Unable to load site settings")
+            source = response["settings"]
 
-        # Fix indices
-        for config_group in [
-            "storages",
-            "playout_channels",
-            "ingest_channels",
-            "folders",
-            "views",
-            "actions",
-            "services",
-        ]:
-            ng = {}
-            for id in config[config_group]:
-                ng[int(id)] = config[config_group][id]
-            config[config_group] = ng
+        update_settings(source)
         clear_cs_cache()

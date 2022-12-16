@@ -1,7 +1,7 @@
 from nxtools import format_filesize, format_time, s2time, unaccent, logging
 
 from .common import config, storages
-from .enum import MetaClass, ContentType, ObjectStatus, MediaType
+from .enum import ContentType, ObjectStatus, MediaType
 from .meta_utils import shorten, tree_indent
 
 #
@@ -24,25 +24,25 @@ def format_integer(meta_type, value, **kwargs):
     result = kwargs.get("result", "alias")
     value = int(value)
 
-    if (not value) and meta_type.settings.get("hide_null", False):
+    if not value:  # TODO: and meta_type.settings.get("hide_null", False):
         alias = ""
 
-    elif meta_type.key == "file/size":
+    elif meta_type.name == "file/size":
         alias = format_filesize(value)
 
-    elif meta_type.key == "id_folder":
+    elif meta_type.name == "id_folder":
         alias = config["folders"].get(value, {}).get("title", "")
 
-    elif meta_type.key == "status":
+    elif meta_type.name == "status":
         alias = ObjectStatus(value).name
 
-    elif meta_type.key == "content_type":
+    elif meta_type.name == "content_type":
         alias = ContentType(value).name
 
-    elif meta_type.key == "media_type":
+    elif meta_type.name == "media_type":
         alias = MediaType(value).name
 
-    elif meta_type.key == "id_storage":
+    elif meta_type.name == "id_storage":
         alias = storages[value].__repr__().lstrip("storage ")
 
     else:
@@ -77,11 +77,11 @@ def format_boolean(meta_type, value, **kwargs):
 
 def format_datetime(meta_type, value, **kwargs):
     result = kwargs.get("result", "alias")
-    time_format = meta_type.settings.get("format", False) or kwargs.get(
-        "format", "%Y-%m-%d %H:%M"
-    )
+    time_format = kwargs.get("format") or meta_type.format or "%Y-%m-%d %H:%M"
     alias = format_time(
-        value, time_format, never_placeholder=kwargs.get("never_placeholder", "never")
+        value,
+        time_format,
+        never_placeholder=kwargs.get("never_placeholder", "never"),
     )
     if result in ["brief", "full"]:
         return {"value": value, "alias": alias}
@@ -117,18 +117,18 @@ def format_select(meta_type, value, **kwargs):
     lang = kwargs.get("language", config.get("language", "en"))
     result = kwargs.get("result", "alias")
 
-    cs = meta_type.cs
+    cs = meta_type.csdata
 
     if result == "brief":
-        return {"value": value, "alias": cs.alias(value, lang)}
+        return {"value": value, "alias": cs.title(value)}
 
     elif result == "full":
         result = []
         has_zero = has_selected = False
-        if (value not in cs.data) and (value in cs.csdata):
-            adkey = [value]
-        else:
-            adkey = []
+        # if (value not in cs.data) and (value in cs.csdata):
+        #     adkey = [value]
+        # else:
+        adkey = []
         for csval in cs.data + adkey:
             if csval == "0":
                 has_zero = True
@@ -140,14 +140,14 @@ def format_select(meta_type, value, **kwargs):
             result.append(
                 {
                     "value": csval,
-                    "alias": cs.alias(csval, lang),
-                    "description": cs.description(csval, lang),
+                    "alias": cs.title(csval),
+                    "description": cs.description(csval),
                     "selected": value == csval,
                     "role": role,
                     "indent": 0,
                 }
             )
-        if meta_type.get("mode") == "tree":
+        if meta_type.mode == "tree":
 
             def sort_mode(x):
                 return "".join([n.zfill(5) for n in x["value"].split(".")])
@@ -155,7 +155,7 @@ def format_select(meta_type, value, **kwargs):
             result.sort(key=sort_mode)
             tree_indent(result)
         else:
-            if meta_type.get("order") == "alias":
+            if meta_type.order == "alias":
 
                 def sort_mode(x):
                     return unaccent(str(x["alias"]))
@@ -190,23 +190,22 @@ def format_list(meta_type, value, **kwargs):
         value = []
 
     value = [str(v) for v in value]
-    lang = kwargs.get("language", config.get("language", "en"))
     result = kwargs.get("result", "alias")
 
-    cs = meta_type.cs
+    cs = meta_type.csdata
 
     if result == "brief":
         return {
             "value": value,
-            "alias": ", ".join(cs.aliases(lang)),
+            "alias": ", ".join([cs.title(v) for v in value]),
         }
 
     elif result == "full":
         result = []
         adkey = []
-        for v in value:
-            if (v not in cs.data) and (v in cs.csdata):
-                adkey.append(v)
+        # for v in value:
+        #     if (v not in cs.data) and (v in cs.csdata):
+        #         adkey.append(v)
 
         for csval in cs.data + adkey:
             role = cs.role(csval)
@@ -215,14 +214,14 @@ def format_list(meta_type, value, **kwargs):
             result.append(
                 {
                     "value": csval,
-                    "alias": cs.alias(csval, lang),
-                    "description": cs.description(csval, lang),
+                    "alias": cs.title(csval),
+                    "description": cs.description(csval),
                     "selected": csval in value,
                     "role": role,
                     "indent": 0,
                 }
             )
-        if meta_type.get("mode") == "tree":
+        if meta_type.mode == "tree":
 
             def sort_mode(x):
                 return "".join([n.zfill(3) for n in x["value"].split(".")])
@@ -230,7 +229,7 @@ def format_list(meta_type, value, **kwargs):
             result.sort(key=sort_mode)
             tree_indent(result)
         else:
-            if meta_type.get("order") == "alias":
+            if meta_type.order == "alias":
 
                 def sort_mode(x):
                     return unaccent(str(x["alias"]))
@@ -245,11 +244,11 @@ def format_list(meta_type, value, **kwargs):
 
     elif result == "description":
         if len(value):
-            return cs.description(value[0], lang)
+            return cs.description(value[0])
         return ""
 
     else:  # alias
-        return ", ".join(cs.aliases(lang))
+        return ", ".join([cs.title(v) for v in value])
 
 
 def format_color(meta_type, value, **kwargs):
@@ -262,16 +261,16 @@ def format_color(meta_type, value, **kwargs):
 
 humanizers = {
     -1: None,
-    MetaClass.STRING: format_text,
-    MetaClass.TEXT: format_text,
-    MetaClass.INTEGER: format_integer,
-    MetaClass.NUMERIC: format_numeric,
-    MetaClass.BOOLEAN: format_boolean,
-    MetaClass.DATETIME: format_datetime,
-    MetaClass.TIMECODE: format_timecode,
-    MetaClass.OBJECT: format_regions,
-    MetaClass.FRACTION: format_fract,
-    MetaClass.SELECT: format_select,
-    MetaClass.LIST: format_list,
-    MetaClass.COLOR: format_color,
+    "string": format_text,
+    "text": format_text,
+    "integer": format_integer,
+    "numeric": format_numeric,
+    "boolean": format_boolean,
+    "datetime": format_datetime,
+    "timecode": format_timecode,
+    "object": format_regions,
+    "fraction": format_fract,
+    "select": format_select,
+    "list": format_list,
+    "color": format_color,
 }

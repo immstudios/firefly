@@ -3,6 +3,7 @@ import functools
 
 from nxtools import logging, log_traceback
 
+from firefly.objects import Asset
 from firefly.api import api
 from firefly.common import pixlib
 from firefly.core.common import config
@@ -27,14 +28,15 @@ class BrowserModel(FireflyViewModel):
         except KeyError:
             self.header_data = DEFAULT_HEADER_DATA
 
-        search_query = kwargs
-        search_query["result"] = ["id", "mtime"]
-        api.get(
+        api.browse(
             functools.partial(self.load_callback, callback),
-            **search_query,
-            count=False,
+            # TODO: V6
+            view=kwargs["id_view"],
+            query=kwargs["fulltext"],
             limit=RECORDS_PER_PAGE + 1,
-            offset=(self.parent().current_page - 1) * RECORDS_PER_PAGE
+            orderBy=kwargs["order_by"],
+            orderDir=kwargs["order_dir"],
+            offset=(self.parent().current_page - 1) * RECORDS_PER_PAGE,
         )
 
     def load_callback(self, callback, response):
@@ -43,8 +45,6 @@ class BrowserModel(FireflyViewModel):
 
         if not response:
             logging.error(response.message)
-        else:
-            asset_cache.request(response.data)
 
         # Pagination
 
@@ -64,7 +64,7 @@ class BrowserModel(FireflyViewModel):
 
         if len(response.data) > RECORDS_PER_PAGE:
             response.data.pop(-1)
-        self.object_data = [asset_cache.get(row[0]) for row in response.data]
+        self.object_data = [Asset(meta=m) for m in response.data]
 
         self.parent().set_page(current_page, page_count)
         self.endResetModel()
@@ -85,10 +85,10 @@ class BrowserModel(FireflyViewModel):
                 desc = format_description(self.header_data[col])
                 return "<p>{}</p>".format(desc) if desc else None
             elif role == Qt.ItemDataRole.DecorationRole:
-                order, trend = self.parent().current_order
-                if self.header_data[col] == order:
+                sq = self.parent().parent().search_query
+                if self.header_data[col] == sq["order_by"]:
                     return pixlib[
-                        ["smallarrow-up", "smallarrow-down"][int(trend == "desc")]
+                        ["smallarrow-up", "smallarrow-down"][int(sq["order_dir"] == "desc")]
                     ]
         return None
 

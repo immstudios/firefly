@@ -14,7 +14,6 @@ from firefly.qt import (
     QApplication,
     QNetworkAccessManager,
     QNetworkRequest,
-    QUrlQuery,
     QUrl,
 )
 
@@ -31,28 +30,22 @@ class NebulaAPI:
         logging.debug(
             "Executing {}{} query".format("" if callback == -1 else "async ", method)
         )
-        kwargs["session_id"] = config["session_id"]
         kwargs["initiator"] = CLIENT_ID
 
-        if method in ["ping", "login", "logout"]:
-            method = "/" + method
-            mime = "application/x-www-form-urlencoded"
-            post_data = QUrlQuery()
-            for key in kwargs:
-                post_data.addQueryItem(key, kwargs[key])
-            data = post_data.toString(
-                QUrl.ComponentFormattingOption.FullyEncoded
-            ).encode("ascii")
-        else:
-            method = "/api/" + method
-            mime = "application/json"
-            data = json.dumps(kwargs).encode("ascii")
+        method = "/api/" + method
+        mime = "application/json"
+        data = json.dumps(kwargs).encode("ascii")
+        access_token = config.get("session_id")
 
         request = QNetworkRequest(QUrl(config["hub"] + method))
         request.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, mime)
         request.setHeader(
             QNetworkRequest.KnownHeaders.UserAgentHeader,
             f"nebula-firefly/{FIREFLY_VERSION}",
+        )
+        request.setRawHeader(
+            b"Authorization",
+            bytes(f"Bearer {access_token}", "ascii"),
         )
 
         try:
@@ -77,14 +70,17 @@ class NebulaAPI:
             return self.handler(query, -1)
 
     def handler(self, response, callback):
+        status = response.attribute(QNetworkRequest.HttpStatusCodeAttribute)
         bytes_string = response.readAll()
-        data = str(bytes_string, "ascii")
+        data = str(bytes_string, "utf-8")
         if not data:
             return NebulaResponse(500, "Empty response")
-        try:
-            result = NebulaResponse(**json.loads(data))
-        except Exception:
-            result = NebulaResponse(500, "Unable to parse response")
+
+        payload = json.loads(data)
+        message = payload.get("detail", "")
+        payload.pop("detail", None)
+
+        result = NebulaResponse(status, message, **payload)
         self.queries.remove(response)
         if callback and callback != -1:
             callback(result)

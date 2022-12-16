@@ -96,10 +96,13 @@ def get_hash(string):
 #
 
 
-class NebulaResponse(object):
+class NebulaResponse:
     def __init__(self, response=200, message=None, **kwargs):
         self.dict = {"response": response, "message": message}
         self.dict.update(kwargs)
+
+    def __repr__(self):
+        return f"<NebulaResponse {self.response} {self.message}>"
 
     @property
     def json(self):
@@ -140,7 +143,7 @@ class NebulaResponse(object):
 #
 
 
-class Storage(object):
+class Storage:
     def __init__(self, id, **kwargs):
         self.id = int(id)
         self.settings = kwargs
@@ -186,7 +189,7 @@ class Storage(object):
         )
 
 
-class UnknownStorage(object):
+class UnknownStorage:
     def __init__(self, id, **kwargs):
         self.id = int(id)
         self.title = "Unknown storage {}".format(self.id)
@@ -205,7 +208,7 @@ class UnknownStorage(object):
         return 0
 
 
-class Storages(object):
+class Storages:
     def __getitem__(self, key):
         if key not in config["storages"]:
             return UnknownStorage(key)

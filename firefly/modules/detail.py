@@ -4,7 +4,7 @@ from nxtools import logging, format_time
 
 from firefly.api import api
 from firefly.common import pixlib
-from firefly.core.common import config
+from firefly.settings import settings
 from firefly.core.metadata import meta_types
 from firefly.core.enum import MetaClass, ObjectStatus
 from firefly.base_module import BaseModule
@@ -30,11 +30,10 @@ from firefly.qt import (
 )
 
 
-
 class DetailTabMain(QWidget):
     def __init__(self, parent):
         super(DetailTabMain, self).__init__(parent)
-        self.keys = []
+        self.fields = []
         self.widgets = {}
         self.layout = QVBoxLayout()
         self.form = False
@@ -62,9 +61,9 @@ class DetailTabMain(QWidget):
         id_folder = kwargs.get("id_folder", asset["id_folder"])
         if id_folder != self.id_folder or kwargs.get("force"):
             if not id_folder:
-                self.keys = []
+                self.fields = []
             else:
-                self.keys = config["folders"][id_folder]["meta_set"]
+                self.fields = settings.get_folder(id_folder).fields
 
             if self.form:
                 # SRSLY. I've no idea what I'm doing here
@@ -77,16 +76,18 @@ class DetailTabMain(QWidget):
             for i in reversed(range(self.layout.count())):
                 self.layout.itemAt(i).widget().deleteLater()
 
-            self.form = MetaEditor(self, self.keys)
+            self.form = MetaEditor(self, self.fields)
             self.layout.addWidget(self.form)
             self.id_folder = id_folder
             self.status = asset["status"]
 
         if self.form:
-            for key, conf in self.keys:
-                if meta_types[key]["class"] in [MetaClass.SELECT, MetaClass.LIST]:
-                    self.form.inputs[key].set_data(asset.show(key, result="full"))
-                self.form[key] = asset[key]
+            for field in self.fields:
+                if meta_types[field.name].type in ["select", "list"]:
+                    self.form.inputs[field.name].set_data(
+                        asset.show(field.name, result="full")
+                    )
+                self.form[field.name] = asset[field.name]
             self.form.set_defaults()
 
         if self.form:
@@ -99,10 +100,10 @@ class DetailTabMain(QWidget):
     def search_by_key(self, key, id_view=False):
         b = self.parent().parent().parent().main_window.browser
         id_view = id_view or b.tabs.widget(b.tabs.currentIndex()).id_view
-        view_title = config["views"][id_view]["title"]
+        view_title = settings.get_view(id_view).title
         asset = self.parent().parent().parent().asset
         b.new_tab(
-            f"{view_title}: {asset.show(key)} ({meta_types[key].alias})",
+            f"{view_title}: {asset.show(key)} ({meta_types[key].title})",
             id_view=id_view,
             conds=[f"'{key}' = '{self.form[key]}'"],
         )
@@ -131,12 +132,12 @@ class DetailTabExtended(MetaList):
         if not asset["id_folder"]:
             return
         for tag in sorted(meta_types):
-            if meta_types[tag]["ns"] in ["a", "i", "e", "b", "o"]:
+            if meta_types[tag].ns in ["a", "i", "e", "b", "o"]:
                 self.tag_groups["core"].append(tag)
-            elif meta_types[tag]["ns"] in ("f", "q"):
+            elif meta_types[tag].ns in ("f", "q"):
                 continue
             elif tag not in [
-                r[0] for r in config["folders"][asset["id_folder"]]["meta_set"]
+                r.name for r in settings.get_folder(asset["id_folder"]).fields
             ]:
                 self.tag_groups["other"].append(tag)
         data = ""
@@ -144,8 +145,8 @@ class DetailTabExtended(MetaList):
             for tag in self.tag_groups[tag_group]:
                 if tag not in asset.meta:
                     continue
-                tag_title = meta_types[tag].alias()
-                value = asset.format_display(tag) or asset["tag"] or ""
+                tag_title = meta_types[tag].title
+                value = asset.format_display(tag) or asset[tag] or ""
                 if value:
                     data += f"{tag_title:<40}: {value}\n"
             data += "\n\n"
@@ -158,9 +159,9 @@ class DetailTabTechnical(MetaList):
         for tag in sorted(meta_types):
             if tag.startswith("file") or tag in ["id_storage", "path", "origin"]:
                 self.tag_groups["File"].append(tag)
-            elif meta_types[tag]["ns"] == "f":
+            elif meta_types[tag].ns == "f":
                 self.tag_groups["Format"].append(tag)
-            elif meta_types[tag]["ns"] == "q" and not tag.startswith("qc/"):
+            elif meta_types[tag].ns == "q" and not tag.startswith("qc/"):
                 self.tag_groups["QC"].append(tag)
         data = ""
         if not asset["id_folder"]:
@@ -169,7 +170,7 @@ class DetailTabTechnical(MetaList):
             for tag in self.tag_groups[tag_group]:
                 if tag not in asset.meta:
                     continue
-                tag_title = meta_types[tag].alias()
+                tag_title = meta_types[tag].title
                 value = asset.format_display(tag) or asset["tag"] or ""
                 if value:
                     data += f"{tag_title:<40}: {value}\n"
@@ -314,11 +315,11 @@ class DetailModule(BaseModule):
         toolbar_layout = QHBoxLayout()
 
         fdata = []
-        for id_folder in sorted(config["folders"].keys()):
+        for folder in settings.folders:
             fdata.append(
                 {
-                    "value": id_folder,
-                    "alias": config["folders"][id_folder]["title"],
+                    "value": folder.id,
+                    "alias": folder.name,
                     "role": "option",
                 }
             )
@@ -381,7 +382,7 @@ class DetailModule(BaseModule):
                 "Save changes?",
                 f"Following data has been changed in the {self.asset}"
                 + "\n\n"
-                + "\n".join([meta_types[k].alias() for k in changed]),
+                + "\n".join([meta_types[k].title for k in changed]),
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
 
@@ -451,7 +452,7 @@ class DetailModule(BaseModule):
         if self.asset and self.asset["id_folder"]:
             new_asset["id_folder"] = self.asset["id_folder"]
         else:
-            new_asset["id_folder"] = min(config["folders"])
+            new_asset["id_folder"] = settings.folders[0].id
         self.duration.set_value(0)
         self.focus(new_asset)
         self.main_window.show_detail()
@@ -464,7 +465,7 @@ class DetailModule(BaseModule):
             for key in self.form.inputs:
                 new_asset[key] = self.form[key]
         else:
-            new_asset["id_folder"] = min(config["folders"])
+            new_asset["id_folder"] = settings.folders[0].id
         new_asset["media_type"] = self.asset["media_type"]
         new_asset["content_type"] = self.asset["content_type"]
         self.asset = False
