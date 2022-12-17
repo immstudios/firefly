@@ -208,7 +208,7 @@ class DetailTabPreview(QWidget):
 
     def load_video(self):
         if self.current_asset and not self.loaded:
-            proxy_url = config["hub"] + self.current_asset.proxy_url
+            proxy_url = f"{settings.server_url}/proxy/{self.current_asset.id}"
             logging.debug(f"[DETAIL] Opening {self.current_asset} preview: {proxy_url}")
             self.player.fps = self.current_asset.fps
             if self.current_asset["poster_frame"]:

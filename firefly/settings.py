@@ -57,6 +57,7 @@ class Settings(SettingsModel):
     metatypes: dict[str, Any] = Field(default_factory=dict)
     cs: dict[str, Any] = Field(default_factory=dict)
     playout_channels: list[PlayoutChannelSettings] = Field(default_factory=list)
+    server_url: str | None = Field(None, title="Server URL")
 
     def get_folder(self, id_folder: int) -> FolderSettings:
         return find_by_id(self.folders, id_folder)
