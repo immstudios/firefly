@@ -2,6 +2,7 @@ __all__ = ["FireflyObject"]
 
 from nxtools import s2time, s2tc
 
+from firefly.settings import settings
 from firefly.common import Colors
 
 from firefly.core.common import config
@@ -61,11 +62,11 @@ class FormatFolder(CellFormat):
 
     def display(self, obj, **kwargs):
         id_folder = obj["id_folder"]
-        return config["folders"].get(id_folder, DEFAULT_FOLDER)["title"]
+        return settings.get_folder(id_folder).name
 
     def foreground(self, obj, **kwargs):
         id_folder = obj["id_folder"]
-        return config["folders"].get(id_folder, DEFAULT_FOLDER)["color"]
+        return settings.get_folder(id_folder).color
 
 
 class FormatContentType(CellFormat):
@@ -153,13 +154,13 @@ class FormatRundownDifference(CellFormat):
         return ""
 
     def foreground(self, obj, **kwargs):
-        if obj["rundown_broadcast"] and obj["rundown_scheduled"]:
-            diff = obj["rundown_broadcast"] - obj["rundown_scheduled"]
+        if obj["broadcast_time"] and obj["scheduled_time"]:
+            diff = obj["broadcast_time"] - obj["scheduled_time"]
             return ["#ff0000", "#00ff00"][diff >= 0]
 
 
 class FormatRundownScheduled(CellFormat):
-    key = "rundown_scheduled"
+    key = "scheduled_time"
 
     def display(self, obj, **kwargs):
         if obj.id:
@@ -170,7 +171,7 @@ class FormatRundownScheduled(CellFormat):
 
 
 class FormatRundownBroadcast(CellFormat):
-    key = "rundown_broadcast"
+    key = "broadcast_time"
 
     def display(self, obj, **kwargs):
         if obj.id:

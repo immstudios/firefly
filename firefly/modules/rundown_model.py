@@ -1,7 +1,7 @@
 import json
 import time
 
-from nxtools import logging
+from nxtools import logging, format_time
 
 from firefly.api import api
 from firefly.dialogs.rundown import PlaceholderDialog, SubclipSelectDialog
@@ -16,8 +16,8 @@ DEFAULT_COLUMNS = [
     "duration",
     "status",
     "run_mode",
-    "rundown_scheduled",
-    "rundown_broadcast",
+    "scheduled_time",
+    "broadcast_time",
     "rundown_difference",
     "mark_in",
     "mark_out",
@@ -51,7 +51,9 @@ class RundownModel(FireflyViewModel):
         self.parent().setCursor(Qt.CursorShape.BusyCursor)
         self.current_callback = callback
         api.rundown(
-            self.load_callback, id_channel=self.id_channel, start_time=self.start_time
+            self.load_callback,
+            channel=self.id_channel,
+            date=format_time(self.start_time, "%Y-%m-%d"),
         )
 
     def load_callback(self, response):
@@ -75,18 +77,19 @@ class RundownModel(FireflyViewModel):
         self.event_ids = []
 
         i = 0
-        for row in response.data:
-            row["rundown_row"] = i
-            if row["object_type"] == "event":
+        for row in response["rows"]:
+            row["rundown_row"] = 1
+            row["rundown_difference"] = row["broadcast_time"] - row["scheduled_time"]
+
+            if row["type"] == "event":
                 self.object_data.append(Event(meta=row))
                 i += 1
                 self.event_ids.append(row["id"])
-                if row["is_empty"]:
-                    self.object_data.append(
-                        Item(meta={"title": "(Empty event)", "id_bin": row["id_bin"]})
-                    )
+                if not row["duration"]:
+                    meta = {"title": "(Empty event)", "id_bin": row["id_bin"]}
+                    self.object_data.append(Item(meta=meta))
                     i += 1
-            elif row["object_type"] == "item":
+            elif row["type"] == "item":
                 item = Item(meta=row)
                 item.id_channel = self.id_channel
                 if row["id_asset"]:

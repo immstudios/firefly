@@ -1,6 +1,8 @@
 from nxtools import format_filesize, format_time, s2time, unaccent, logging
 
-from .common import config, storages
+from firefly.settings import settings
+
+from .common import storages
 from .enum import ContentType, ObjectStatus, MediaType
 from .meta_utils import shorten, tree_indent
 
@@ -15,8 +17,6 @@ def format_text(meta_type, value, **kwargs):
         return {"value": shorten(value, 100)}
     if result == "full":
         return {"value": value}
-    if kwargs.get("shorten"):  # TODO: deprecated. remove
-        return shorten(value, kwargs["shorten"])
     return value
 
 
@@ -31,7 +31,10 @@ def format_integer(meta_type, value, **kwargs):
         alias = format_filesize(value)
 
     elif meta_type.name == "id_folder":
-        alias = config["folders"].get(value, {}).get("title", "")
+        if folder := settings.get_folder(value):
+            alias = folder.name
+        else:
+            alias = f"Unknown folder ({value})"
 
     elif meta_type.name == "status":
         alias = ObjectStatus(value).name
@@ -114,7 +117,6 @@ def format_fract(meta_type, value, **kwargs):
 
 def format_select(meta_type, value, **kwargs):
     value = str(value)
-    lang = kwargs.get("language", config.get("language", "en"))
     result = kwargs.get("result", "alias")
 
     cs = meta_type.csdata
@@ -176,10 +178,10 @@ def format_select(meta_type, value, **kwargs):
         return result
 
     elif result == "description":
-        return cs.description(value, lang)
+        return cs.description(value)
 
     else:  # alias
-        return cs.alias(value, lang)
+        return cs.title(value)
 
 
 def format_list(meta_type, value, **kwargs):

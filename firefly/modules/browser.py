@@ -376,7 +376,7 @@ class BrowserTab(QWidget):
 
         if len(objs) == 1:
             menu.addSeparator()
-            for link in settings.get_folder[objs[0]["id_folder"]].links:
+            for link in settings.get_folder(objs[0]["id_folder"]).links:
                 action_link = QAction(link["title"])
                 action_link.triggered.connect(
                     functools.partial(self.link_exec, objs[0], **link)
