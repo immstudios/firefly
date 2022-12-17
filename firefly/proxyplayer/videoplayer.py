@@ -16,6 +16,7 @@ from firefly.qt import (
 
 try:
     from .mpv import MPV
+
     has_mpv = True
 except OSError:
     has_mpv = False

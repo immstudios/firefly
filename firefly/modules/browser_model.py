@@ -88,7 +88,9 @@ class BrowserModel(FireflyViewModel):
                 sq = self.parent().parent().search_query
                 if self.header_data[col] == sq["order_by"]:
                     return pixlib[
-                        ["smallarrow-up", "smallarrow-down"][int(sq["order_dir"] == "desc")]
+                        ["smallarrow-up", "smallarrow-down"][
+                            int(sq["order_dir"] == "desc")
+                        ]
                     ]
         return None
 

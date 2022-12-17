@@ -102,7 +102,7 @@ class RundownModule(BaseModule):
 
         if "start_time" in kwargs:
             new_start = day_start(
-                kwargs["start_time"], self.playout_config["day_start"]
+                kwargs["start_time"], self.playout_config.day_start
             )
             if new_start != self.start_time:
                 do_update_header = True
@@ -110,7 +110,7 @@ class RundownModule(BaseModule):
 
         if not self.start_time:
             do_update_header = True
-            self.start_time = day_start(time.time(), self.playout_config["day_start"])
+            self.start_time = day_start(time.time(), self.playout_config.day_start)
 
         self.view.model().load(
             functools.partial(
@@ -163,7 +163,7 @@ class RundownModule(BaseModule):
                     break
 
     def update_header(self):
-        ch = self.playout_config["title"]
+        ch = self.playout_config.name
         t = datetime.date.fromtimestamp(self.start_time)
         if t < datetime.date.today():
             s = " color='red'"
@@ -218,7 +218,7 @@ class RundownModule(BaseModule):
         y, m, d = get_date()
         if not y:
             return
-        hh, mm = self.playout_config["day_start"]
+        hh, mm = self.playout_config.day_start
         dt = datetime.datetime(y, m, d, hh, mm)
         self.load(start_time=time.mktime(dt.timetuple()))
 
@@ -339,7 +339,7 @@ class RundownModule(BaseModule):
                 self.refresh_assets(*message.data["objects"])
 
         elif message.method == "job_progress":
-            if self.playout_config.get("send_action", 0) == message.data["id_action"]:
+            if self.playout_config.send_action == message.data["id_action"]:
 
                 model = self.view.model()
                 for row, obj in enumerate(model.object_data):

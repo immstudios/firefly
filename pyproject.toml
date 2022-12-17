@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "firefly"
-version = "5.41.0"
+version = "6.0.0"
 description = "Desktop client application for Nebula - Open source media asset management and broadcast automation system."
 authors = ["Martin Wacker <martas@imm.cz>"]
 

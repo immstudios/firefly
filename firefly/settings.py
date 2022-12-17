@@ -40,17 +40,32 @@ class ViewSettings(SettingsModel):
     separator: bool = False
 
 
+class PlayoutChannelSettings(SettingsModel):
+    id: int = Field(...)
+    name: str = Field(...)
+    fps: float = Field(25.0)
+    plugins: list[str] = Field(default_factory=list)
+    solvers: list[str] = Field(default_factory=list)
+    day_start: tuple[int, int] = Field((7, 0))
+    rundown_columns: list[str] = Field(default_factory=list)
+    fields: list[FolderField] = Field(default_factory=list)
+
+
 class Settings(SettingsModel):
     folders: list[FolderSettings] = Field(default_factory=list)
     views: list[ViewSettings] = Field(default_factory=list)
     metatypes: dict[str, Any] = Field(default_factory=dict)
     cs: dict[str, Any] = Field(default_factory=dict)
+    playout_channels: list[PlayoutChannelSettings] = Field(default_factory=list)
 
     def get_folder(self, id_folder: int) -> FolderSettings:
         return find_by_id(self.folders, id_folder)
 
     def get_view(self, id_view: int) -> ViewSettings:
         return find_by_id(self.views, id_view)
+
+    def get_playout_channel(self, id_channel: int) -> PlayoutChannelSettings:
+        return find_by_id(self.playout_channels, id_channel)
 
 
 settings = Settings()

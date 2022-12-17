@@ -3,6 +3,7 @@ from functools import partial
 from firefly.core.common import config
 from firefly.dialogs.about import show_about_dialog
 from firefly.objects import has_right
+from firefly.settings import settings
 from firefly.qt import (
     QAction,
     QActionGroup,
@@ -104,19 +105,15 @@ def create_menu(wnd):
     # Scheduling
     #
 
-    if config["playout_channels"]:
+    if settings.playout_channels:
         wnd.menu_scheduler = menubar.addMenu("&Scheduler")
         ag = QActionGroup(wnd)
         ag.setExclusive(True)
 
-        for id_channel in sorted(config["playout_channels"]):
-            a = ag.addAction(
-                QAction(
-                    config["playout_channels"][id_channel]["title"], wnd, checkable=True
-                )
-            )
-            a.id_channel = id_channel
-            a.triggered.connect(partial(wnd.set_channel, id_channel))
+        for playout_channel in settings.playout_channels:
+            a = ag.addAction(QAction(playout_channel.name, wnd, checkable=True))
+            a.id_channel = playout_channel.id
+            a.triggered.connect(partial(wnd.set_channel, playout_channel.id))
             if (
                 has_right("rundown_view", a.id_channel)
                 or has_right("rundown_edit", a.id_channel)

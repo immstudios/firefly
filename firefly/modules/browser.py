@@ -75,7 +75,13 @@ class FireflyBrowserView(FireflyView):
                 tot_dur += obj.duration
 
         if self.selected_objects:
-            self.main_window.focus(asset_cache[self.selected_objects[-1].id])
+            asset_id = self.selected_objects[-1].id
+            asset = asset_cache[asset_id]
+            if not asset:
+                asset_cache.wait()
+                asset = asset_cache[asset_id]
+            self.main_window.focus(asset)
+
             if len(self.selected_objects) > 1 and tot_dur:
                 logging.debug(
                     f"[BROWSER] {len(self.selected_objects)} objects selected. "

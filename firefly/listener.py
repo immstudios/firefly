@@ -24,6 +24,9 @@ class SeismicMessage:
         payload.pop("host", None)
         self.data = payload
 
+    def __repr__(self):
+        return f"<SeismicMessage {self.method}>"
+
 
 class SeismicListener(QThread):
     def __init__(self):
@@ -54,6 +57,7 @@ class SeismicListener(QThread):
         self.halted = True
 
     def on_open(self, *args):
+        logging.goodnews("[LISTENER] connected", handlers=False)
         self.ws.send(
             json.dumps(
                 {
@@ -67,7 +71,7 @@ class SeismicListener(QThread):
     def on_message(self, *args):
         data = args[-1]
         if not self.active:
-            logging.goodnews("[LISTENER] connected", handlers=False)
+            logging.goodnews("[LISTENER] Got first message!", handlers=False)
             self.active = True
         try:
             original_payload = json.loads(data)

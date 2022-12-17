@@ -228,7 +228,7 @@ class SchedulerModule(BaseModule):
         self.calendar.load(*args, **kwargs)
         date = datetime.date.fromtimestamp(self.calendar.week_start_time)
         week_no = date.isocalendar()[1]
-        header = f"Week {week_no} - {self.playout_config['title']}"
+        header = f"Week {week_no} - {self.playout_config.name}"
         self.channel_display.setText(header)
 
     def on_week_prev(self):

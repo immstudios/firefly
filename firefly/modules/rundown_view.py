@@ -4,9 +4,9 @@ from nxtools import logging, s2time
 from .rundown_model import RundownModel
 
 from firefly.api import api
-from firefly.core.common import config
 from firefly.core.enum import RunMode
 from firefly.objects import has_right
+from firefly.settings import settings
 
 from firefly.dialogs.event import show_event_dialog
 from firefly.dialogs.send_to import show_send_to_dialog
@@ -31,7 +31,7 @@ class RundownView(FireflyView):
 
     @property
     def playout_config(self):
-        return config["playout_channels"][self.id_channel]
+        return settings.get_playout_channel(self.id_channel)
 
     @property
     def start_time(self):

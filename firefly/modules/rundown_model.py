@@ -4,9 +4,9 @@ import time
 from nxtools import logging
 
 from firefly.api import api
-from firefly.core.common import config
 from firefly.dialogs.rundown import PlaceholderDialog, SubclipSelectDialog
 from firefly.objects import Asset, Item, Event, asset_cache
+from firefly.settings import settings
 from firefly.view import FireflyViewModel
 from firefly.qt import Qt, QApplication, QUrl, QMimeData
 
@@ -67,8 +67,9 @@ class RundownModel(FireflyViewModel):
 
         required_assets = []
 
-        self.header_data = config["playout_channels"][self.id_channel].get(
-            "rundown_columns", DEFAULT_COLUMNS
+        self.header_data = (
+            settings.get_playout_channel(self.id_channel).rundown_columns
+            or DEFAULT_COLUMNS
         )
         self.object_data = []
         self.event_ids = []

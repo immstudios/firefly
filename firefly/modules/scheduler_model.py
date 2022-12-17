@@ -307,7 +307,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 return
             asset = Asset(meta=d[0])
 
-            if not eval(self.calendar.playout_config["scheduler_accepts"]):
+            if not eval(self.calendar.playout_config.scheduler_accepts):
                 evt.ignore()
                 return
 
@@ -445,7 +445,9 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 if not event.id:
                     logging.debug("Creating empty event")
                     # Create empty event. Event edit dialog is enforced.
-                    if show_event_dialog(self, id_channel=self.id_channel, start=drop_ts):
+                    if show_event_dialog(
+                        self, id_channel=self.id_channel, start=drop_ts
+                    ):
                         do_reload = True
                 else:
                     # Just dragging events around. Instant save
@@ -686,7 +688,7 @@ class SchedulerCalendar(QWidget):
 
     @property
     def day_start(self):
-        return self.playout_config["day_start"]
+        return self.playout_config.day_start
 
     @property
     def event_ids(self):

@@ -14,6 +14,7 @@ from firefly.core.base_objects import (
     EventMixIn,
     UserMixIn,
 )
+from firefly.qt import QApplication
 
 
 class Asset(AssetMixIn, FireflyObject):
@@ -33,6 +34,7 @@ class AssetCache(object):
         self.data = {}
         self.api = None
         self.handler = None
+        self.busy = False
 
     def __getitem__(self, key):
         key = int(key)
@@ -48,7 +50,8 @@ class AssetCache(object):
         key = int(key)
         return self.data.get(key, Asset(meta={"title": "Loading...", "id": key}))
 
-    def request(self, requested):
+    def request(self, requested: list[tuple[int, int]], handler=None):
+        self.busy = True
         to_update = []
         for id, mtime in requested:
             id = int(id)
@@ -75,6 +78,7 @@ class AssetCache(object):
     def on_response(self, response):
         if response.is_error:
             logging.error(response.message)
+            self.busy = False
             return False
         ids = []
         for meta in response.data:
@@ -84,10 +88,16 @@ class AssetCache(object):
                 continue
             self.data[id_asset] = Asset(meta=meta)
             ids.append(id_asset)
+        self.busy = False
         logging.debug("Updated {} assets in cache".format(len(ids)))
         if self.handler:
             self.handler(*ids)
         return True
+
+    def wait(self):
+        while self.busy:
+            time.sleep(0.001)
+            QApplication.processEvents()
 
     @property
     def cache_path(self):

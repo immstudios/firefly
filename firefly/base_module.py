@@ -1,7 +1,5 @@
-from firefly.core.common import config
+from firefly.settings import settings
 from firefly.qt import QWidget
-
-__all__ = ["BaseModule"]
 
 
 class BaseModule(QWidget):
@@ -23,7 +21,7 @@ class BaseModule(QWidget):
 
     @property
     def playout_config(self):
-        return config["playout_channels"][self.id_channel]
+        return settings.get_playout_channel(self.id_channel)
 
     def seismic_handler(self, message):
         pass
