@@ -115,6 +115,7 @@ def rundown_toolbar(wnd):
     wnd.addAction(action_find_next)
 
     toolbar = QToolBar(wnd)
+    toolbar.setContentsMargins(0, 0, 0, 0)
 
     action_day_prev = QAction(QIcon(pixlib["previous"]), "&Previous day", wnd)
     action_day_prev.setShortcut("Alt+Left")

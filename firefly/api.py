@@ -1,5 +1,3 @@
-__all__ = ["api"]
-
 import time
 import json
 import functools
@@ -23,30 +21,24 @@ class NebulaAPI:
         self.manager = None
         self.queries = []
 
-    def run(self, method, callback, **kwargs):
+    def run(self, endpoint: str, callback, **kwargs):
         if self.manager is None:
             self.manager = QNetworkAccessManager()
 
-        logging.debug(
-            "Executing {}{} query".format("" if callback == -1 else "async ", method)
-        )
-        kwargs["initiator"] = CLIENT_ID
+        is_async = " async" if callback == -1 else ""
+        logging.info(f"Executing {endpoint} request{is_async}")
 
-        method = "/api/" + method
-        mime = "application/json"
+        endpoint = "/api/" + endpoint
         data = json.dumps(kwargs).encode("ascii")
         access_token = config.get("session_id")
+        authorization = bytes(f"Bearer {access_token}", "ascii")
+        user_agent = bytes(f"firefly/{FIREFLY_VERSION}", "ascii")
 
-        request = QNetworkRequest(QUrl(config["hub"] + method))
-        request.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, mime)
-        request.setHeader(
-            QNetworkRequest.KnownHeaders.UserAgentHeader,
-            f"nebula-firefly/{FIREFLY_VERSION}",
-        )
-        request.setRawHeader(
-            b"Authorization",
-            bytes(f"Bearer {access_token}", "ascii"),
-        )
+        request = QNetworkRequest(QUrl(config["hub"] + endpoint))
+        request.setRawHeader(b"Content-Type", b"application/json")
+        request.setRawHeader(b"User-Agent", user_agent)
+        request.setRawHeader(b"Authorization", authorization)
+        request.setRawHeader(b"X-Client-Id", bytes(CLIENT_ID, "ascii"))
 
         try:
             query = self.manager.post(request, data)
@@ -86,9 +78,9 @@ class NebulaAPI:
             callback(result)
         return result
 
-    def __getattr__(self, method_name):
+    def __getattr__(self, endpoint: str):
         def wrapper(callback=-1, **kwargs):
-            return self.run(method_name, callback, **kwargs)
+            return self.run(endpoint, callback, **kwargs)
 
         return wrapper
 

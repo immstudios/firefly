@@ -331,12 +331,10 @@ class DetailModule(BaseModule):
             )
         self.folder_select.currentIndexChanged.connect(self.on_folder_changed)
         self.folder_select.setEnabled(False)
-        toolbar_layout.addWidget(self.folder_select, 0)
-
         self.duration = FireflyTimecode(self)
-        toolbar_layout.addWidget(self.duration, 0)
 
-        self.toolbar = detail_toolbar(self)
+        self.toolbar = detail_toolbar(self, [self.folder_select, self.duration])
+
         toolbar_layout.addWidget(self.toolbar)
         self.detail_tabs = DetailTabs(self)
         layout = QVBoxLayout()

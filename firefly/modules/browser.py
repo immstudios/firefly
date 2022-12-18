@@ -37,15 +37,16 @@ from .browser_model import BrowserModel
 
 class SearchWidget(QLineEdit):
     def __init__(self, parent):
-        super(SearchWidget, self).__init__()
+        super(SearchWidget, self).__init__(parent)
+        self.browser = parent
 
     def keyPressEvent(self, event):
         if event.key() in [Qt.Key.Key_Return, Qt.Key.Key_Enter]:
-            self.parent().load()
+            self.browser.load()
         elif event.key() == Qt.Key.Key_Escape:
             self.line_edit.setText("")
         elif event.key() in [Qt.Key.Key_Down, Qt.Key.Key_Up]:
-            self.parent().view.setFocus()
+            self.browser.view.setFocus()
         QLineEdit.keyPressEvent(self, event)
 
 
@@ -216,12 +217,14 @@ class BrowserTab(QWidget):
         self.addAction(action_copy)
 
         toolbar = QToolBar(self)
+        toolbar.setContentsMargins(0, 0, 0, 0)
+
+        toolbar.addWidget(self.search_box)
         toolbar.addAction(action_clear)
         toolbar.addAction(self.action_search.menuAction())
 
         search_layout = QHBoxLayout()
         search_layout.setContentsMargins(0, 0, 0, 0)
-        search_layout.addWidget(self.search_box)
         search_layout.addWidget(toolbar)
 
         self.pager = Pager(self)

@@ -1,11 +1,8 @@
-__all__ = ["FireflyObject"]
-
 from nxtools import s2time, s2tc
 
 from firefly.settings import settings
 from firefly.common import Colors
 
-from firefly.core.common import config
 from firefly.core.base_objects import BaseObject
 from firefly.core.enum import ObjectStatus, RunMode
 
@@ -160,7 +157,7 @@ class FormatRundownDifference(CellFormat):
 
 
 class FormatRundownScheduled(CellFormat):
-    key = "scheduled_time"
+    key = "rundown_scheduled"
 
     def display(self, obj, **kwargs):
         if obj.id:
@@ -171,7 +168,7 @@ class FormatRundownScheduled(CellFormat):
 
 
 class FormatRundownBroadcast(CellFormat):
-    key = "broadcast_time"
+    key = "rundown_broadcast"
 
     def display(self, obj, **kwargs):
         if obj.id:

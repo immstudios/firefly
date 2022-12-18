@@ -15,7 +15,6 @@ class LoginDialog(QDialog):
         self.btn_login = QPushButton("Login", self)
         self.btn_login.clicked.connect(self.handleLogin)
 
-        # for debug
         self.login.setText("")
         self.password.setText("")
 

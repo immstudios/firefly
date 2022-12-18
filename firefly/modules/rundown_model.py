@@ -73,12 +73,15 @@ class RundownModel(FireflyViewModel):
             settings.get_playout_channel(self.id_channel).rundown_columns
             or DEFAULT_COLUMNS
         )
+
         self.object_data = []
         self.event_ids = []
 
         i = 0
         for row in response["rows"]:
             row["rundown_row"] = 1
+            row["rundown_scheduled"] = row["scheduled_time"]
+            row["rundown_broadcast"] = row["broadcast_time"]
             row["rundown_difference"] = row["broadcast_time"] - row["scheduled_time"]
 
             if row["type"] == "event":
@@ -107,7 +110,7 @@ class RundownModel(FireflyViewModel):
         self.endResetModel()
         self.parent().setCursor(Qt.CursorShape.ArrowCursor)
         logging.goodnews(
-            "Rundown loaded in {:.03f}s".format(time.time() - self.load_start_time)
+            f"Rundown loaded in {time.time() - self.load_start_time:.03f}s"
         )
 
         if self.current_callback:
@@ -238,7 +241,7 @@ class RundownModel(FireflyViewModel):
             if p_item not in [item.id for item in drop_objects]:
                 if p_item:
                     sorted_items.append(
-                        {"object_type": "item", "id_object": p_item, "meta": {}}
+                        {"type": "item", "id": p_item}
                     )
             i -= 1
         sorted_items.reverse()
@@ -248,7 +251,7 @@ class RundownModel(FireflyViewModel):
         for obj in drop_objects:
             if data.hasFormat("application/nx.item"):
                 sorted_items.append(
-                    {"object_type": "item", "id_object": obj.id, "meta": obj.meta}
+                    {"type": "item", "id": obj.id, "meta": obj.meta}
                 )
 
             elif data.hasFormat("application/nx.asset"):
@@ -259,20 +262,20 @@ class RundownModel(FireflyViewModel):
                         for meta in dlg.result:
                             sorted_items.append(
                                 {
-                                    "object_type": "asset",
-                                    "id_object": obj.id,
+                                    "type": "asset",
+                                    "id": obj.id,
                                     "meta": meta,
                                 }
                             )
 
                 else:  # Asset does not have subclips
                     meta = {}
-                    if obj["mark_in"]:
+                    if obj["mark_in"] or obj["mark_out"]:
                         meta["mark_in"] = obj["mark_in"]
                         meta["mark_out"] = obj["mark_out"]
 
                     sorted_items.append(
-                        {"object_type": "asset", "id_object": obj.id, "meta": meta}
+                        {"type": "asset", "id": obj.id, "meta": meta}
                     )
 
         # Append trailing items
@@ -288,16 +291,12 @@ class RundownModel(FireflyViewModel):
             p_item = current_object.id
             if p_item not in [item.id for item in drop_objects]:
                 if p_item:
-                    sorted_items.append(
-                        {"object_type": "item", "id_object": p_item, "meta": {}}
-                    )
+                    sorted_items.append({"type": "item", "id": p_item})
             i += 1
 
         #
         # Send order query
         #
-
-        sorted_items = [item for item in sorted_items]  # if item["id_object"]]
 
         if not sorted_items:
             return
@@ -305,8 +304,8 @@ class RundownModel(FireflyViewModel):
         QApplication.processEvents()
         api.order(
             self.order_callback,
-            id_channel=self.id_channel,
-            id_bin=to_bin,
+            channel=self.id_channel,
+            bin=to_bin,
             order=sorted_items,
         )
         return False

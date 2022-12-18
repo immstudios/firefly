@@ -56,8 +56,11 @@ def preview_toolbar(wnd):
     return toolbar
 
 
-def detail_toolbar(wnd):
+def detail_toolbar(wnd, widgets):
     toolbar = QToolBar(wnd)
+
+    for widget in widgets:
+        toolbar.addWidget(widget)
 
     wnd.action_approve = QAction(QIcon(pixlib["qc_approved"]), "Approve", wnd)
     wnd.action_approve.setShortcut("Y")
