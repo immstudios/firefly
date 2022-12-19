@@ -8,6 +8,7 @@ from firefly.widgets import ToolBarStretcher, ChannelDisplay
 from firefly.qt import (
     Qt,
     QAction,
+    QApplication,
     QToolBar,
     QDialog,
     QCalendarWidget,
@@ -89,8 +90,10 @@ class ItemButton(QToolButton):
         self.pressed.connect(self.startDrag)
         self.setIcon(QIcon(pixlib[self.button_config["icon"]]))
         self.setToolTip(self.button_config["tooltip"])
+        self.setFocusPolicy(Qt.NoFocus)
 
     def startDrag(self):
+        self.setAttribute(Qt.WA_UnderMouse, False)
         item_data = {}
         for key in self.button_config:
             if key not in ["tooltip", "icon"]:
@@ -100,6 +103,8 @@ class ItemButton(QToolButton):
         mimeData.setData("application/nx.item", json.dumps([item_data]).encode("utf-8"))
         drag.setMimeData(mimeData)
         if drag.exec(Qt.DropAction.CopyAction):
+            QApplication.processEvents()
+
             pass  # nejak to rozumne ukonc
 
 

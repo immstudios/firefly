@@ -404,7 +404,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                     do_reload = True
             else:
                 self.calendar.setCursor(Qt.CursorShape.WaitCursor)
-                response = api.schedule(
+                response = api.scheduler(
                     id_channel=self.id_channel,
                     start_time=self.calendar.week_start_time,
                     end_time=self.calendar.week_end_time,
@@ -526,7 +526,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         if ret == QMessageBox.StandardButton.Yes:
             QApplication.processEvents()
             self.calendar.setCursor(Qt.CursorShape.WaitCursor)
-            response = api.schedule(
+            response = api.scheduler(
                 id_channel=self.id_channel,
                 start_time=self.calendar.week_start_time,
                 end_time=self.calendar.week_end_time,
@@ -710,7 +710,7 @@ class SchedulerCalendar(QWidget):
         QApplication.processEvents()
         self.setCursor(Qt.CursorShape.WaitCursor)
 
-        response = api.schedule(
+        response = api.scheduler(
             id_channel=self.id_channel,
             start_time=self.week_start_time,
             end_time=self.week_end_time,

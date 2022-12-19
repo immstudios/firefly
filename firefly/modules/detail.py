@@ -6,13 +6,13 @@ from firefly.api import api
 from firefly.common import pixlib
 from firefly.settings import settings
 from firefly.core.metadata import meta_types
-from firefly.core.enum import MetaClass, ObjectStatus
+from firefly.core.enum import ObjectStatus
 from firefly.base_module import BaseModule
 from firefly.modules.detail_toolbars import detail_toolbar, preview_toolbar
 from firefly.modules.detail_subclips import FireflySubclipsView
 from firefly.proxyplayer import VideoPlayer
 from firefly.objects import has_right, Asset, asset_cache, user
-from firefly.widgets import MetaEditor, FireflySelect, FireflyTimecode
+from firefly.widgets import MetaEditor
 
 from firefly.qt import (
     Qt,
@@ -26,7 +26,6 @@ from firefly.qt import (
     QTabWidget,
     QHBoxLayout,
     QMessageBox,
-    QIcon,
 )
 
 
@@ -277,6 +276,7 @@ class DetailTabs(QTabWidget):
         self.tab_extended = DetailTabExtended(self)
         self.tab_technical = DetailTabTechnical(self)
         self.tab_preview = DetailTabPreview(self)
+        self.tabBar().setVisible(False)
 
         self.addTab(self.tab_main, "MAIN")
         self.addTab(self.tab_extended, "EXTENDED")
@@ -314,26 +314,7 @@ class DetailModule(BaseModule):
         self.asset = self._is_loading = self._load_queue = False
         toolbar_layout = QHBoxLayout()
 
-        fdata = []
-        for folder in settings.folders:
-            fdata.append(
-                {
-                    "value": folder.id,
-                    "alias": folder.name,
-                    "role": "option",
-                }
-            )
-
-        self.folder_select = FireflySelect(self, data=fdata)
-        for i, fd in enumerate(fdata):
-            self.folder_select.setItemIcon(
-                i, QIcon(pixlib["folder_" + str(fd["value"])])
-            )
-        self.folder_select.currentIndexChanged.connect(self.on_folder_changed)
-        self.folder_select.setEnabled(False)
-        self.duration = FireflyTimecode(self)
-
-        self.toolbar = detail_toolbar(self, [self.folder_select, self.duration])
+        self.toolbar = detail_toolbar(self)  # , [self.folder_select, self.duration])
 
         toolbar_layout.addWidget(self.toolbar)
         self.detail_tabs = DetailTabs(self)

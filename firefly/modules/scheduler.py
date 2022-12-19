@@ -216,7 +216,7 @@ class SchedulerModule(BaseModule):
         if not events:
             QApplication.restoreOverrideCursor()
             return
-        response = api.schedule(id_channel=self.id_channel, events=events)
+        response = api.scheduler(id_channel=self.id_channel, events=events)
         QApplication.restoreOverrideCursor()
         if not response:
             logging.error(response.message)

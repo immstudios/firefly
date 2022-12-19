@@ -101,9 +101,7 @@ class RundownModule(BaseModule):
             self.id_channel = kwargs["id_channel"]
 
         if "start_time" in kwargs:
-            new_start = day_start(
-                kwargs["start_time"], self.playout_config.day_start
-            )
+            new_start = day_start(kwargs["start_time"], self.playout_config.day_start)
             if new_start != self.start_time:
                 do_update_header = True
                 self.start_time = new_start
@@ -302,7 +300,7 @@ class RundownModule(BaseModule):
         if self.main_window.current_module != self.main_window.rundown:
             return
 
-        if message.method == "playout_status":
+        if message.topic == "playout_status":
             if message.data["id_channel"] != self.id_channel:
                 return
 
@@ -324,7 +322,7 @@ class RundownModule(BaseModule):
             if self.mcr:
                 self.mcr.seismic_handler(message)
 
-        elif message.method == "objects_changed":
+        elif message.topic == "objects_changed":
             if message.data["object_type"] == "event":
                 for id_event in message.data["objects"]:
                     if id_event in self.view.model().event_ids:
@@ -338,9 +336,8 @@ class RundownModule(BaseModule):
             elif message.data["object_type"] == "asset":
                 self.refresh_assets(*message.data["objects"])
 
-        elif message.method == "job_progress":
+        elif message.topic == "job_progress":
             if self.playout_config.send_action == message.data["id_action"]:
-
                 model = self.view.model()
                 for row, obj in enumerate(model.object_data):
                     if obj["id_asset"] == message.data["id_asset"]:

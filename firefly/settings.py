@@ -49,6 +49,7 @@ class PlayoutChannelSettings(SettingsModel):
     day_start: tuple[int, int] = Field((7, 0))
     rundown_columns: list[str] = Field(default_factory=list)
     fields: list[FolderField] = Field(default_factory=list)
+    send_action: int | None = None
 
 
 class Settings(SettingsModel):

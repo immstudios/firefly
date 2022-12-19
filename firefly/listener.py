@@ -19,10 +19,13 @@ class SeismicMessage:
         self.timestamp = time.time()
         self.site_name = config.get("site_name")
         self.host = payload.get("host", "server")
-        self.method = payload.get("topic", "unknown")
-        payload.pop("topic", None)
-        payload.pop("host", None)
-        self.data = payload
+        self.topic = payload.get("topic", "unknown")
+        self.data = payload.get("data", {})
+
+    @property
+    def method(self):
+        # V5 compat
+        return self.topic
 
     def __repr__(self):
         return f"<SeismicMessage {self.method}>"

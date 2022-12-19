@@ -55,7 +55,7 @@ class FireflyApplication(QApplication):
         locale.setlocale(locale.LC_NUMERIC, "C")
 
         self.splash = QSplashScreen(pixlib["splash"])
-        self.splash.setFixedSize(640, 360)
+        self.splash.setFixedSize(600, 600)
         self.splash.show()
 
         # Which site we are running
