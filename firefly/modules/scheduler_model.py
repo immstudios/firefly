@@ -5,8 +5,10 @@ import functools
 
 from nxtools import s2time, s2tc, format_time, logging
 
+import firefly
+
 from firefly.api import api
-from firefly.objects import Event, Asset, has_right
+from firefly.objects import Event, Asset 
 from firefly.dialogs.event import show_event_dialog
 
 from firefly.qt import (
@@ -46,6 +48,22 @@ from firefly.modules.scheduler_utils import (
     text_shorten,
     suggested_duration,
 )
+
+
+def can_accept(asset, conditions):
+    if conditions.folders:
+        if asset["id_folder"] not in conditions.folders:
+            print("Folder mismatch")
+            return False
+    if conditions.media_types:
+        if asset["media_type"] not in conditions.media_types:
+            print("Media type mismatch", asset["media_type"], conditions.media_types)
+            return False
+    if conditions.content_types:
+        if asset["content_type"] not in conditions.content_types:
+            print("Content type mismatch")
+            return False
+    return True
 
 
 class SchedulerVerticalBar(QWidget):
@@ -288,7 +306,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         drag.exec(Qt.DropAction.MoveAction)
 
     def dragTargetChanged(self, evt):
-        if not has_right("scheduler_edit", self.calendar.id_channel):
+        if not firefly.user.can("scheduler_edit", self.calendar.id_channel):
             return
         if type(evt) == SchedulerDayWidget:
             self.drag_outside = False
@@ -297,7 +315,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             self.calendar.drag_source.update()
 
     def dragEnterEvent(self, evt):
-        if not has_right("scheduler_edit", self.calendar.id_channel):
+        if not firefly.user.can("scheduler_edit", self.calendar.id_channel):
             return
         if evt.mimeData().hasFormat("application/nx.asset"):
             d = evt.mimeData().data("application/nx.asset").data()
@@ -307,7 +325,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 return
             asset = Asset(meta=d[0])
 
-            if not eval(self.calendar.playout_config.scheduler_accepts):
+            if not can_accept(asset, self.calendar.playout_config.scheduler_accepts):
                 evt.ignore()
                 return
 
@@ -335,7 +353,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             self.calendar.drag_source.update()
 
     def dragMoveEvent(self, evt):
-        if not has_right("scheduler_edit", self.calendar.id_channel):
+        if not firefly.user.can("scheduler_edit", self.calendar.id_channel):
             return
         self.dragging = True
         self.calendar.focus_data = []
@@ -365,7 +383,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         )
         do_reload = False
 
-        if not has_right("scheduler_edit", self.id_channel):
+        if not firefly.user.can("scheduler_edit", self.id_channel):
             logging.error("You are not allowed to modify schedule of this channel.")
             self.calendar.drag_source = False
             self.calendar.dragging = False
@@ -405,7 +423,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             else:
                 self.calendar.setCursor(Qt.CursorShape.WaitCursor)
                 response = api.scheduler(
-                    id_channel=self.id_channel,
+                    channel=self.id_channel,
                     start_time=self.calendar.week_start_time,
                     end_time=self.calendar.week_end_time,
                     events=[
@@ -488,7 +506,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         action_edit_event.triggered.connect(self.on_edit_event)
         menu.addAction(action_edit_event)
 
-        if has_right("scheduler_edit", self.calendar.id_channel):
+        if firefly.user.can("scheduler_edit", self.calendar.id_channel):
             menu.addSeparator()
             action_delete_event = QAction("Delete event", self)
             action_delete_event.triggered.connect(self.on_delete_event)
@@ -512,7 +530,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         if not self.calendar.selected_event:
             return
         cursor_event = self.calendar.selected_event
-        if not has_right("scheduler_edit", self.id_channel):
+        if not firefly.user.can("scheduler_edit", self.id_channel):
             logging.error("You are not allowed to modify schedule of this channel.")
             return
 
@@ -527,7 +545,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             QApplication.processEvents()
             self.calendar.setCursor(Qt.CursorShape.WaitCursor)
             response = api.scheduler(
-                id_channel=self.id_channel,
+                channel=self.id_channel,
                 start_time=self.calendar.week_start_time,
                 end_time=self.calendar.week_end_time,
                 delete=[cursor_event.id],
@@ -711,7 +729,7 @@ class SchedulerCalendar(QWidget):
         self.setCursor(Qt.CursorShape.WaitCursor)
 
         response = api.scheduler(
-            id_channel=self.id_channel,
+            channel=self.id_channel,
             start_time=self.week_start_time,
             end_time=self.week_end_time,
         )

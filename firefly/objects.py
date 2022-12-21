@@ -157,10 +157,3 @@ class Event(EventMixIn, FireflyObject):
 
 class User(UserMixIn, FireflyObject):
     pass
-
-
-user = User()
-
-
-def has_right(*args, **kwargs):
-    return user.has_right(*args, **kwargs)

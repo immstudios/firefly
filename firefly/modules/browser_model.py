@@ -7,7 +7,6 @@ from firefly.objects import Asset
 from firefly.api import api
 from firefly.common import pixlib
 from firefly.core.common import config
-from firefly.objects import asset_cache
 from firefly.view import FireflyViewModel, format_header, format_description
 from firefly.qt import (
     Qt,
@@ -34,8 +33,8 @@ class BrowserModel(FireflyViewModel):
             view=kwargs["id_view"],
             query=kwargs["fulltext"],
             limit=RECORDS_PER_PAGE + 1,
-            orderBy=kwargs["order_by"],
-            orderDir=kwargs["order_dir"],
+            order_by=kwargs["order_by"],
+            order_dir=kwargs["order_dir"],
             offset=(self.parent().current_page - 1) * RECORDS_PER_PAGE,
         )
 

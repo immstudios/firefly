@@ -1,7 +1,8 @@
 import functools
 
+import firefly
+
 from firefly.common import pixlib
-from firefly.settings import settings
 from firefly.widgets import ToolBarStretcher
 from firefly.widgets import FireflySelect, FireflyTimecode
 from firefly.qt import (
@@ -64,7 +65,7 @@ def detail_toolbar(wnd):
     # for widget in widgets:
     #     toolbar.addWidget(widget)
     fdata = []
-    for folder in settings.folders:
+    for folder in firefly.settings.folders:
         fdata.append(
             {
                 "value": folder.id,

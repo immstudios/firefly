@@ -1,6 +1,7 @@
 from nxtools import s2time, s2tc
 
-from firefly.settings import settings
+import firefly
+
 from firefly.common import Colors
 
 from firefly.core.base_objects import BaseObject
@@ -59,11 +60,11 @@ class FormatFolder(CellFormat):
 
     def display(self, obj, **kwargs):
         id_folder = obj["id_folder"]
-        return settings.get_folder(id_folder).name
+        return firefly.settings.get_folder(id_folder).name
 
     def foreground(self, obj, **kwargs):
         id_folder = obj["id_folder"]
-        return settings.get_folder(id_folder).color
+        return firefly.settings.get_folder(id_folder).color
 
 
 class FormatContentType(CellFormat):

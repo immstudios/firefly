@@ -5,7 +5,7 @@ import pprint
 from nxtools import logging
 
 from .metadata import MetaTypes
-from .common import storages, config, get_hash
+from .common import storages
 from .enum import MediaType, ContentType
 
 
@@ -203,14 +203,6 @@ class AssetMixIn:
         n, d = [int(k) for k in self.meta.get("fps", "25/1").split("/")]
         return n / d
 
-    @property
-    def proxy_url(self):
-        if not self.id:
-            return ""
-        tpl = config.get("proxy_url", "/proxy/{id1000:04d}/{id}.mp4")
-        id1000 = int(self.id / 1000)
-        return tpl.format(id1000=id1000, **self.meta)
-
 
 class ItemMixIn:
     object_type_id = 1
@@ -313,16 +305,3 @@ class UserMixIn:
         if key == "title":
             return self.meta.get("login", "Anonymous")
         return super(UserMixIn, self).__getitem__(key)
-
-    def set_password(self, password):
-        self["password"] = get_hash(password)
-
-    def has_right(self, key, val=True, anyval=False):
-        if self["is_admin"]:
-            return True
-        key = f"can/{key}"
-        if not self[key]:
-            return False
-        if anyval:
-            return True
-        return self[key] is True or (type(self[key]) == list and val in self[key])

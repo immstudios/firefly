@@ -3,9 +3,10 @@ import functools
 
 from nxtools import logging, log_traceback
 
+import firefly
+
 from firefly.api import api
 from firefly.common import pixlib
-from firefly.settings import settings
 from firefly.core.enum import ObjectStatus
 from firefly.dialogs.send_to import show_send_to_dialog
 from firefly.dialogs.batch_ops import show_batch_ops_dialog
@@ -182,7 +183,7 @@ class BrowserTab(QWidget):
         # Search query
 
         self.search_query = {
-            "id_view": kwargs.get("id_view", settings.views[0].id),
+            "id_view": kwargs.get("id_view", firefly.settings.views[0].id),
             "fulltext": kwargs.get("fulltext", ""),
             "order_by": kwargs.get("order_by", "ctime"),
             "order_dir": kwargs.get("order_dir", "desc"),
@@ -253,7 +254,7 @@ class BrowserTab(QWidget):
 
     def load_view_menu(self):
         i = 1
-        for view in settings.views:
+        for view in firefly.settings.views:
             # TODO
             # if view.get("separator", False):
             #     self.action_search.addSeparator()
@@ -379,7 +380,7 @@ class BrowserTab(QWidget):
 
         if len(objs) == 1:
             menu.addSeparator()
-            for link in settings.get_folder(objs[0]["id_folder"]).links:
+            for link in firefly.settings.get_folder(objs[0]["id_folder"]).links:
                 action_link = QAction(link["title"])
                 action_link.triggered.connect(
                     functools.partial(self.link_exec, objs[0], **link)
@@ -552,7 +553,7 @@ class BrowserModule(BaseModule):
         current_index = 0
         for tabcfg in tabscfg:
             try:
-                if tabcfg["id_view"] not in [k.id for k in settings.views]:
+                if tabcfg["id_view"] not in [k.id for k in firefly.settings.views]:
                     continue
                 if tabcfg.get("active"):
                     current_index = self.tabs.count()
@@ -643,7 +644,7 @@ class BrowserModule(BaseModule):
         views = []
         for i, b in enumerate(self.browsers):
             id_view = b.id_view
-            self.tabs.setTabText(i, b.title or settings.get_view(id_view).name)
+            self.tabs.setTabText(i, b.title or firefly.settings.get_view(id_view).name)
             sq = copy.copy(b.search_query)
             if self.tabs.currentIndex() == i:
                 sq["active"] = True

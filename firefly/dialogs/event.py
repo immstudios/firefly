@@ -1,9 +1,11 @@
 from nxtools import logging
 
+import firefly
+
 from firefly.api import api
 from firefly.core.common import config
 from firefly.core.metadata import meta_types
-from firefly.objects import user, Event
+from firefly.objects import Event
 from firefly.widgets import MetaEditor
 from firefly.qt import Qt, QDialog, QDialogButtonBox, QVBoxLayout, app_skin
 
@@ -26,7 +28,7 @@ class EventDialog(QDialog):
 
         self.event = kwargs.get("event", Event())
         self.accepted = False
-        self.can_edit = user.has_right("scheduler_edit", self.event["id_channel"])
+        self.can_edit = firefly.user.can("scheduler_edit", self.event["id_channel"])
 
         for key in ["start", "id_channel"]:
             if kwargs.get(key, False):

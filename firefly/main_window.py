@@ -4,13 +4,14 @@ import queue
 from nxtools import logging, log_traceback
 from nxtools.logging import INFO, WARNING, ERROR
 
+import firefly
+
 from firefly.api import api
 from firefly.core.common import config
 from firefly.common import pixlib
 from firefly.menu import create_menu
 from firefly.listener import SeismicListener
-from firefly.objects import asset_cache, user
-from firefly.settings import settings
+from firefly.objects import asset_cache
 from firefly.version import FIREFLY_VERSION
 
 from firefly.modules import (
@@ -67,15 +68,15 @@ class FireflyMainWidget(QWidget):
 
         # Channel control modules
 
-        if settings.playout_channels:
-            if user.has_right("scheduler_view", anyval=True) or user.has_right(
+        if firefly.settings.playout_channels:
+            if firefly.user.can("scheduler_view", anyval=True) or firefly.user.can(
                 "scheduler_edit", anyval=True
             ):
                 self.scheduler = SchedulerModule(self)
                 self.main_window.add_subscriber(self.scheduler, ["objects_changed"])
                 self.tabs.addTab(self.scheduler, "SCHEDULER")
 
-            if user.has_right("rundown_view", anyval=True) or user.has_right(
+            if firefly.user.can("rundown_view", anyval=True) or firefly.user.can(
                 "rundown_edit", anyval=True
             ):
                 self.rundown = RundownModule(self)
@@ -169,7 +170,7 @@ class FireflyMainWindow(QMainWindow):
 
         self.setWindowIcon(QIcon(pixlib["icon"]))
         title = f"Firefly {FIREFLY_VERSION}"
-        title += f" ({user['login']}@{config['site_name']})"
+        title += f" ({firefly.user}@{config['site_name']})"
         self.setWindowTitle(title)
         self.setAttribute(Qt.WidgetAttribute.WA_AlwaysShowToolTips)
         logging.handlers = [self.log_handler]
@@ -181,14 +182,14 @@ class FireflyMainWindow(QMainWindow):
 
         self.load_window_state()
 
-        for playout_channel in settings.playout_channels:
+        for playout_channel in firefly.settings.playout_channels:
             if (
-                user.has_right("rundown_view", playout_channel.id)
-                or user.has_right("rundown_edit", playout_channel.id)
-                or user.has_right("scheduler_view", playout_channel.id)
-                or user.has_right("scheduler_edit", playout_channel.id)
+                firefly.user.can("rundown_view", playout_channel.id)
+                or firefly.user.can("rundown_edit", playout_channel.id)
+                or firefly.user.can("scheduler_view", playout_channel.id)
+                or firefly.user.can("scheduler_edit", playout_channel.id)
             ):
-                self.id_channel = settings.playout_channels[0].id
+                self.id_channel = firefly.settings.playout_channels[0].id
                 self.set_channel(self.id_channel)
                 break
 
@@ -330,15 +331,15 @@ class FireflyMainWindow(QMainWindow):
         search_box.selectAll()
 
     def now(self):
-        if settings.playout_channels and (
-            user.has_right("rundown_view", self.id_channel)
-            or user.has_right("rundown_edit", self.id_channel)
+        if firefly.settings.playout_channels and (
+            firefly.user.can("rundown_view", self.id_channel)
+            or firefly.user.can("rundown_edit", self.id_channel)
         ):
             self.show_rundown()
             self.rundown.go_now()
 
     def toggle_rundown_edit(self):
-        if settings.playout_channels and user.has_right(
+        if firefly.settings.playout_channels and firefly.user.can(
             "rundown_edit", self.id_channel
         ):
             self.rundown.toggle_rundown_edit()
@@ -350,7 +351,7 @@ class FireflyMainWindow(QMainWindow):
         self.rundown.plugins.load()
 
     def set_channel(self, id_channel):
-        if settings.playout_channels:
+        if firefly.settings.playout_channels:
             for action in self.menu_scheduler.actions():
                 if hasattr(action, "id_channel") and action.id_channel == id_channel:
                     action.setChecked(True)
@@ -367,22 +368,22 @@ class FireflyMainWindow(QMainWindow):
             self.main_widget.tabs.setCurrentIndex(0)
 
     def show_scheduler(self):
-        if settings.playout_channels and (
-            user.has_right("scheduler_view", self.id_channel)
-            or user.has_right("scheduler_edit", self.id_channel)
+        if firefly.settings.playout_channels and (
+            firefly.user.can("scheduler_view", self.id_channel)
+            or firefly.user.can("scheduler_edit", self.id_channel)
         ):
             self.main_widget.switch_tab(self.scheduler)
 
     def show_rundown(self):
-        if settings.playout_channels and (
-            user.has_right("rundown_view", self.id_channel)
-            or user.has_right("rundown_edit", self.id_channel)
+        if firefly.settings.playout_channels and (
+            firefly.user.can("rundown_view", self.id_channel)
+            or firefly.user.can("rundown_edit", self.id_channel)
         ):
             self.main_widget.switch_tab(self.rundown)
 
     def refresh(self):
         self.browser.load()
-        if settings.playout_channels:
+        if firefly.settings.playout_channels:
             if self.rundown:
                 self.rundown.load()
             if self.scheduler:

@@ -65,12 +65,25 @@ class NebulaAPI:
         status = response.attribute(QNetworkRequest.HttpStatusCodeAttribute)
         bytes_string = response.readAll()
         data = str(bytes_string, "utf-8")
-        if not data:
-            return NebulaResponse(500, "Empty response")
 
-        payload = json.loads(data)
+        request = response.request()
+        url = request.url().toString()
+
+        if not data:
+            return NebulaResponse(500, f"Empty response from {url}")
+
+        try:
+            payload = json.loads(data)
+        except Exception:
+            log_traceback("Unable to parse JSON")
+            print(data)
+
+            return NebulaResponse(500, f"Unable to parse response from {url}")
         message = payload.get("detail", "")
         payload.pop("detail", None)
+
+        if status > 399:
+            message = f"ERROR {status} from {url}\n\n{message}"
 
         result = NebulaResponse(status, message, **payload)
         self.queries.remove(response)

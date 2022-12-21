@@ -2,8 +2,9 @@ import time
 import json
 import datetime
 
+import firefly
+
 from firefly.common import pixlib
-from firefly.objects import has_right
 from firefly.widgets import ToolBarStretcher, ChannelDisplay
 from firefly.qt import (
     Qt,
@@ -150,7 +151,7 @@ def rundown_toolbar(wnd):
     action_day_next.triggered.connect(wnd.go_day_next)
     toolbar.addAction(action_day_next)
 
-    if has_right("rundown_edit", anyval=True):
+    if firefly.user.can("rundown_edit", anyval=True):
 
         toolbar.addSeparator()
 

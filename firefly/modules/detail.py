@@ -2,16 +2,17 @@ import time
 
 from nxtools import logging, format_time
 
+import firefly
+
 from firefly.api import api
 from firefly.common import pixlib
-from firefly.settings import settings
 from firefly.core.metadata import meta_types
 from firefly.core.enum import ObjectStatus
 from firefly.base_module import BaseModule
 from firefly.modules.detail_toolbars import detail_toolbar, preview_toolbar
 from firefly.modules.detail_subclips import FireflySubclipsView
 from firefly.proxyplayer import VideoPlayer
-from firefly.objects import has_right, Asset, asset_cache, user
+from firefly.objects import Asset, asset_cache
 from firefly.widgets import MetaEditor
 
 from firefly.qt import (
@@ -62,7 +63,7 @@ class DetailTabMain(QWidget):
             if not id_folder:
                 self.fields = []
             else:
-                self.fields = settings.get_folder(id_folder).fields
+                self.fields = firefly.settings.get_folder(id_folder).fields
 
             if self.form:
                 # SRSLY. I've no idea what I'm doing here
@@ -90,7 +91,7 @@ class DetailTabMain(QWidget):
             self.form.set_defaults()
 
         if self.form:
-            enabled = has_right("asset_edit", id_folder)
+            enabled = firefly.user.can("asset_edit", id_folder)
             self.form.setEnabled(enabled)
 
     def on_focus(self):
@@ -99,7 +100,7 @@ class DetailTabMain(QWidget):
     def search_by_key(self, key, id_view=False):
         b = self.parent().parent().parent().main_window.browser
         id_view = id_view or b.tabs.widget(b.tabs.currentIndex()).id_view
-        view_title = settings.get_view(id_view).title
+        view_title = firefly.settings.get_view(id_view).title
         asset = self.parent().parent().parent().asset
         b.new_tab(
             f"{view_title}: {asset.show(key)} ({meta_types[key].title})",
@@ -136,7 +137,7 @@ class DetailTabExtended(MetaList):
             elif meta_types[tag].ns in ("f", "q"):
                 continue
             elif tag not in [
-                r.name for r in settings.get_folder(asset["id_folder"]).fields
+                r.name for r in firefly.settings.get_folder(asset["id_folder"]).fields
             ]:
                 self.tag_groups["other"].append(tag)
         data = ""
@@ -207,7 +208,7 @@ class DetailTabPreview(QWidget):
 
     def load_video(self):
         if self.current_asset and not self.loaded:
-            proxy_url = f"{settings.server_url}/proxy/{self.current_asset.id}"
+            proxy_url = f"{firefly.settings.server_url}/proxy/{self.current_asset.id}"
             logging.debug(f"[DETAIL] Opening {self.current_asset} preview: {proxy_url}")
             self.player.fps = self.current_asset.fps
             if self.current_asset["poster_frame"]:
@@ -403,7 +404,9 @@ class DetailModule(BaseModule):
         else:
             self.duration.setEnabled(False)
 
-        enabled = (not asset.id) or has_right("asset_edit", self.asset["id_folder"])
+        enabled = (not asset.id) or firefly.user.can(
+            "asset_edit", self.asset["id_folder"]
+        )
         self.folder_select.setEnabled(enabled)
         self.action_approve.setEnabled(enabled)
         self.action_qc_reset.setEnabled(enabled)
@@ -431,7 +434,7 @@ class DetailModule(BaseModule):
         if self.asset and self.asset["id_folder"]:
             new_asset["id_folder"] = self.asset["id_folder"]
         else:
-            new_asset["id_folder"] = settings.folders[0].id
+            new_asset["id_folder"] = firefly.settings.folders[0].id
         self.duration.set_value(0)
         self.focus(new_asset)
         self.main_window.show_detail()
@@ -444,7 +447,7 @@ class DetailModule(BaseModule):
             for key in self.form.inputs:
                 new_asset[key] = self.form[key]
         else:
-            new_asset["id_folder"] = settings.folders[0].id
+            new_asset["id_folder"] = firefly.settings.folders[0].id
         new_asset["media_type"] = self.asset["media_type"]
         new_asset["content_type"] = self.asset["content_type"]
         self.asset = False
@@ -502,7 +505,7 @@ class DetailModule(BaseModule):
     def on_set_qc(self, state):
         state_name = {0: "New", 3: "Rejected", 4: "Approved"}[state]
         report = (
-            f"{format_time(time.time())} : {user['login']} "
+            f"{format_time(time.time())} : {firefly.user} "
             f"flagged the asset as {state_name}"
         )
 

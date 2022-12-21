@@ -1,5 +1,6 @@
 from typing import Any
 from pydantic import BaseModel, Field
+from firefly.core.enum import ContentType, MediaType
 
 
 def find_by_id(array: list[dict[str, Any]], id: int) -> Any:
@@ -40,6 +41,12 @@ class ViewSettings(SettingsModel):
     separator: bool = False
 
 
+class AcceptModel(SettingsModel):
+    folders: list[int] | None = Field(None)
+    content_types: list[str] = Field(default_factory=lambda: [ContentType.VIDEO])
+    media_types: list[str] = Field(default_factory=lambda: [MediaType.FILE])
+
+
 class PlayoutChannelSettings(SettingsModel):
     id: int = Field(...)
     name: str = Field(...)
@@ -50,6 +57,8 @@ class PlayoutChannelSettings(SettingsModel):
     rundown_columns: list[str] = Field(default_factory=list)
     fields: list[FolderField] = Field(default_factory=list)
     send_action: int | None = None
+    scheduler_accepts: AcceptModel = Field(default_factory=AcceptModel)
+    rundown_accepts: AcceptModel = Field(default_factory=AcceptModel)
 
 
 class Settings(SettingsModel):
@@ -69,13 +78,19 @@ class Settings(SettingsModel):
     def get_playout_channel(self, id_channel: int) -> PlayoutChannelSettings:
         return find_by_id(self.playout_channels, id_channel)
 
+    def update(self, data: dict[str, Any]) -> None:
+        new_settings = Settings(**data)
+        for key in new_settings.dict().keys():
+            if key in self.dict().keys():
+                setattr(self, key, getattr(new_settings, key))
 
-settings = Settings()
-
-
-def update_settings(data: dict[str, Any]) -> None:
-    """Update settings from a dict."""
-    new_settings = Settings(**data)
-    for key in new_settings.dict().keys():
-        if key in settings.dict().keys():
-            setattr(settings, key, getattr(new_settings, key))
+#
+# settings = Settings()
+#
+#
+# def update_settings(data: dict[str, Any]) -> None:
+#     """Update settings from a dict."""
+#     new_settings = Settings(**data)
+#     for key in new_settings.dict().keys():
+#         if key in settings.dict().keys():
+#             setattr(settings, key, getattr(new_settings, key))

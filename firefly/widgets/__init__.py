@@ -1,6 +1,7 @@
 import functools
 
-from firefly.settings import settings
+import firefly
+
 from firefly.core.metadata import meta_types
 
 from firefly.qt import (
@@ -145,7 +146,7 @@ class MetaEditor(QWidget):
         section = QAction("Search in...")
         section.setEnabled(False)
         menu.addAction(section)
-        for view in settings.views:
+        for view in firefly.settings.views:
             if view.separator:
                 menu.addSeparator()
             action = QAction(view.name, self)

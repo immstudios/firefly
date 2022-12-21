@@ -30,8 +30,8 @@ class LoginDialog(QDialog):
             username=self.login.text(),
             password=self.password.text(),
         )
-        if response and response.get("accessToken", False):
-            config["session_id"] = response["accessToken"]
+        if response and response.get("access_token", False):
+            config["session_id"] = response["access_token"]
             self.result = config["session_id"]
             self.close()
         else:

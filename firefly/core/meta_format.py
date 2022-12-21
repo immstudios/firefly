@@ -1,6 +1,6 @@
 from nxtools import format_filesize, format_time, s2time, unaccent, logging
 
-from firefly.settings import settings
+import firefly
 
 from .common import storages
 from .enum import ContentType, ObjectStatus, MediaType
@@ -31,7 +31,7 @@ def format_integer(meta_type, value, **kwargs):
         alias = format_filesize(value)
 
     elif meta_type.name == "id_folder":
-        if folder := settings.get_folder(value):
+        if folder := firefly.settings.get_folder(value):
             alias = folder.name
         else:
             alias = f"Unknown folder ({value})"

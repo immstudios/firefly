@@ -6,15 +6,15 @@ import locale
 from typing import Any
 from nxtools import logging, log_traceback, critical_error
 
+import firefly
+
 from firefly.filesystem import load_filesystem
 from firefly.dialogs.login import show_login_dialog
 from firefly.dialogs.site_select import show_site_select_dialog
 from firefly.api import api
 from firefly.common import pixlib
-from firefly.settings import update_settings
 from firefly.core.common import config
 from firefly.core.metadata import clear_cs_cache
-from firefly.objects import user
 from firefly.main_window import FireflyMainWindow, FireflyMainWidget
 from firefly.objects import asset_cache
 from firefly.version import FIREFLY_VERSION
@@ -91,8 +91,7 @@ class FireflyApplication(QApplication):
             logging.error("Unable to log in")
             sys.exit(0)
 
-        user.meta = init_response["user"]
-        user.meta["is_admin"] = True  # TODO
+        firefly.user.update(init_response["user"])
 
         # Load settings and show main window
         self.splash_message("Loading site settings...")
@@ -151,5 +150,5 @@ class FireflyApplication(QApplication):
                 critical_error("Unable to load site settings")
             source = response["settings"]
 
-        update_settings(source)
+        firefly.settings.update(source)
         clear_cs_cache()

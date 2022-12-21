@@ -3,8 +3,9 @@ import functools
 
 from nxtools import logging
 
+import firefly
+
 from firefly.api import api
-from firefly.objects import has_right
 from firefly.widgets import FireflyString, FireflySelect
 from firefly.qt import QWidget, QHBoxLayout, QFormLayout, QPushButton, QTabWidget
 
@@ -83,7 +84,7 @@ class PlayoutPlugins(QTabWidget):
         return self.parent().id_channel
 
     def load(self):
-        if not has_right("mcr", self.id_channel):
+        if not firefly.user.can("mcr", self.id_channel):
             return
 
         logging.debug("[PLUGINS] Loading playout plugins")

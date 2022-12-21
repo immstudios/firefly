@@ -1,9 +1,9 @@
 import os
 import enum
 
-from nxtools import logging, get_guid
+import firefly
 
-from firefly.settings import settings
+from nxtools import logging, get_guid
 from firefly.qt import QFont, QPixmap, QColor, app_dir
 
 
@@ -73,7 +73,7 @@ def get_pix(name):
         id_folder = int(name.lstrip("folder_"))
         icn = QPixmap(12, 12)
         try:
-            color = settings.get_folder(id_folder).color
+            color = firefly.settings.get_folder(id_folder).color
         except KeyError:
             color = 0xAAAAAA
         icn.fill(QColor(color))

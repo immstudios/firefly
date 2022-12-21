@@ -3,10 +3,10 @@ from nxtools import logging, s2time
 
 from .rundown_model import RundownModel
 
+import firefly
+
 from firefly.api import api
 from firefly.core.enum import RunMode
-from firefly.objects import has_right
-from firefly.settings import settings
 
 from firefly.dialogs.event import show_event_dialog
 from firefly.dialogs.send_to import show_send_to_dialog
@@ -31,7 +31,7 @@ class RundownView(FireflyView):
 
     @property
     def playout_config(self):
-        return settings.get_playout_channel(self.id_channel)
+        return firefly.settings.get_playout_channel(self.id_channel)
 
     @property
     def start_time(self):
@@ -399,7 +399,7 @@ class RundownView(FireflyView):
 
     def on_activate(self, mi):
         obj = self.model().object_data[mi.row()]
-        can_mcr = has_right("mcr", self.id_channel)
+        can_mcr = firefly.user.can("mcr", self.id_channel)
         if obj.object_type == "item":
 
             if obj.id:
@@ -419,8 +419,8 @@ class RundownView(FireflyView):
 
         # Event edit
         elif obj.object_type == "event" and (
-            has_right("scheduler_view", self.id_channel)
-            or has_right("scheduler_edit", self.id_channel)
+            firefly.user.can("scheduler_view", self.id_channel)
+            or firefly.user.can("scheduler_edit", self.id_channel)
         ):
             self.on_edit_event()
         self.clearSelection()

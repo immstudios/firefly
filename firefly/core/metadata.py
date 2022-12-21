@@ -3,7 +3,8 @@ import copy
 from typing import Any
 from pydantic import BaseModel
 
-from firefly.settings import settings
+import firefly
+
 from .meta_validate import validators
 from .meta_format import humanizers
 from .meta_utils import filter_match, CachedObject
@@ -32,7 +33,7 @@ TYPE_DEFAULTS = {
 class ClassificationScheme(metaclass=CachedObject):
     def __init__(self, urn, filter=None):
         self.urn = urn
-        self.csdata = dict(settings.cs.get(urn, []))
+        self.csdata = dict(firefly.settings.cs.get(urn, []))
         if filter:
             self.data = [r for r in self.csdata if filter_match(filter, r)]
         else:
@@ -85,7 +86,7 @@ class MetaType(BaseModel):
 
 
 def _folder_metaset(id_folder):
-    return settings.get_folder(id_folder).fields
+    return firefly.settings.get_folder(id_folder).fields
 
 
 class MetaTypes(metaclass=CachedObject):
@@ -97,7 +98,7 @@ class MetaTypes(metaclass=CachedObject):
     def meta_types(self):
         if not self._meta_types:
             self._meta_types = {}
-            for name, mset in settings.metatypes.items():
+            for name, mset in firefly.settings.metatypes.items():
                 mt = MetaType(name=name, **mset)
                 if mt.default is None:
                     mt.default = TYPE_DEFAULTS[mt.type]

@@ -4,8 +4,9 @@ import functools
 
 from nxtools import logging
 
+import firefly
+
 from firefly.base_module import BaseModule
-from firefly.objects import has_right
 from firefly.qt import (
     QVBoxLayout,
     QModelIndex,
@@ -44,7 +45,7 @@ class RundownModule(BaseModule):
 
         self.mcr = self.plugins = False
 
-        if has_right("mcr", anyval=True):
+        if firefly.user.can("mcr", anyval=True):
             self.mcr = MCR(self)
             self.plugins = PlayoutPlugins(self)
             if self.app_state.get("show_mcr", False):
@@ -75,11 +76,11 @@ class RundownModule(BaseModule):
 
     @property
     def can_edit(self):
-        return has_right("rundown_edit", self.id_channel)
+        return firefly.user.can("rundown_edit", self.id_channel)
 
     @property
     def can_schedule(self):
-        return has_right("scheduler_edit", self.id_channel)
+        return firefly.user.can("scheduler_edit", self.id_channel)
 
     def load(self, **kwargs):
         event = kwargs.get("event", False)
@@ -189,7 +190,7 @@ class RundownModule(BaseModule):
         if self.mcr:
             self.mcr.on_channel_changed()
 
-        can_rundown_edit = has_right("rundown_edit", self.id_channel)
+        can_rundown_edit = firefly.user.can("rundown_edit", self.id_channel)
         self.main_window.action_rundown_edit.setEnabled(can_rundown_edit)
         self.toggle_rundown_edit(can_rundown_edit and self.edit_wanted)
 
