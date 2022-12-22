@@ -3,6 +3,7 @@ import queue
 import time
 import websocket
 
+from typing import Any
 from nxtools import logging, log_traceback
 
 from firefly.core.common import config
@@ -21,6 +22,9 @@ class SeismicMessage:
         self.host = payload.get("host", "server")
         self.topic = payload.get("topic", "unknown")
         self.data = payload.get("data", {})
+
+    def __getitem__(self, key: str) -> Any:
+        return self.data.get(key)
 
     @property
     def method(self):

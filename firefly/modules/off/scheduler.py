@@ -28,41 +28,6 @@ from .scheduler_utils import dump_template
 assert ObjectStatus and ContentType and MediaType and JobState
 
 
-# Backwards compatibility
-OFFLINE = 0
-ONLINE = 1
-CREATING = 2  # File exists, but was changed recently.
-TRASHED = 3  # File has been moved to trash location.
-ARCHIVED = 4  # File has been moved to archive location.
-RESET = 5  # Reset metadata action has been invoked.
-CORRUPTED = 6
-REMOTE = 7
-UNKNOWN = 8
-AIRED = 9  # Auxiliary value.
-ONAIR = 10
-RETRIEVING = 11
-AUDIO = 1
-VIDEO = 2
-IMAGE = 3
-TEXT = 4
-DATABROADCASTING = 5
-INTERSTITIAL = 6
-EDUCATION = 7
-APPLICATION = 8
-GAME = 9
-PACKAGE = 10
-PENDING = 0
-IN_PROGRESS = 1
-COMPLETED = 2
-FAILED = 3
-ABORTED = 4
-RESTART = 5
-SKIPPED = 6
-VIRTUAL = 0
-FILE = 1
-URI = 2
-
-
 EMPTY_EVENT_DATA = '[{"id" : 0, "title" : "Empty event"}]'.encode("ascii")
 
 

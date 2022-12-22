@@ -1,14 +1,13 @@
 import time
 import json
-import datetime
 import functools
 
-from nxtools import s2time, s2tc, format_time, logging
+from nxtools import s2time, s2tc, format_time, logging, datestr2ts
 
 import firefly
 
 from firefly.api import api
-from firefly.objects import Event, Asset 
+from firefly.objects import Event, Asset
 from firefly.dialogs.event import show_event_dialog
 
 from firefly.qt import (
@@ -36,18 +35,28 @@ from firefly.qt import (
 )
 
 from firefly.modules.scheduler_utils import (
-    COLOR_CALENDAR_BACKGROUND,
-    COLOR_DAY_BACKGROUND,
-    TIME_PENS,
-    RUN_PENS,
     SECS_PER_DAY,
     MINS_PER_DAY,
-    SECS_PER_WEEK,
     SAFE_OVERRUN,
     CLOCKBAR_WIDTH,
     text_shorten,
     suggested_duration,
 )
+
+from firefly.qt import QPen
+
+COLOR_CALENDAR_BACKGROUND = QColor("#161616")
+COLOR_DAY_BACKGROUND = QColor("#323232")
+TIME_PENS = [
+    (60, QPen(QColor("#999999"), 2, Qt.PenStyle.SolidLine)),
+    (15, QPen(QColor("#999999"), 1, Qt.PenStyle.SolidLine)),
+    (5, QPen(QColor("#444444"), 1, Qt.PenStyle.SolidLine)),
+]
+
+RUN_PENS = [
+    QPen(QColor("#dddd00"), 2, Qt.PenStyle.SolidLine),
+    QPen(QColor("#dd0000"), 2, Qt.PenStyle.SolidLine),
+]
 
 
 def can_accept(asset, conditions):
@@ -253,9 +262,9 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         qp.setBrush(QColor(200, 200, 200, 128))
         qp.drawRect(0, base_t, self.width(), base_h)
 
-        e_start_time = (time.strftime("%H:%M", time.localtime(drop_ts)),)
-        e_end_time = time.strftime("%H:%M", time.localtime(drop_ts + max(300, exp_dur)))
-        logging.debug(f"Start time: {e_start_time} End time: {e_end_time}")
+        # e_start_time = (time.strftime("%H:%M", time.localtime(drop_ts)),)
+        # e_end_time = time.strftime("%H:%M", time.localtime(drop_ts + max(300, exp_dur)))
+        # logging.debug(f"Start time: {e_start_time} End time: {e_end_time}")
 
     def mouseMoveEvent(self, e):
         my = e.pos().y()
@@ -424,8 +433,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 self.calendar.setCursor(Qt.CursorShape.WaitCursor)
                 response = api.scheduler(
                     channel=self.id_channel,
-                    start_time=self.calendar.week_start_time,
-                    end_time=self.calendar.week_end_time,
+                    date=self.calendar.date,
                     events=[
                         {
                             "id_asset": self.calendar.dragging.id,
@@ -470,11 +478,15 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 else:
                     # Just dragging events around. Instant save
                     self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
-                    response = api.schedule(
-                        id_channel=self.id_channel,
-                        start_time=self.calendar.week_start_time,
-                        end_time=self.calendar.week_end_time,
-                        events=[event.meta],
+                    response = api.scheduler(
+                        channel=self.id_channel,
+                        date=self.calendar.date,
+                        events=[
+                            {
+                                "id": event.id,
+                                "start": event["start"],
+                            }
+                        ],
                     )
                     self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
                     if not response:
@@ -546,8 +558,6 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             self.calendar.setCursor(Qt.CursorShape.WaitCursor)
             response = api.scheduler(
                 channel=self.id_channel,
-                start_time=self.calendar.week_start_time,
-                end_time=self.calendar.week_end_time,
                 delete=[cursor_event.id],
             )
             self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
@@ -712,46 +722,41 @@ class SchedulerCalendar(QWidget):
     def event_ids(self):
         return [event.id for event in self.events]
 
-    def load(self, ts=False):
-        if not self.week_start_time and not ts:
-            ts = time.time()
+    @property
+    def date(self):
+        """Return the first day of week from the parent."""
+        return self.parent().date
 
-        if ts:
-            dt = datetime.datetime.fromtimestamp(ts)
-            week_start = dt - datetime.timedelta(days=dt.weekday())
-            week_start = week_start.replace(
-                hour=self.day_start[0], minute=self.day_start[1], second=0
-            )
-            self.week_start_time = time.mktime(week_start.timetuple())
-            self.week_end_time = self.week_start_time + SECS_PER_WEEK
+    def load(self):
+        """Load the current week"""
+        self.week_start_time = datestr2ts(self.date, *self.day_start)
+        self.week_end_time = 3600 * 24 * 7
 
         QApplication.processEvents()
         self.setCursor(Qt.CursorShape.WaitCursor)
 
-        response = api.scheduler(
-            channel=self.id_channel,
-            start_time=self.week_start_time,
-            end_time=self.week_end_time,
-        )
+        response = api.scheduler(channel=self.id_channel, date=self.date)
 
-        if response:
-            self.clock_bar.day_start = self.day_start
-            self.clock_bar.update()
-            self.set_data(response.data)
-
-            for i, widgets in enumerate(zip(self.days, self.headers)):
-                day_widget, header_widget = widgets
-                start_time = self.week_start_time + (i * SECS_PER_DAY)
-                day_widget.set_time(start_time)
-                header_widget.set_time(start_time)
-        else:
+        if not response:
             logging.error(response.message)
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+            return
+
+        self.clock_bar.day_start = self.day_start
+        self.clock_bar.update()
+        self.set_data(response["events"])
+
+        for i, widgets in enumerate(zip(self.days, self.headers)):
+            day_widget, header_widget = widgets
+            start_time = self.week_start_time + (i * 3600 * 24)
+            day_widget.set_time(start_time)
+            header_widget.set_time(start_time)
         self.setCursor(Qt.CursorShape.ArrowCursor)
         self.on_zoom()
 
-    def set_data(self, data):
+    def set_data(self, events: list[dict]):
         self.events = []
-        for meta in data:
+        for meta in events:
             self.events.append(Event(meta=meta))
         QApplication.processEvents()
         self.update()

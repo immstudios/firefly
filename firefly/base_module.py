@@ -7,6 +7,8 @@ class BaseModule(QWidget):
     def __init__(self, parent):
         super(BaseModule, self).__init__(parent)
         self.main_window = self.parent().parent()
+        self._playout_config = None
+        self._id_channel = None
 
     @property
     def app_state(self):
@@ -22,7 +24,10 @@ class BaseModule(QWidget):
 
     @property
     def playout_config(self):
-        return firefly.settings.get_playout_channel(self.id_channel)
+        if self._id_channel != self.id_channel:
+            self._playout_config = firefly.settings.get_playout_channel(self.id_channel)
+            self._id_channel = self.id_channel
+        return self._playout_config
 
     def seismic_handler(self, message):
         pass

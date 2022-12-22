@@ -3,13 +3,27 @@ import re
 from nxtools import format_time
 
 from firefly.core.metadata import meta_types
-from firefly.qt import QFontMetrics
+from firefly.qt import Qt, QColor, QPen, QFontMetrics
 
+COLOR_CALENDAR_BACKGROUND = QColor("#161616")
+COLOR_DAY_BACKGROUND = QColor("#323232")
+
+TIME_PENS = [
+    (60, QPen(QColor("#999999"), 2, Qt.PenStyle.SolidLine)),
+    (15, QPen(QColor("#999999"), 1, Qt.PenStyle.SolidLine)),
+    (5, QPen(QColor("#444444"), 1, Qt.PenStyle.SolidLine)),
+]
+
+RUN_PENS = [
+    QPen(QColor("#dddd00"), 2, Qt.PenStyle.SolidLine),
+    QPen(QColor("#dd0000"), 2, Qt.PenStyle.SolidLine),
+]
 
 SECS_PER_DAY = 3600 * 24
 MINS_PER_DAY = 60 * 24
 SECS_PER_WEEK = SECS_PER_DAY * 7
 SAFE_OVERRUN = 5  # Do not warn if overrun < 5 mins
+
 CLOCKBAR_WIDTH = 45
 
 
