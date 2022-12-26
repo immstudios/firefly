@@ -283,15 +283,16 @@ class FormatTitle(CellFormat):
             return "trash-sm"
 
         if obj.object_type == "item":
+            item_role = obj.get("item_role")
             if obj["id_folder"]:
                 return "folder_" + str(obj["id_folder"])
-            elif obj["item_role"] == "lead_in":
+            elif item_role == "lead_in":
                 return "lead-in-sm"
-            elif obj["item_role"] == "lead_out":
+            elif item_role == "lead_out":
                 return "lead-out-sm"
-            elif obj["item_role"] == "live":
+            elif item_role == "live":
                 return "live-sm"
-            elif obj["item_role"] == "placeholder":
+            elif item_role == "placeholder":
                 return "placeholder-sm"
 
     # REMOVED: use state-based colors in status coulmn only
@@ -385,7 +386,7 @@ class FireflyObject(BaseObject):
         if self.object_type == "item":
             if self["run_mode"] == RunMode.RUN_SKIP and key == "title":
                 return "strikeout"
-            if self["id_asset"] == self["rundown_event_asset"]:
+            if self.get("id_asset") == self.get("rundown_event_asset"):
                 return "bold"
         if key in format_helpers:
             return format_helpers[key].font(self, **kwargs)

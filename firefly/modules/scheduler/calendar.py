@@ -8,10 +8,12 @@ import firefly
 
 from firefly.api import api
 from firefly.objects import Event, Asset
+from firefly.helpers.scheduling import can_accept
 from firefly.dialogs.event import show_event_dialog
 
 from firefly.qt import (
     Qt,
+    QPen,
     QWidget,
     QPainter,
     QFont,
@@ -34,19 +36,16 @@ from firefly.qt import (
     app_skin,
 )
 
-from firefly.modules.scheduler_utils import (
-    SECS_PER_DAY,
-    MINS_PER_DAY,
-    SAFE_OVERRUN,
-    CLOCKBAR_WIDTH,
-    text_shorten,
-    suggested_duration,
-)
+from .utils import text_shorten, suggested_duration
 
-from firefly.qt import QPen
-
+SECS_PER_DAY = 3600 * 24
+MINS_PER_DAY = 60 * 24
+SECS_PER_WEEK = SECS_PER_DAY * 7
+SAFE_OVERRUN = 5  # Do not warn if overrun < 5 mins
+CLOCKBAR_WIDTH = 45
 COLOR_CALENDAR_BACKGROUND = QColor("#161616")
 COLOR_DAY_BACKGROUND = QColor("#323232")
+
 TIME_PENS = [
     (60, QPen(QColor("#999999"), 2, Qt.PenStyle.SolidLine)),
     (15, QPen(QColor("#999999"), 1, Qt.PenStyle.SolidLine)),
@@ -57,23 +56,6 @@ RUN_PENS = [
     QPen(QColor("#dddd00"), 2, Qt.PenStyle.SolidLine),
     QPen(QColor("#dd0000"), 2, Qt.PenStyle.SolidLine),
 ]
-
-
-def can_accept(asset, conditions):
-    if conditions.folders:
-        if asset["id_folder"] not in conditions.folders:
-            print("Folder mismatch")
-            return False
-    if conditions.media_types:
-        if asset["media_type"] not in conditions.media_types:
-            print("Media type mismatch", asset["media_type"], conditions.media_types)
-            return False
-    if conditions.content_types:
-        if asset["content_type"] not in conditions.content_types:
-            print("Content type mismatch")
-            return False
-    print("Accepted", conditions, asset.meta)
-    return True
 
 
 class SchedulerVerticalBar(QWidget):
@@ -389,7 +371,8 @@ class SchedulerDayWidget(SchedulerVerticalBar):
 
     def dropEvent(self, evt):
         drop_ts = max(
-            self.start_time, self.round_ts(self.cursor_time - self.calendar.drag_offset),
+            self.start_time,
+            self.round_ts(self.cursor_time - self.calendar.drag_offset),
         )
 
         if not firefly.user.can("scheduler_edit", self.id_channel):
@@ -753,7 +736,6 @@ class SchedulerCalendar(QWidget):
 
     def set_data(self, events: list[dict]):
         self.events = [Event(meta=e) for e in events]
-        print("Updating", len(self.events), "events")
         QApplication.processEvents()
         self.update()
 
