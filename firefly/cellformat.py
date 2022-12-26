@@ -362,7 +362,7 @@ class FireflyObject(BaseObject):
         model = kwargs.get("model")
         if self.object_type == "event":
             if model.__class__.__name__ == "RundownModel":
-                return RUNDOWN_EVENT_BACKGROUND_COLOR
+                return "#000000"
         if model and self.object_type == "item":
             if not self.id:
                 return "#111140"

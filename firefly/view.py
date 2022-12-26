@@ -74,11 +74,9 @@ class FireflyViewModel(QAbstractTableModel):
             )
         elif role == Qt.ItemDataRole.BackgroundRole:
             color = obj.format_background(key, model=self)
-            return (
-                QColor(color.value if isinstance(color, Colors) else color)
-                if color
-                else None
-            )
+            if color is None:
+                return None
+            return QColor(color.value if isinstance(color, Colors) else color)
         elif role == Qt.ItemDataRole.DecorationRole:
             return pixlib[obj.format_decoration(key, model=self)]
         elif role == Qt.ItemDataRole.FontRole:

@@ -61,21 +61,21 @@ QMenu::separator {
 QTableView {
   border: 0;
   background-color: #1f1e26;
-  alternate-background-color: #1f1e26;
-  selection-background-color: rgba(110, 110, 110, 66%);
+  alternate-background-color: #24202e;
+  selection-background-color: #3a3644;
   color: #d7d4d5; }
 
-QTableView::item {
-  border-bottom: 1px solid #24202e; }
-
 QTableView::item:focus {
-  background-color: rgba(160, 160, 160, 62%); }
+  background-color: #302c3a; }
 
 QHeaderView::section {
   background-color: #19161f;
   color: #d7d4d5;
   font-weight: bold;
-  padding: 5px; }
+  padding: 5px;
+  border: 0;
+  border-right: 1px solid #2e2a38;
+  border-bottom: 1px solid #2e2a38; }
 
 QTableCornerButton::section {
   background-color: #24202e; }

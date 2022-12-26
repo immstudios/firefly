@@ -102,17 +102,13 @@ QMenu::separator {
 QTableView {
     border: 0;
     background-color: $color-surface-02;
-    alternate-background-color: $color-surface-02;
-    selection-background-color: rgba(110, 110, 110, 170);
+    alternate-background-color: $color-surface-03;
+    selection-background-color: $color-surface-06;
     color: $color-text;
 }
 
-QTableView::item {
-  border-bottom: 1px solid $color-surface-03;
-}
-
 QTableView::item:focus {
-    background-color: rgba(160, 160, 160, 160);
+  background-color: $color-surface-06;
 }
 
 
@@ -121,6 +117,9 @@ QHeaderView::section {
     color: $color-text;
     font-weight: bold;
     padding: 5px;
+    border: 0;
+    border-right: 1px solid $color-surface-04;
+    border-bottom: 1px solid $color-surface-04;
 }
 
 

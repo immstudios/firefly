@@ -755,9 +755,7 @@ class SchedulerCalendar(QWidget):
         self.on_zoom()
 
     def set_data(self, events: list[dict]):
-        self.events = []
-        for meta in events:
-            self.events.append(Event(meta=meta))
+        self.events = [Event(meta=e) for e in events]
         QApplication.processEvents()
         self.update()
 
