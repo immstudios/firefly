@@ -83,14 +83,3 @@ class Settings(SettingsModel):
         for key in new_settings.dict().keys():
             if key in self.dict().keys():
                 setattr(self, key, getattr(new_settings, key))
-
-#
-# settings = Settings()
-#
-#
-# def update_settings(data: dict[str, Any]) -> None:
-#     """Update settings from a dict."""
-#     new_settings = Settings(**data)
-#     for key in new_settings.dict().keys():
-#         if key in settings.dict().keys():
-#             setattr(settings, key, getattr(new_settings, key))

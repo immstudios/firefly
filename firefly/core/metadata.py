@@ -113,8 +113,11 @@ class MetaTypes(metaclass=CachedObject):
                     self._meta_types[ffield.name] = mt
         return self._meta_types
 
+    def __contains__(self, name):
+        return name in self.meta_types
+
     def __getitem__(self, key: str):
-        return self.meta_types.get(key, MetaType(name=key))
+        return self.meta_types.get(key)
 
     def __iter__(self):
         return self.meta_types.__iter__()

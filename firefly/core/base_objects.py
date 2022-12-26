@@ -80,17 +80,21 @@ class BaseObject:
         key = key.lower().strip()
         if key == "_duration":
             return self.duration  # noqa
-        return self.meta.get(key, self.meta_types[key].default)
+        if key not in self.meta_types:
+            return self.meta.get(key, None)
+        else:
+            return self.meta.get(key, self.meta_types[key].default)
 
     def __setitem__(self, key, value):
         key = key.lower().strip()
-        meta_type = self.meta_types[key]
-        value = meta_type.validate(value)
-        if value == self[key]:
-            return True  # No change
+        if key in self.meta_types:
+            meta_type = self.meta_types[key]
+            value = meta_type.validate(value)
+            if value == self[key]:
+                return True  # No change
+            if meta_type.fulltext or key == "subclips":
+                self.text_changed = True
         self.meta_changed = True
-        if meta_type.fulltext or key == "subclips":
-            self.text_changed = True
         if not value and key in self.meta:
             del self.meta[key]
         else:
@@ -145,7 +149,9 @@ class BaseObject:
 
     def show(self, key, **kwargs):
         kwargs["parent"] = self
-        return self.meta_types[key.lstrip("_")].show(self[key], **kwargs)
+        if key in self.meta_types:
+            return self.meta_types[key.lstrip("_")].show(self[key], **kwargs)
+        return str(self[key])
 
     def show_meta(self):
         return pprint.pformat(self.meta)

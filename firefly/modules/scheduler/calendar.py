@@ -72,6 +72,7 @@ def can_accept(asset, conditions):
         if asset["content_type"] not in conditions.content_types:
             print("Content type mismatch")
             return False
+    print("Accepted", conditions, asset.meta)
     return True
 
 
@@ -388,9 +389,8 @@ class SchedulerDayWidget(SchedulerVerticalBar):
 
     def dropEvent(self, evt):
         drop_ts = max(
-            self.start_time, self.round_ts(self.cursor_time - self.calendar.drag_offset)
+            self.start_time, self.round_ts(self.cursor_time - self.calendar.drag_offset),
         )
-        do_reload = False
 
         if not firefly.user.can("scheduler_edit", self.id_channel):
             logging.error("You are not allowed to modify schedule of this channel.")
@@ -422,16 +422,17 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                     f"Creating event from {self.calendar.dragging}"
                     f"at time {format_time(self.cursor_time)}"
                 )
-                if show_event_dialog(
+                if response := show_event_dialog(
                     self,
                     asset=self.calendar.dragging,
                     id_channel=self.id_channel,
                     start=drop_ts,
+                    date=self.calendar.date,
                 ):
-                    do_reload = True
+                    self.calendar.set_data(response["events"])
             else:
                 self.calendar.setCursor(Qt.CursorShape.WaitCursor)
-                response = api.scheduler(
+                if response := api.scheduler(
                     channel=self.id_channel,
                     date=self.calendar.date,
                     events=[
@@ -441,12 +442,8 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                             "id_channel": self.id_channel,
                         }
                     ],
-                )
-                self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
-                if not response:
-                    logging.error(response.message)
-
-            do_reload = True
+                ):
+                    self.calendar.set_data(response["events"])
 
         elif type(self.calendar.dragging) == Event:
             event = self.calendar.dragging
@@ -471,14 +468,17 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 if not event.id:
                     logging.debug("Creating empty event")
                     # Create empty event. Event edit dialog is enforced.
-                    if show_event_dialog(
-                        self, id_channel=self.id_channel, start=drop_ts
+                    if response := show_event_dialog(
+                        self,
+                        id_channel=self.id_channel,
+                        start=drop_ts,
+                        date=self.calendar.date,
                     ):
-                        do_reload = True
+                        self.calendar.set_data(response["events"])
                 else:
                     # Just dragging events around. Instant save
                     self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
-                    response = api.scheduler(
+                    if response := api.scheduler(
                         channel=self.id_channel,
                         date=self.calendar.date,
                         events=[
@@ -487,19 +487,12 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                                 "start": event["start"],
                             }
                         ],
-                    )
-                    self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
-                    if not response:
-                        logging.error(response.message)
-                    else:
-                        do_reload = response.data
+                    ):
+                        self.calendar.set_data(response["events"])
 
+        self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
         self.calendar.drag_source = False
         self.calendar.dragging = False
-        if type(do_reload) == list:
-            self.calendar.set_data(do_reload)
-        elif do_reload:
-            self.calendar.load()
 
     def contextMenuEvent(self, event):
         if not self.cursor_event:
@@ -535,8 +528,12 @@ class SchedulerDayWidget(SchedulerVerticalBar):
     def on_edit_event(self):
         if not self.calendar.selected_event:
             return
-        if show_event_dialog(self, event=self.calendar.selected_event):
-            self.calendar.load()
+        if response := show_event_dialog(
+            self,
+            event=self.calendar.selected_event,
+            date=self.calendar.date,
+        ):
+            self.calendar.set_data(response["events"])
 
     def on_delete_event(self):
         if not self.calendar.selected_event:
@@ -563,7 +560,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
             if response:
                 logging.info(f"{cursor_event} deleted")
-                self.calendar.set_data(response.data)
+                self.calendar.set_data(response["events"])
             else:
                 logging.error(response.message)
                 self.calendar.load()
@@ -756,6 +753,7 @@ class SchedulerCalendar(QWidget):
 
     def set_data(self, events: list[dict]):
         self.events = [Event(meta=e) for e in events]
+        print("Updating", len(self.events), "events")
         QApplication.processEvents()
         self.update()
 
