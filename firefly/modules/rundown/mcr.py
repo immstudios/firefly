@@ -319,3 +319,4 @@ class MCR(QWidget):
             self.display_rem.setFixedSize(self.display_clock.size())
             self.display_dur.setFixedSize(self.display_clock.size())
             self.request_display_resize = False
+

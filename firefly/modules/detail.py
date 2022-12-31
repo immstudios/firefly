@@ -484,13 +484,13 @@ class DetailModule(BaseModule):
             data.update(self.preview.changed)
 
         self.setCursor(Qt.CursorShape.BusyCursor)
-        response = api.set(objects=[self.asset.id], data=data)
+        response = api.set(id=self.asset.id, data=data)
         if not response:
             logging.error(response.message)
         else:
             logging.debug("[DETAIL] Set method responded", response.response)
             try:
-                aid = response.data[0]
+                aid = response["id"]
             except Exception:
                 aid = self.asset.id
             self.asset["id"] = aid
@@ -513,13 +513,13 @@ class DetailModule(BaseModule):
             report = self.asset["qc/report"] + "\n" + report
 
         response = api.set(
-            objects=[self.asset.id], data={"qc/state": state, "qc/report": report}
+            id=self.asset.id, data={"qc/state": state, "qc/report": report}
         )
         if not response:
             logging.error(response.message)
             return
         try:
-            aid = response.data[0]
+            aid = response["id"]
         except Exception:
             aid = self.asset.id
         asset_cache.request([[aid, 0]])

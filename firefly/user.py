@@ -14,17 +14,37 @@ class FireflyUser:
     def update(self, meta: dict[str, Any]) -> None:
         self.meta.update(meta)
 
-    def can(self, action: str, value: Any = None, anyval=False) -> bool:
-        return True
+    @property
+    def language(self):
+        """Return the preferred language of the user."""
+        return "cs"
 
+    @property
+    def name(self):
+        return self.meta["login"]
+
+    def can(self, action: str, value: Any = None, anyval=False) -> bool:
         if self["is_admin"]:
             return True
         key = f"can/{action}"
+
         if not self[key]:
             return False
+
         if anyval:
             return True
-        return self[key] is True or (type(self[key]) == list and value in self[key])
+
+        if self[key] is True:
+            return True
+
+        if self[key] == value:
+            return True
+
+        if isinstance(self[key], list):
+            if value in self[key]:
+                return True
+
+        return False
 
 
 user = FireflyUser()

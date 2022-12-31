@@ -7,8 +7,8 @@ from nxtools.logging import INFO, WARNING, ERROR
 import firefly
 
 from firefly.api import api
-from firefly.core.common import config
 from firefly.common import pixlib
+from firefly.config import config
 from firefly.menu import create_menu
 from firefly.listener import SeismicListener
 from firefly.objects import asset_cache
@@ -61,10 +61,9 @@ class FireflyMainWidget(QWidget):
 
         # Jobs module
 
-        if config["actions"]:
-            self.jobs = JobsModule(self)
-            self.tabs.addTab(self.jobs, "JOBS")
-            self.main_window.add_subscriber(self.jobs, ["job_progress"])
+        self.jobs = JobsModule(self)
+        self.tabs.addTab(self.jobs, "JOBS")
+        self.main_window.add_subscriber(self.jobs, ["job_progress"])
 
         # Channel control modules
 
@@ -170,7 +169,7 @@ class FireflyMainWindow(QMainWindow):
 
         self.setWindowIcon(QIcon(pixlib["icon"]))
         title = f"Firefly {FIREFLY_VERSION}"
-        title += f" ({firefly.user}@{config['site_name']})"
+        title += f" ({firefly.user}@{config.site.name})"
         self.setWindowTitle(title)
         self.setAttribute(Qt.WidgetAttribute.WA_AlwaysShowToolTips)
         logging.handlers = [self.log_handler]
@@ -345,7 +344,7 @@ class FireflyMainWindow(QMainWindow):
             self.rundown.toggle_rundown_edit()
 
     def toggle_debug_mode(self):
-        config["debug"] = not config.get("debug")
+        config.debug = not config.debug
 
     def refresh_plugins(self):
         self.rundown.plugins.load()

@@ -1,6 +1,12 @@
-from firefly.qt import QDialog, QLineEdit, QPushButton, QFormLayout, QMessageBox
-from firefly.core.common import config
-from firefly.qt import app_skin
+from firefly.config import config
+from firefly.qt import (
+    app_skin,
+    QDialog,
+    QLineEdit,
+    QPushButton,
+    QFormLayout,
+    QMessageBox,
+)
 from firefly.api import api
 
 
@@ -31,8 +37,8 @@ class LoginDialog(QDialog):
             password=self.password.text(),
         )
         if response and response.get("access_token", False):
-            config["session_id"] = response["access_token"]
-            self.result = config["session_id"]
+            config.site.token = response["access_token"]
+            self.result = config.site.token
             self.close()
         else:
             QMessageBox.critical(self, "Error", response.message)

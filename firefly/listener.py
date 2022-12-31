@@ -6,19 +6,19 @@ import websocket
 from typing import Any
 from nxtools import logging, log_traceback
 
-from firefly.core.common import config
+from firefly.config import config
 from firefly.common import CLIENT_ID
 from firefly.qt import QThread
 
 
-if config.get("debug"):
+if config.debug:
     websocket.enableTrace(True)
 
 
 class SeismicMessage:
     def __init__(self, **payload):
         self.timestamp = time.time()
-        self.site_name = config.get("site_name")
+        self.site_name = config.site.name
         self.host = payload.get("host", "server")
         self.topic = payload.get("topic", "unknown")
         self.data = payload.get("data", {})
@@ -32,13 +32,13 @@ class SeismicMessage:
         return self.topic
 
     def __repr__(self):
-        return f"<SeismicMessage {self.method}>"
+        return f"<SeismicMessage {self.topic}>"
 
 
 class SeismicListener(QThread):
     def __init__(self):
         QThread.__init__(self, None)
-        self.site_name = config["site_name"]
+        self.site_name = config.site.name
         self.should_run = True
         self.active = False
         self.last_msg = time.time()
@@ -46,7 +46,7 @@ class SeismicListener(QThread):
         self.start()
 
     def run(self):
-        addr = config["hub"].replace("http", "ws", 1) + "/ws"
+        addr = config.site.host.replace("http", "ws", 1) + "/ws"
         while self.should_run:
             logging.debug(f"[LISTENER] Connecting to {addr}", handlers=False)
             self.halted = False
@@ -69,7 +69,7 @@ class SeismicListener(QThread):
             json.dumps(
                 {
                     "topic": "auth",
-                    "token": config.get("session_id"),
+                    "token": config.site.token,
                     "subscribe": ["*"],
                 }
             )

@@ -8,7 +8,7 @@ import firefly
 
 from firefly.api import api
 from firefly.objects import Event, Asset
-from firefly.helpers.scheduling import can_accept
+from firefly.helpers.scheduling import can_append
 from firefly.dialogs.event import show_event_dialog
 
 from firefly.qt import (
@@ -245,9 +245,9 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         qp.setBrush(QColor(200, 200, 200, 128))
         qp.drawRect(0, base_t, self.width(), base_h)
 
-        # e_start_time = (time.strftime("%H:%M", time.localtime(drop_ts)),)
-        # e_end_time = time.strftime("%H:%M", time.localtime(drop_ts + max(300, exp_dur)))
-        # logging.debug(f"Start time: {e_start_time} End time: {e_end_time}")
+        e_start_time = (time.strftime("%H:%M", time.localtime(drop_ts)),)
+        e_end_time = time.strftime("%H:%M", time.localtime(drop_ts + max(300, exp_dur)))
+        logging.debug(f"Start time: {e_start_time} End time: {e_end_time}")
 
     def mouseMoveEvent(self, e):
         my = e.pos().y()
@@ -317,7 +317,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 return
             asset = Asset(meta=d[0])
 
-            if not can_accept(asset, self.calendar.playout_config.scheduler_accepts):
+            if not can_append(asset, self.calendar.playout_config.scheduler_accepts):
                 evt.ignore()
                 return
 
@@ -416,7 +416,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             else:
                 self.calendar.setCursor(Qt.CursorShape.WaitCursor)
                 if response := api.scheduler(
-                    channel=self.id_channel,
+                    id_channel=self.id_channel,
                     date=self.calendar.date,
                     events=[
                         {
@@ -462,7 +462,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                     # Just dragging events around. Instant save
                     self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
                     if response := api.scheduler(
-                        channel=self.id_channel,
+                        id_channel=self.id_channel,
                         date=self.calendar.date,
                         events=[
                             {
@@ -537,7 +537,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             QApplication.processEvents()
             self.calendar.setCursor(Qt.CursorShape.WaitCursor)
             response = api.scheduler(
-                channel=self.id_channel,
+                id_channel=self.id_channel,
                 delete=[cursor_event.id],
             )
             self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
@@ -715,7 +715,7 @@ class SchedulerCalendar(QWidget):
         QApplication.processEvents()
         self.setCursor(Qt.CursorShape.WaitCursor)
 
-        response = api.scheduler(channel=self.id_channel, date=self.date)
+        response = api.scheduler(id_channel=self.id_channel, date=self.date)
 
         if not response:
             logging.error(response.message)

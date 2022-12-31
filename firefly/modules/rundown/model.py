@@ -53,7 +53,7 @@ class RundownModel(FireflyViewModel):
         self.current_callback = callback
         api.rundown(
             self.load_callback,
-            channel=self.id_channel,
+            id_channel=self.id_channel,
             date=format_time(self.start_time, "%Y-%m-%d"),
         )
 
@@ -241,9 +241,7 @@ class RundownModel(FireflyViewModel):
             p_item = current_object.id
             if p_item not in [item.id for item in drop_objects]:
                 if p_item:
-                    sorted_items.append(
-                        {"type": "item", "id": p_item}
-                    )
+                    sorted_items.append({"type": "item", "id": p_item})
             i -= 1
         sorted_items.reverse()
 
@@ -251,9 +249,7 @@ class RundownModel(FireflyViewModel):
 
         for obj in drop_objects:
             if data.hasFormat("application/nx.item"):
-                sorted_items.append(
-                    {"type": "item", "id": obj.id, "meta": obj.meta}
-                )
+                sorted_items.append({"type": "item", "id": obj.id, "meta": obj.meta})
 
             elif data.hasFormat("application/nx.asset"):
                 if obj["subclips"]:
@@ -275,9 +271,7 @@ class RundownModel(FireflyViewModel):
                         meta["mark_in"] = obj["mark_in"]
                         meta["mark_out"] = obj["mark_out"]
 
-                    sorted_items.append(
-                        {"type": "asset", "id": obj.id, "meta": meta}
-                    )
+                    sorted_items.append({"type": "asset", "id": obj.id, "meta": meta})
 
         # Append trailing items
 
@@ -305,7 +299,7 @@ class RundownModel(FireflyViewModel):
         QApplication.processEvents()
         api.order(
             self.order_callback,
-            channel=self.id_channel,
+            id_channel=self.id_channel,
             bin=to_bin,
             order=sorted_items,
         )

@@ -4,9 +4,8 @@ import time
 
 from nxtools import logging, log_traceback
 
-from firefly.cellformat import FireflyObject
 from firefly.core.enum import ObjectStatus
-from firefly.core.common import config
+from firefly.config import config
 from firefly.core.base_objects import (
     AssetMixIn,
     ItemMixIn,
@@ -15,6 +14,8 @@ from firefly.core.base_objects import (
     UserMixIn,
 )
 from firefly.qt import QApplication
+
+from .cellformat import FireflyObject
 
 
 class Asset(AssetMixIn, FireflyObject):
@@ -25,11 +26,10 @@ asset_loading = Asset()
 asset_loading["title"] = "Loading..."
 asset_loading["status"] = ObjectStatus.CREATING
 
+CACHE_LIMIT = 1000
 
-CACHE_LIMIT = 10000
 
-
-class AssetCache(object):
+class AssetCache:
     def __init__(self):
         self.data = {}
         self.api = None
@@ -101,7 +101,7 @@ class AssetCache(object):
 
     @property
     def cache_path(self):
-        return "ffdata.{}.cache".format(config["site_name"])
+        return f"ffdata.{config.site.name}.cache"
 
     def load(self):
         if not os.path.exists(self.cache_path):
@@ -110,7 +110,7 @@ class AssetCache(object):
         try:
             data = json.load(open(self.cache_path))
         except Exception:
-            log_traceback("Corrupted cache file '{}'".format(self.cache_path))
+            log_traceback(f"Corrupted cache file '{self.cache_path}'")
             return
 
         for meta in data:

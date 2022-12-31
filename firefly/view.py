@@ -1,7 +1,9 @@
 import pprint
+import functools
+
+import firefly
 
 from firefly.core.metadata import meta_types
-from firefly.core.common import config
 from firefly.common import pixlib, fontlib, Colors
 from firefly.qt import (
     Qt,
@@ -12,19 +14,13 @@ from firefly.qt import (
     QTableView,
 )
 
-__all__ = [
-    "FireflyViewModel",
-    "FireflySortModel",
-    "FireflyView",
-    "format_header",
-    "format_description",
-]
 
-
+@functools.lru_cache(maxsize=100)
 def format_header(key):
     return meta_types[key].header
 
 
+@functools.lru_cache(maxsize=100)
 def format_description(key):
     return meta_types[key].description
 
@@ -83,7 +79,7 @@ class FireflyViewModel(QAbstractTableModel):
             font = obj.format_font(key, model=self)
             return fontlib[font]
         elif role == Qt.ItemDataRole.ToolTipRole:
-            if config.get("debug", False):
+            if firefly.config.debug:
                 r = pprint.pformat(obj.meta)
                 if obj.object_type == "item":
                     r += "\n\n" + pprint.pformat(obj.asset.meta) if obj.asset else ""

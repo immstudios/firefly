@@ -16,10 +16,10 @@ from firefly.qt import (
     QInputDialog,
 )
 
-from .rundown_utils import rundown_toolbar, day_start, get_date
-from .rundown_mcr import MCR
-from .rundown_plugins import PlayoutPlugins
-from .rundown_view import RundownView
+from .utils import rundown_toolbar, day_start, get_date
+from .mcr import MCR
+from .plugins import PlayoutPlugins
+from .view import RundownView
 
 
 class RundownModule(BaseModule):
@@ -353,3 +353,4 @@ class RundownModule(BaseModule):
     def refresh_assets(self, *assets):
         model = self.view.model()
         model.refresh_assets(assets)
+

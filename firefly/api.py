@@ -4,8 +4,7 @@ import functools
 
 from nxtools import logging, log_traceback
 
-from firefly.core.common import config, NebulaResponse
-from firefly.common import CLIENT_ID
+from firefly.config import config
 from firefly.objects import asset_cache
 from firefly.version import FIREFLY_VERSION
 from firefly.qt import (
@@ -14,6 +13,48 @@ from firefly.qt import (
     QNetworkRequest,
     QUrl,
 )
+
+
+class NebulaResponse:
+    def __init__(self, response=200, message=None, **kwargs):
+        self.dict = {"response": response, "message": message}
+        self.dict.update(kwargs)
+
+    def __repr__(self):
+        return f"<NebulaResponse {self.response} {self.message}>"
+
+    @property
+    def json(self):
+        return json.dumps(self.dict)
+
+    @property
+    def response(self):
+        return self["response"]
+
+    @property
+    def message(self):
+        return self["message"] or HTTPStatus(self.response).name
+
+    @property
+    def data(self):
+        return self.get("data", {})
+
+    @property
+    def is_success(self):
+        return self.response < 400
+
+    @property
+    def is_error(self):
+        return self.response >= 400
+
+    def get(self, key, default=False):
+        return self.dict.get(key, default)
+
+    def __getitem__(self, key):
+        return self.dict[key]
+
+    def __len__(self):
+        return self.is_success
 
 
 class NebulaAPI:
@@ -30,15 +71,15 @@ class NebulaAPI:
 
         endpoint = "/api/" + endpoint
         data = json.dumps(kwargs).encode("ascii")
-        access_token = config.get("session_id")
+        access_token = config.site.token
         authorization = bytes(f"Bearer {access_token}", "ascii")
         user_agent = bytes(f"firefly/{FIREFLY_VERSION}", "ascii")
 
-        request = QNetworkRequest(QUrl(config["hub"] + endpoint))
+        request = QNetworkRequest(QUrl(config.site.host + endpoint))
         request.setRawHeader(b"Content-Type", b"application/json")
         request.setRawHeader(b"User-Agent", user_agent)
         request.setRawHeader(b"Authorization", authorization)
-        request.setRawHeader(b"X-Client-Id", bytes(CLIENT_ID, "ascii"))
+        request.setRawHeader(b"X-Client-Id", bytes(config.client_id, "ascii"))
 
         try:
             query = self.manager.post(request, data)
@@ -69,16 +110,16 @@ class NebulaAPI:
         request = response.request()
         url = request.url().toString()
 
-        if not data:
-            return NebulaResponse(500, f"Empty response from {url}")
+        if data:
+            try:
+                payload = json.loads(data)
+            except Exception:
+                log_traceback("Unable to parse JSON")
+                print(data)
+                return NebulaResponse(500, f"Unable to parse response from {url}")
+        else:
+            payload = {}
 
-        try:
-            payload = json.loads(data)
-        except Exception:
-            log_traceback("Unable to parse JSON")
-            print(data)
-
-            return NebulaResponse(500, f"Unable to parse response from {url}")
         message = payload.get("detail", "")
         payload.pop("detail", None)
 

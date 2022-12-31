@@ -2,12 +2,17 @@ from functools import partial
 
 import firefly
 
-from firefly.core.common import config
+from firefly.config import config
 from firefly.dialogs.about import show_about_dialog
 from firefly.qt import (
     QAction,
     QActionGroup,
 )
+
+
+# FAKE DICT for the settings originally stored in config,
+# but should be eventually moved to the settings
+fake_config = {}
 
 
 def create_menu(wnd):
@@ -19,7 +24,7 @@ def create_menu(wnd):
     action_new_asset.setStatusTip("Create new asset from template")
     action_new_asset.triggered.connect(wnd.new_asset)
     action_new_asset.setEnabled(
-        firefly.user.can("asset_create") and config.get("ui_asset_create", True)
+        firefly.user.can("asset_create") and fake_config.get("ui_asset_create", True)
     )
     menu_file.addAction(action_new_asset)
 
@@ -28,7 +33,7 @@ def create_menu(wnd):
     action_clone_asset.setStatusTip("Clone current asset")
     action_clone_asset.triggered.connect(wnd.clone_asset)
     action_clone_asset.setEnabled(
-        firefly.user.can("asset_create") and config.get("ui_asset_create", True)
+        firefly.user.can("asset_create") and fake_config.get("ui_asset_create", True)
     )
     menu_file.addAction(action_clone_asset)
 
@@ -174,7 +179,7 @@ def create_menu(wnd):
     wnd.action_debug = QAction("Debug mode", wnd)
     wnd.action_debug.setStatusTip("Toggle debug mode")
     wnd.action_debug.setCheckable(True)
-    wnd.action_debug.setChecked(config.get("debug", False))
+    wnd.action_debug.setChecked(config.debug)
     wnd.action_debug.triggered.connect(wnd.toggle_debug_mode)
 
     menu_help.addAction(wnd.action_debug)

@@ -13,7 +13,7 @@ from firefly.dialogs.login import show_login_dialog
 from firefly.dialogs.site_select import show_site_select_dialog
 from firefly.api import api
 from firefly.common import pixlib
-from firefly.core.common import config
+from firefly.config import config
 from firefly.core.metadata import clear_cs_cache
 from firefly.main_window import FireflyMainWindow, FireflyMainWidget
 from firefly.objects import asset_cache
@@ -61,20 +61,16 @@ class FireflyApplication(QApplication):
         # Which site we are running
 
         i = 0
-        if "sites" in config:
-            if len(config["sites"]) > 1:
-                i = show_site_select_dialog(self.splash)
-            else:
-                i = 0
-
-        self.local_keys = list(config["sites"][i].keys())
-        config.update(config["sites"][i])
-        del config["sites"]
+        if len(config.sites) > 1:
+            i = show_site_select_dialog(self.splash)
+        if i is None:
+            sys.exit(0)
+        config.set_site(i)
 
         self.app_state_path = os.path.join(
-            app_dir, f"ffdata.{config['site_name']}.appstate"
+            app_dir, f"ffdata.{config.site.name}.appstate"
         )
-        self.auth_key_path = os.path.join(app_dir, f"ffdata.{config['site_name']}.key")
+        self.auth_key_path = os.path.join(app_dir, f"ffdata.{config.site.name}.key")
 
         # Login
 
@@ -85,7 +81,7 @@ class FireflyApplication(QApplication):
             pass
         except Exception:
             log_traceback()
-        config["session_id"] = session_id
+        config.site.token = session_id
 
         if not (init_response := check_login(self.splash)):
             logging.error("Unable to log in")
@@ -117,9 +113,9 @@ class FireflyApplication(QApplication):
         asset_cache.save()
         if not self.main_window.listener:
             return
-        if config.get("session_id"):
+        if config.site.token:
             with open(self.auth_key_path, "w") as f:
-                f.write(config["session_id"])
+                f.write(config.site.token)
         if not self.main_window.listener.halted:
             self.main_window.listener.halt()
             i = 0

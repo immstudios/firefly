@@ -179,3 +179,4 @@ def rundown_toolbar(wnd):
     toolbar.addWidget(wnd.channel_display)
 
     return toolbar
+

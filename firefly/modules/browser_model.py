@@ -3,10 +3,11 @@ import functools
 
 from nxtools import logging, log_traceback
 
+import firefly
+
 from firefly.objects import Asset
 from firefly.api import api
 from firefly.common import pixlib
-from firefly.core.common import config
 from firefly.view import FireflyViewModel, format_header, format_description
 from firefly.qt import (
     Qt,
@@ -23,7 +24,8 @@ class BrowserModel(FireflyViewModel):
     def load(self, callback, **kwargs):
 
         try:
-            self.header_data = config["views"][kwargs["id_view"]]["columns"]
+            id_view = kwargs["id_view"]
+            self.header_data = firefly.settings.get_view(id_view).columns
         except KeyError:
             self.header_data = DEFAULT_HEADER_DATA
 

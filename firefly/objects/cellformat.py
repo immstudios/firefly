@@ -295,15 +295,9 @@ class FormatTitle(CellFormat):
             elif item_role == "placeholder":
                 return "placeholder-sm"
 
-    # REMOVED: use state-based colors in status coulmn only
     def foreground(self, obj, **kwargs):
         if obj.object_type == "asset":
             return STATUS_FG_COLORS[obj["status"]]
-        elif obj.object_type == "item" and obj["id_asset"]:
-            item_status = parse_item_status(obj)
-            if item_status == ObjectStatus.REMOTE:
-                return STATUS_FG_COLORS[ObjectStatus.ONLINE]
-            return STATUS_FG_COLORS[item_status]
 
     def font(self, obj, **kwargs):
         if obj.object_type == "event":

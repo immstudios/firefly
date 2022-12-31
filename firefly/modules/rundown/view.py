@@ -1,7 +1,7 @@
 import functools
 from nxtools import logging, s2time
 
-from .rundown_model import RundownModel
+from .model import RundownModel
 
 import firefly
 
@@ -258,11 +258,18 @@ class RundownView(FireflyView):
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         print("loop:", mode)
-        response = api.set(
-            object_type=self.selected_objects[0].object_type,
-            objects=[obj.id for obj in self.selected_objects],
-            data={"loop": mode},
+
+        response = api.ops(
+            operations=[
+                {
+                    "object_type": obj.object_type,
+                    "id": obj.id,
+                    "data": {"loop": mode},
+                }
+                for obj in self.selected_objects
+            ]
         )
+
         QApplication.restoreOverrideCursor()
         if not response:
             logging.error(response.message)
@@ -275,10 +282,15 @@ class RundownView(FireflyView):
             return
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        response = api.set(
-            object_type=self.selected_objects[0].object_type,
-            objects=[obj.id for obj in self.selected_objects],
-            data={"run_mode": mode},
+        response = api.ops(
+            operations=[
+                {
+                    "object_type": obj.object_type,
+                    "id": obj.id,
+                    "data": {"run_mode": mode},
+                }
+                for obj in self.selected_objects
+            ]
         )
         QApplication.restoreOverrideCursor()
         if not response:
@@ -332,7 +344,7 @@ class RundownView(FireflyView):
         if items:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-            response = api.delete(object_type="item", objects=items)
+            response = api.delete(object_type="item", ids=items)
             QApplication.restoreOverrideCursor()
             if not response:
                 logging.error(response.message)
@@ -385,7 +397,7 @@ class RundownView(FireflyView):
                 data[key] = dlg.meta[key]
         if not data:
             return
-        response = api.set(object_type=obj.object_type, objects=[obj.id], data=data)
+        response = api.set(object_type=obj.object_type, id=obj.id, data=data)
         if not response:
             logging.error(response.message)
             return
@@ -436,3 +448,4 @@ class RundownView(FireflyView):
             event.setDropAction(Qt.DropAction.CopyAction)
         else:
             event.setDropAction(Qt.DropAction.IgnoreAction)
+

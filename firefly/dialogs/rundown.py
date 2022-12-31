@@ -179,8 +179,8 @@ class TrimDialog(QDialog):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         response = api.set(
             object_type="item",
-            objects=[self.item.id],
-            data={"mark_in": self.form["mark_in"], "mark_out": self.form["mark_out"]},
+            id=self.item.id,
+            payload={"mark_in": self.form["mark_in"], "mark_out": self.form["mark_out"],},
         )
         QApplication.restoreOverrideCursor()
         if not response:

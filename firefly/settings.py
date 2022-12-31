@@ -42,9 +42,23 @@ class ViewSettings(SettingsModel):
 
 
 class AcceptModel(SettingsModel):
-    folders: list[int] | None = Field(None)
-    content_types: list[str] = Field(default_factory=lambda: [ContentType.VIDEO])
-    media_types: list[str] = Field(default_factory=lambda: [MediaType.FILE])
+    folders: list[int] | None = Field(
+        None,
+        title="Folders",
+        description="List of folder IDs",
+    )
+    content_types: list[ContentType] | None = Field(
+        title="Content types",
+        description="List of content types that are accepted. "
+        "None means all types are accepted.",
+        default_factory=lambda: [ContentType.VIDEO],
+    )
+    media_types: list[MediaType] | None = Field(
+        title="Media types",
+        description="List of media types that are accepted. "
+        "None means all types are accepted.",
+        default_factory=lambda: [MediaType.FILE],
+    )
 
 
 class PlayoutChannelSettings(SettingsModel):

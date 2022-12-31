@@ -3,7 +3,6 @@ import functools
 from nxtools import format_time, logging
 
 from firefly.api import api
-from firefly.core.common import config
 from firefly.core.enum import JobState
 from firefly.common import Colors
 from firefly.objects import asset_cache
@@ -39,14 +38,9 @@ def job_format(data, key):
     elif key == "title":
         return asset_cache[data["id_asset"]]["title"]
     elif key == "action":
-        return config["actions"][data["id_action"]]["title"]
+        return data["action_name"]
     elif key == "service":
-        if data["id_service"]:
-            id_service = data["id_service"]
-            service = config["services"].get(id_service, None)
-            if service:
-                return f"{service['title']}@{service['host']}"
-        return data["id_service"]
+        return data["service_name"]
     elif key == "message":
         return data["message"]
     elif key == "id":

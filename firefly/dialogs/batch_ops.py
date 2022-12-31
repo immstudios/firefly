@@ -1,7 +1,8 @@
+import firefly
+
 from nxtools import logging
 
 from firefly.api import api
-from firefly.core.common import config
 from firefly.core.metadata import meta_types
 from firefly.core.enum import MetaClass
 from firefly.widgets import MetaEditor
@@ -25,11 +26,11 @@ class BatchOpsDialog(QDialog):
         self.objects = sorted(objects, key=lambda obj: obj.id)
         self.setWindowTitle(f"Batch modify: {len(self.objects)} assets")
         id_folder = self.objects[0]["id_folder"]
-        self.keys = config["folders"][id_folder]["meta_set"]
-        self.form = MetaEditor(self, self.keys)
+        self.fields = firefly.settings.get_folder(id_folder)
+        self.form = MetaEditor(self, self.fields)
 
         if self.form:
-            for key, conf in self.keys:
+            for key, conf in self.fields:
                 if meta_types[key]["class"] in [MetaClass.SELECT, MetaClass.LIST]:
                     self.form.inputs[key].auto_data(
                         meta_types[key], id_folder=id_folder
@@ -78,7 +79,7 @@ class BatchOpsDialog(QDialog):
             "Save changes?",
             "{}".format(
                 "\n".join(
-                    " - {}".format(meta_types[k].alias(config.get("language", "en")))
+                    " - {}".format(meta_types[k].alias)
                     for k in self.form.changed
                 )
             ),

@@ -424,7 +424,12 @@ class BrowserTab(QWidget):
         ]
         if not objects:
             return
-        response = api.set(objects=objects, data={"status": ObjectStatus.RESET})
+
+        response = api.ops(
+            operations=[
+                {"id": id, "data": {"status": ObjectStatus.RESET}} for id in objects
+            ]
+        )
         if not response:
             return
         self.refresh_assets(*objects, request_data=True)
@@ -444,7 +449,12 @@ class BrowserTab(QWidget):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if ret == QMessageBox.StandardButton.Yes:
-            response = api.set(objects=objects, data={"status": ObjectStatus.TRASHED})
+            response = api.ops(
+                operations=[
+                    {"id": id, "data": {"status": ObjectStatus.TRASHED}}
+                    for id in objects
+                ]
+            )
         else:
             return
         if not response:
@@ -460,7 +470,12 @@ class BrowserTab(QWidget):
         ]
         if not objects:
             return
-        response = api.set(objects=objects, data={"status": ObjectStatus.CREATING})
+        response = api.ops(
+            operations=[
+                {"id": id, "data": {"status": ObjectStatus.CREATING}}
+                for id in objects
+            ]
+        )
         if not response:
             logging.error("Unable to untrash:\n\n" + response.message)
             return
@@ -481,7 +496,12 @@ class BrowserTab(QWidget):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if ret == QMessageBox.StandardButton.Yes:
-            response = api.set(objects=objects, data={"status": ObjectStatus.ARCHIVED})
+            response = api.ops(
+                operations=[
+                    {"id": id, "data": {"status": ObjectStatus.ARCHIVED}}
+                    for id in objects
+                ]
+            )
         else:
             return
         if not response:
@@ -497,7 +517,12 @@ class BrowserTab(QWidget):
         ]
         if not objects:
             return
-        response = api.set(objects=objects, data={"status": ObjectStatus.RETRIEVING})
+        response = api.ops(
+            operations=[
+                {"id": id, "data": {"status": ObjectStatus.RETRIEVING}}
+                for id in objects
+            ]
+        )
         if not response:
             logging.error("Unable to unarchive:\n\n" + response.message)
             return

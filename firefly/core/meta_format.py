@@ -254,11 +254,7 @@ def format_list(meta_type, value, **kwargs):
 
 
 def format_color(meta_type, value, **kwargs):
-    result = kwargs.get("result", "alias")
-    alias = "#{0:06X}".format(value)
-    if result in ["brief", "full"]:
-        return {"value": value, "alias": alias}
-    return alias
+    return = f"#{value:06X}"
 
 
 humanizers = {
