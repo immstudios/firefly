@@ -1,25 +1,62 @@
-import os
 import json
+import os
 import time
 
 from nxtools import logging, log_traceback
-
-from firefly.core.enum import ObjectStatus
 from firefly.config import config
-from firefly.core.base_objects import (
-    AssetMixIn,
-    ItemMixIn,
-    BinMixIn,
-    EventMixIn,
-    UserMixIn,
-)
+from firefly.enum import ObjectStatus, ContentType, MediaType
 from firefly.qt import QApplication
 
-from .cellformat import FireflyObject
+from .base import BaseObject
 
 
-class Asset(AssetMixIn, FireflyObject):
-    pass
+class Asset(BaseObject):
+    object_type_id = 0
+    required = ["media_type", "content_type", "id_folder"]
+    defaults = {"media_type": MediaType.VIRTUAL, "content_type": ContentType.TEXT}
+
+    def mark_in(self, new_val=False):
+        if new_val:
+            self["mark_in"] = new_val
+        return max(float(self["mark_in"] or 0), 0)
+
+    def mark_out(self, new_val=False):
+        if new_val:
+            self["mark_out"] = new_val
+        return max(float(self["mark_out"] or 0), 0)
+
+    @property
+    def file_path(self):
+        if self["media_type"] != MediaType.FILE:
+            return ""
+        # TODO
+        try:
+            return os.path.join(
+                storages[int(self["id_storage"])].local_path, self["path"]
+            )
+        except (KeyError, IndexError, ValueError):
+            # Yes. empty string. keep it this way!!!
+            # (because of os.path.exists and so on)
+            # Also: it evals as false
+            return ""
+
+    @property
+    def duration(self):
+        dur = float(self.meta.get("duration", 0))
+        mark_in = float(self.meta.get("mark_in", 0))
+        mark_out = float(self.meta.get("mark_out", 0))
+        if not dur:
+            return 0
+        if mark_out > 0:
+            dur = mark_out + (1 / self.fps)
+        if mark_in > 0:
+            dur -= mark_in
+        return dur
+
+    @property
+    def fps(self):
+        n, d = [int(k) for k in self.meta.get("fps", "25/1").split("/")]
+        return n / d
 
 
 asset_loading = Asset()
@@ -137,23 +174,3 @@ class AssetCache:
 
 
 asset_cache = AssetCache()
-
-
-class Item(ItemMixIn, FireflyObject):
-    @property
-    def asset(self):
-        if not self["id_asset"]:
-            return False
-        return asset_cache.get(self["id_asset"])
-
-
-class Bin(BinMixIn, FireflyObject):
-    pass
-
-
-class Event(EventMixIn, FireflyObject):
-    pass
-
-
-class User(UserMixIn, FireflyObject):
-    pass

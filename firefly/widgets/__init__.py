@@ -2,7 +2,7 @@ import functools
 
 import firefly
 
-from firefly.core.metadata import meta_types
+from firefly.metadata import meta_types
 
 from firefly.qt import (
     Qt,
@@ -57,6 +57,9 @@ class FireflyNotImplementedEditor(QLabel):
         self.val = value
         self.default = value
 
+    def set_options(self, *args, **kwargs):
+        pass
+
     def get_value(self):
         return self.val
 
@@ -84,7 +87,7 @@ meta_editors = {
     "object": FireflyRegions,
     "fraction": FireflyFraction,
     "select": FireflySelect,
-    "list": FireflyList,
+    # "list": FireflyList,
     "color": FireflyColorPicker,
     "radio": FireflyRadio,
 }
@@ -140,6 +143,7 @@ class MetaEditor(QWidget):
             i += 1
 
         self.setLayout(layout)
+        self.set_defaults()
 
     def key_menu(self, key, position):
         menu = QMenu()

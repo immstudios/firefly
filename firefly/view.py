@@ -3,7 +3,7 @@ import functools
 
 import firefly
 
-from firefly.core.metadata import meta_types
+from firefly.metadata import meta_types
 from firefly.common import pixlib, fontlib, Colors
 from firefly.qt import (
     Qt,

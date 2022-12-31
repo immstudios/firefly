@@ -1,7 +1,10 @@
-from .objects import Asset, Item, Event, User, asset_cache
+from .asset import Asset, asset_cache
+from .bin import Bin
+from .item import Item
+from .event import Event
 
 assert Asset
-assert Item
-assert Event
-assert User
 assert asset_cache
+assert Item
+assert Bin
+assert Event

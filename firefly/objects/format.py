@@ -1,12 +1,8 @@
 from nxtools import s2time, s2tc
 
 import firefly
-
 from firefly.common import Colors
-
-from firefly.core.base_objects import BaseObject
-from firefly.core.enum import ObjectStatus, RunMode
-
+from firefly.enum import ObjectStatus, RunMode
 
 RUNDOWN_EVENT_BACKGROUND_COLOR = "#0f0f0f"
 
@@ -324,67 +320,3 @@ format_helpers = {}
 for h in format_helpers_list:
     helper = h()
     format_helpers[h.key] = helper
-
-#
-# Firefly object
-#
-
-
-class FireflyObject(BaseObject):
-    def format_display(self, key, **kwargs):
-        if key in format_helpers:
-            val = format_helpers[key].display(self, **kwargs)
-            if val is not None:
-                return val
-        return self.show(key, hide_null=True, shorten=100)
-
-    def format_foreground(self, key, **kwargs):
-        model = kwargs.get("model")
-        if self.object_type == "item":
-            if (
-                self["status"] == ObjectStatus.AIRED
-                and model
-                and model.cued_item != self.id
-                and model.current_item != self.id
-            ):
-                return STATUS_FG_COLORS[ObjectStatus.AIRED]
-            if self["run_mode"] == RunMode.RUN_SKIP:
-                return Colors.TEXT_FADED
-        if key in format_helpers:
-            return format_helpers[key].foreground(self, **kwargs)
-
-    def format_background(self, key, **kwargs):
-        model = kwargs.get("model")
-        if self.object_type == "event":
-            if model.__class__.__name__ == "RundownModel":
-                return "#000000"
-        if model and self.object_type == "item":
-            if not self.id:
-                return "#111140"
-            if model.cued_item == self.id:
-                return "#059005"
-            elif model.current_item == self.id:
-                return "#900505"
-            elif self.object_type == "item" and self["item_role"] == "live":
-                return Colors.LIVE_BACKGROUND
-            elif not self["id_asset"]:
-                return "#303030"
-        return None
-
-    def format_decoration(self, key, **kwargs):
-        if key in format_helpers:
-            return format_helpers[key].decoration(self, **kwargs)
-        return None
-
-    def format_font(self, key, **kwargs):
-        if self.object_type == "item":
-            if self["run_mode"] == RunMode.RUN_SKIP and key == "title":
-                return "strikeout"
-            if self.get("id_asset") == self.get("rundown_event_asset"):
-                return "bold"
-        if key in format_helpers:
-            return format_helpers[key].font(self, **kwargs)
-
-    def format_tooltip(self, key, **kwargs):
-        if key in format_helpers:
-            return format_helpers[key].tooltip(self, **kwargs)

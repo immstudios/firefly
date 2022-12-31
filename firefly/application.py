@@ -14,7 +14,7 @@ from firefly.dialogs.site_select import show_site_select_dialog
 from firefly.api import api
 from firefly.common import pixlib
 from firefly.config import config
-from firefly.core.metadata import clear_cs_cache
+from firefly.metadata import clear_cs_cache
 from firefly.main_window import FireflyMainWindow, FireflyMainWidget
 from firefly.objects import asset_cache
 from firefly.version import FIREFLY_VERSION

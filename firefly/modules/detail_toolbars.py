@@ -69,12 +69,12 @@ def detail_toolbar(wnd):
         fdata.append(
             {
                 "value": folder.id,
-                "alias": folder.name,
+                "title": folder.name,
                 "role": "option",
             }
         )
 
-    wnd.folder_select = FireflySelect(toolbar, data=fdata)
+    wnd.folder_select = FireflySelect(toolbar, options=fdata)
     for i, fd in enumerate(fdata):
         wnd.folder_select.setItemIcon(i, QIcon(pixlib["folder_" + str(fd["value"])]))
     wnd.folder_select.currentIndexChanged.connect(wnd.on_folder_changed)

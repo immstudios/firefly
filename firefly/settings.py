@@ -1,6 +1,6 @@
 from typing import Any
 from pydantic import BaseModel, Field
-from firefly.core.enum import ContentType, MediaType
+from firefly.enum import ContentType, MediaType
 
 
 def find_by_id(array: list[dict[str, Any]], id: int) -> Any:

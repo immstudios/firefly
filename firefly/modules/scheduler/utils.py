@@ -2,10 +2,8 @@ import re
 
 from nxtools import format_time
 
-from firefly.core.metadata import meta_types
+from firefly.metadata import meta_types
 from firefly.qt import QFontMetrics
-
-
 
 
 def suggested_duration(dur):

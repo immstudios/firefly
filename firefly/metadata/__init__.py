@@ -1,16 +1,14 @@
 import copy
+import functools
 
+from collections import defaultdict
 from typing import Any
 from pydantic import BaseModel
+from nxtools import unaccent
 
 import firefly
 
-from .meta_validate import validators
-from .meta_format import humanizers
-from .meta_utils import filter_match, CachedObject
-
-
-default_meta_type = {"ns": "", "class": -1, "fulltext": 0, "editable": 0, "aliases": {}}
+from .utils import filter_match, CachedObject
 
 
 TYPE_DEFAULTS = {
@@ -34,16 +32,17 @@ class ClassificationScheme(metaclass=CachedObject):
     def __init__(self, urn, filter=None):
         self.urn = urn
         self.csdata = dict(firefly.settings.cs.get(urn, []))
-        if filter:
-            self.data = [r for r in self.csdata if filter_match(filter, r)]
+        if filter is not None:
+            print("Filter", filter)
+            self.valid_keys = [r for r in self.csdata if filter_match(filter, r)]
         else:
-            self.data = list(self.csdata.keys())
+            self.valid_keys = list(self.csdata.keys())
 
     def __getitem__(self, value):
         return self.csdata.get(value, {})
 
     def __repr__(self):
-        return f"<ClassificationScheme: {self.urn} ({len(self.data)} items)>"
+        return f"<ClassificationScheme: {self.urn} ({len(self.valid_keys)} items)>"
 
     def title(self, value):
         return self[value].get("title", value)
@@ -70,12 +69,7 @@ class MetaType(BaseModel):
     order: str | None = None
     filter: str | None = None
 
-    def validate(self, value):
-        return validators[self.type](self, value)
-
-    def show(self, value, **kwargs):
-        return humanizers[self.type](self, value, **kwargs)
-
+    # @functools.cached_property
     @property
     def csdata(self):
         cs = self.cs or "urn:special-nonexistent-cs"
@@ -83,6 +77,33 @@ class MetaType(BaseModel):
         if type(_filter) == list:
             _filter = tuple(_filter)
         return ClassificationScheme(cs, _filter)
+
+    # @functools.cached_property
+    @property
+    def cslist(self):
+        result = []
+        if self.order is None:
+            order = "value"
+        else:
+            order = self.order
+
+        items = [
+            {
+                "value": value,
+                "title": item.get("title", value),
+                "description": item.get("description", ""),
+                "role": item.get("role", "option"),
+                "indent": len(value.split(".")),
+            }
+            for value, item in self.csdata.csdata.items()
+            if value in self.csdata.valid_keys
+        ]
+        if order == "value":
+            items.sort(key=lambda x: x["value"])
+        elif order in ["title", "alias"]:
+            items.sort(key=lambda x: unaccent(x["title"]))
+
+        return items
 
 
 def _folder_metaset(id_folder):

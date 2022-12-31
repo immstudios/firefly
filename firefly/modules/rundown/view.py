@@ -1,20 +1,18 @@
 import functools
 from nxtools import logging, s2time
 
-from .model import RundownModel
-
 import firefly
 
 from firefly.api import api
-from firefly.core.enum import RunMode
+from firefly.enum import RunMode
+from firefly.qt import Qt, QAbstractItemView, QMenu, QAction, QApplication, QMessageBox
+from firefly.view import FireflyView
 
 from firefly.dialogs.event import show_event_dialog
 from firefly.dialogs.send_to import show_send_to_dialog
 from firefly.dialogs.rundown import PlaceholderDialog, show_trim_dialog
 
-from firefly.view import FireflyView
-from firefly.qt import Qt, QAbstractItemView, QMenu, QAction, QApplication, QMessageBox
-
+from .model import RundownModel
 
 class RundownView(FireflyView):
     def __init__(self, parent):
@@ -448,4 +446,3 @@ class RundownView(FireflyView):
             event.setDropAction(Qt.DropAction.CopyAction)
         else:
             event.setDropAction(Qt.DropAction.IgnoreAction)
-

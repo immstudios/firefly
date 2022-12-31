@@ -1,12 +1,10 @@
-__all__ = ["PlaceholderDialog", "SubclipSelectDialog", "show_trim_dialog"]
-
 import functools
 
 from nxtools import s2tc, logging
 
 from firefly.api import api
-from firefly.core.metadata import meta_types
-from firefly.core.enum import MetaClass
+from firefly.metadata import meta_types
+from firefly.enum import MetaClass
 from firefly.widgets import MetaEditor
 from firefly.qt import (
     Qt,
@@ -180,7 +178,10 @@ class TrimDialog(QDialog):
         response = api.set(
             object_type="item",
             id=self.item.id,
-            payload={"mark_in": self.form["mark_in"], "mark_out": self.form["mark_out"],},
+            payload={
+                "mark_in": self.form["mark_in"],
+                "mark_out": self.form["mark_out"],
+            },
         )
         QApplication.restoreOverrideCursor()
         if not response:

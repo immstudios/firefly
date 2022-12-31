@@ -3,8 +3,8 @@ import firefly
 from nxtools import logging
 
 from firefly.api import api
-from firefly.core.metadata import meta_types
-from firefly.core.enum import MetaClass
+from firefly.metadata import meta_types
+from firefly.enum import MetaClass
 from firefly.widgets import MetaEditor
 from firefly.qt import (
     Qt,
@@ -79,8 +79,7 @@ class BatchOpsDialog(QDialog):
             "Save changes?",
             "{}".format(
                 "\n".join(
-                    " - {}".format(meta_types[k].alias)
-                    for k in self.form.changed
+                    " - {}".format(meta_types[k].alias) for k in self.form.changed
                 )
             ),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,

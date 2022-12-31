@@ -81,7 +81,7 @@ class EventDialog(QDialog):
         meta["id_channel"] = self.event["id_channel"]
 
         response = api.scheduler(
-            channel=self.event["id_channel"],
+            id_channel=self.event["id_channel"],
             date=self.date,
             events=[
                 {

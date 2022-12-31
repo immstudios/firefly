@@ -7,10 +7,9 @@ import firefly
 
 from firefly.api import api
 from firefly.common import pixlib
-from firefly.core.enum import ObjectStatus
+from firefly.enum import ObjectStatus
 from firefly.dialogs.send_to import show_send_to_dialog
 from firefly.dialogs.batch_ops import show_batch_ops_dialog
-
 from firefly.base_module import BaseModule
 from firefly.objects import asset_cache
 from firefly.view import FireflyView
@@ -472,8 +471,7 @@ class BrowserTab(QWidget):
             return
         response = api.ops(
             operations=[
-                {"id": id, "data": {"status": ObjectStatus.CREATING}}
-                for id in objects
+                {"id": id, "data": {"status": ObjectStatus.CREATING}} for id in objects
             ]
         )
         if not response:

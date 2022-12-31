@@ -10,8 +10,6 @@ from firefly.qt import QFont, QPixmap, QColor, app_dir
 logging.user = ""
 logging.handlers = []
 
-CLIENT_ID = get_guid()
-
 
 class Colors(enum.Enum):
     TEXT_NORMAL = "#f0f0f0"

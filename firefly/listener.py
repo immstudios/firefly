@@ -7,7 +7,6 @@ from typing import Any
 from nxtools import logging, log_traceback
 
 from firefly.config import config
-from firefly.common import CLIENT_ID
 from firefly.qt import QThread
 
 
@@ -90,7 +89,7 @@ class SeismicListener(QThread):
 
         self.last_msg = time.time()
 
-        if message.data and message.data.get("initiator", None) == CLIENT_ID:
+        if message.data and message.data.get("initiator", None) == config.client_id:
             return
 
         self.queue.put(message)

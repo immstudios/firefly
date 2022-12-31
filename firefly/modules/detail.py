@@ -6,8 +6,8 @@ import firefly
 
 from firefly.api import api
 from firefly.common import pixlib
-from firefly.core.metadata import meta_types
-from firefly.core.enum import ObjectStatus
+from firefly.metadata import meta_types
+from firefly.enum import ObjectStatus
 from firefly.base_module import BaseModule
 from firefly.modules.detail_toolbars import detail_toolbar, preview_toolbar
 from firefly.modules.detail_subclips import FireflySubclipsView
@@ -84,8 +84,8 @@ class DetailTabMain(QWidget):
         if self.form:
             for field in self.fields:
                 if meta_types[field.name].type in ["select", "list"]:
-                    self.form.inputs[field.name].set_data(
-                        asset.show(field.name, result="full")
+                    self.form.inputs[field.name].set_options(
+                        asset.meta_types[field.name].cslist
                     )
                 self.form[field.name] = asset[field.name]
             self.form.set_defaults()
