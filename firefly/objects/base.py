@@ -3,14 +3,12 @@ import pprint
 
 from nxtools import logging
 
-from firefly.enum import RunMode, ObjectStatus
-from firefly.common import Colors
+from firefly.enum import RunMode, ObjectStatus, Colors
 from firefly.metadata import MetaTypes
 from firefly.metadata.normalize import normalize_meta
 from firefly.metadata.format import format_meta
 
 from .format import format_helpers, STATUS_FG_COLORS
-
 
 
 class BaseObject:
@@ -96,7 +94,7 @@ class BaseObject:
         be casted to the expected type.
         """
         try:
-            value = normalize_meta(key, value)
+            value = normalize_meta(self.meta_types, key, value)
         except ValueError as e:
             raise ValueError(f"Invalid value for {key}: {value}") from e
         if value is None:
@@ -104,15 +102,10 @@ class BaseObject:
         else:
             self.meta[key] = value
 
-        # TODO
-        # if meta_type.fulltext or key == "subclips":
-        #     self.text_changed = True
-        # self.meta_changed = True
-        # if not value and key in self.meta:
-        #     del self.meta[key]
-        # else:
-        #     self.meta[key] = value
-        # return True
+        self.meta_changed = True
+        if key in self.meta_types:
+            if self.meta_types[key].fulltext:
+                self.text_changed = True
 
     def update(self, data):
         for key in data.keys():

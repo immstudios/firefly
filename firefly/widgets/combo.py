@@ -1,12 +1,12 @@
 import functools
 
-from firefly.common import fontlib
 from firefly.qt import (
     Qt,
     QWidget,
     QHBoxLayout,
     QPushButton,
     QComboBox,
+    fontlib,
 )
 
 

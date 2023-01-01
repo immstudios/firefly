@@ -86,3 +86,15 @@ class ServiceState(enum.IntEnum):
     STARTING = 2
     STOPPING = 3
     KILL = 4
+
+
+class Colors(enum.Enum):
+    TEXT_NORMAL = "#f0f0f0"
+    TEXT_FADED = "#a0a0a0"
+    TEXT_FADED2 = "#707070"
+    TEXT_HIGHLIGHT = "#ffffff"
+    TEXT_GREEN = "#15f015"
+    TEXT_YELLOW = "#e0f015"
+    TEXT_RED = "#f01515"
+    TEXT_BLUE = "#1515f0"
+    LIVE_BACKGROUND = "#500000"

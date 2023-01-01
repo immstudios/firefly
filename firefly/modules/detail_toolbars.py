@@ -2,7 +2,6 @@ import functools
 
 import firefly
 
-from firefly.common import pixlib
 from firefly.widgets import ToolBarStretcher
 from firefly.widgets import FireflySelect, FireflyTimecode
 from firefly.qt import (
@@ -10,6 +9,7 @@ from firefly.qt import (
     QMenu,
     QIcon,
     QAction,
+    pixlib,
 )
 
 

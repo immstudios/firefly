@@ -3,8 +3,8 @@ import functools
 
 import firefly
 
+from firefly.enum import Colors
 from firefly.metadata import meta_types
-from firefly.common import pixlib, fontlib, Colors
 from firefly.qt import (
     Qt,
     QColor,
@@ -12,6 +12,8 @@ from firefly.qt import (
     QAbstractItemView,
     QSortFilterProxyModel,
     QTableView,
+    pixlib,
+    fontlib,
 )
 
 

@@ -81,7 +81,6 @@ class MetaType(BaseModel):
     # @functools.cached_property
     @property
     def cslist(self):
-        result = []
         if self.order is None:
             order = "value"
         else:

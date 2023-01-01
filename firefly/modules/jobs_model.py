@@ -3,8 +3,7 @@ import functools
 from nxtools import format_time, logging
 
 from firefly.api import api
-from firefly.common import Colors
-from firefly.enum import JobState
+from firefly.enum import JobState, Colors
 from firefly.objects import asset_cache
 from firefly.view import FireflyViewModel, FireflyView
 from firefly.qt import (

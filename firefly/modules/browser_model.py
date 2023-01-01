@@ -7,13 +7,13 @@ import firefly
 
 from firefly.objects import Asset
 from firefly.api import api
-from firefly.common import pixlib
 from firefly.view import FireflyViewModel, format_header, format_description
 from firefly.qt import (
     Qt,
     QApplication,
     QUrl,
     QMimeData,
+    pixlib,
 )
 
 DEFAULT_HEADER_DATA = ["title", "duration", "id_folder"]

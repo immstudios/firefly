@@ -7,7 +7,6 @@ from nxtools.logging import INFO, WARNING, ERROR
 import firefly
 
 from firefly.api import api
-from firefly.common import pixlib
 from firefly.config import config
 from firefly.menu import create_menu
 from firefly.listener import SeismicListener
@@ -36,6 +35,7 @@ from firefly.qt import (
     get_app_state,
     app_settings,
     app_skin,
+    pixlib,
 )
 
 

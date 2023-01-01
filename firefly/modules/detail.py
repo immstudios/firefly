@@ -5,7 +5,6 @@ from nxtools import logging, format_time
 import firefly
 
 from firefly.api import api
-from firefly.common import pixlib
 from firefly.metadata import meta_types
 from firefly.enum import ObjectStatus
 from firefly.base_module import BaseModule
@@ -27,6 +26,7 @@ from firefly.qt import (
     QTabWidget,
     QHBoxLayout,
     QMessageBox,
+    pixlib,
 )
 
 

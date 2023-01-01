@@ -12,7 +12,6 @@ from firefly.filesystem import load_filesystem
 from firefly.dialogs.login import show_login_dialog
 from firefly.dialogs.site_select import show_site_select_dialog
 from firefly.api import api
-from firefly.common import pixlib
 from firefly.config import config
 from firefly.metadata import clear_cs_cache
 from firefly.main_window import FireflyMainWindow, FireflyMainWidget
@@ -26,6 +25,7 @@ from firefly.qt import (
     app_settings,
     app_dir,
     app_skin,
+    pixlib,
 )
 
 

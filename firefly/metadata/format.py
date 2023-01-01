@@ -18,7 +18,7 @@ def format_cs_values(metatype: "MetaType", values: list[str]) -> str:
 
 
 def format_meta(
-    parent, object: "BaseObject", key: str, **kwargs: dict[str, Any]
+    parent, object: "BaseObject", key: str, **kwargs: dict[str, Any],
 ) -> str:
     """Return a human-readable string representation of a metadata value."""
 

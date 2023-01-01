@@ -33,7 +33,7 @@ class NebulaResponse:
 
     @property
     def message(self):
-        return self["message"] or HTTPStatus(self.response).name
+        return self.get("message", f"{self.response}")
 
     @property
     def data(self):

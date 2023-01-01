@@ -38,7 +38,7 @@ def parse_bool(value: Any) -> bool:
     return bool(value)
 
 
-def normalize_meta(key: str, value: Any) -> Any:
+def normalize_meta(parent, key: str, value: Any) -> Any:
     """Ensure that metadata is in the correct format.
 
     Returns the correct value for the given key.
@@ -55,7 +55,7 @@ def normalize_meta(key: str, value: Any) -> Any:
             raise ValueError(f"Value {value} of undefined key {key} is not supported.")
         return value
 
-    meta_type = settings.metatypes[key]
+    meta_type = parent[key]
 
     if value == meta_type.default:
         return value

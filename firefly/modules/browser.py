@@ -6,7 +6,6 @@ from nxtools import logging, log_traceback
 import firefly
 
 from firefly.api import api
-from firefly.common import pixlib
 from firefly.enum import ObjectStatus
 from firefly.dialogs.send_to import show_send_to_dialog
 from firefly.dialogs.batch_ops import show_batch_ops_dialog
@@ -30,6 +29,7 @@ from firefly.qt import (
     QMessageBox,
     QTabWidget,
     app_skin,
+    pixlib,
 )
 
 from .browser_model import BrowserModel

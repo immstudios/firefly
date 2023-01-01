@@ -4,7 +4,6 @@ import datetime
 
 import firefly
 
-from firefly.common import pixlib
 from firefly.widgets import ToolBarStretcher, ChannelDisplay
 from firefly.qt import (
     Qt,
@@ -19,6 +18,7 @@ from firefly.qt import (
     QIcon,
     QDrag,
     QMimeData,
+    pixlib,
 )
 
 
