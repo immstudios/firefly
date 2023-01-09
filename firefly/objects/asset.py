@@ -2,6 +2,8 @@ import json
 import os
 import time
 
+import firefly
+
 from nxtools import logging, log_traceback
 from firefly.config import config
 from firefly.enum import ObjectStatus, ContentType, MediaType
@@ -29,16 +31,11 @@ class Asset(BaseObject):
     def file_path(self):
         if self["media_type"] != MediaType.FILE:
             return ""
-        # TODO
-        try:
-            return os.path.join(
-                storages[int(self["id_storage"])].local_path, self["path"]
-            )
-        except (KeyError, IndexError, ValueError):
-            # Yes. empty string. keep it this way!!!
-            # (because of os.path.exists and so on)
-            # Also: it evals as false
-            return ""
+        if storage := firefly.settings.get_storage(self["id_storage"]):
+            if not storage.path:
+                return ""
+            return os.path.join(storage.path, self["path"])
+        return ""
 
     @property
     def duration(self):

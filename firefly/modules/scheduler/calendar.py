@@ -539,6 +539,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             response = api.scheduler(
                 id_channel=self.id_channel,
                 delete=[cursor_event.id],
+                date=self.calendar.date,
             )
             self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
             if response:

@@ -75,6 +75,12 @@ class PlayoutChannelSettings(SettingsModel):
     rundown_accepts: AcceptModel = Field(default_factory=AcceptModel)
 
 
+class StorageSettings(SettingsModel):
+    id: int = Field(...)
+    name: str = Field(...)
+    paht: str | None = Field(None)
+
+
 class Settings(SettingsModel):
     folders: list[FolderSettings] = Field(default_factory=list)
     views: list[ViewSettings] = Field(default_factory=list)
@@ -82,6 +88,7 @@ class Settings(SettingsModel):
     cs: dict[str, Any] = Field(default_factory=dict)
     playout_channels: list[PlayoutChannelSettings] = Field(default_factory=list)
     server_url: str | None = Field(None, title="Server URL")
+    storages: list[StorageSettings] = Field(default_factory=list)
 
     def get_folder(self, id_folder: int) -> FolderSettings:
         return find_by_id(self.folders, id_folder)
@@ -91,6 +98,9 @@ class Settings(SettingsModel):
 
     def get_playout_channel(self, id_channel: int) -> PlayoutChannelSettings:
         return find_by_id(self.playout_channels, id_channel)
+
+    def get_storage(self, id_storage: int) -> StorageSettings:
+        return find_by_id(self.storages, id_storage)
 
     def update(self, data: dict[str, Any]) -> None:
         new_settings = Settings(**data)
