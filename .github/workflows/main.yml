@@ -2,11 +2,10 @@ name: Test Build Python Exe
 
 on:
   push:
-    branches: [ "firefly6" ]
+    branches: [ "main" ]
 
 jobs:
-
-  build_windows:
+  build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
