@@ -1,8 +1,10 @@
 import pprint
+import functools
 
-from firefly.core.metadata import meta_types
-from firefly.core.common import config
-from firefly.common import pixlib, fontlib, Colors
+import firefly
+
+from firefly.enum import Colors
+from firefly.metadata import meta_types
 from firefly.qt import (
     Qt,
     QColor,
@@ -10,23 +12,19 @@ from firefly.qt import (
     QAbstractItemView,
     QSortFilterProxyModel,
     QTableView,
+    pixlib,
+    fontlib,
 )
 
-__all__ = [
-    "FireflyViewModel",
-    "FireflySortModel",
-    "FireflyView",
-    "format_header",
-    "format_description",
-]
 
-
+@functools.lru_cache(maxsize=100)
 def format_header(key):
-    return meta_types[key].header()
+    return meta_types[key].header
 
 
+@functools.lru_cache(maxsize=100)
 def format_description(key):
-    return meta_types[key].description()
+    return meta_types[key].description
 
 
 class FireflyViewModel(QAbstractTableModel):
@@ -74,18 +72,16 @@ class FireflyViewModel(QAbstractTableModel):
             )
         elif role == Qt.ItemDataRole.BackgroundRole:
             color = obj.format_background(key, model=self)
-            return (
-                QColor(color.value if isinstance(color, Colors) else color)
-                if color
-                else None
-            )
+            if color is None:
+                return None
+            return QColor(color.value if isinstance(color, Colors) else color)
         elif role == Qt.ItemDataRole.DecorationRole:
             return pixlib[obj.format_decoration(key, model=self)]
         elif role == Qt.ItemDataRole.FontRole:
             font = obj.format_font(key, model=self)
             return fontlib[font]
         elif role == Qt.ItemDataRole.ToolTipRole:
-            if config.get("debug", False):
+            if firefly.config.debug:
                 r = pprint.pformat(obj.meta)
                 if obj.object_type == "item":
                     r += "\n\n" + pprint.pformat(obj.asset.meta) if obj.asset else ""

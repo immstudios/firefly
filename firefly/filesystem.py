@@ -1,7 +1,9 @@
 import os
 
+import firefly
+
 from nxtools import PLATFORM, logging
-from firefly.core.common import config
+from firefly.config import config
 
 
 if PLATFORM == "windows":
@@ -39,10 +41,13 @@ def load_filesystem(handler=False):
                 except Exception:
                     continue
 
-                if site != config["site_name"]:
+                if site != config.site.name:
                     continue
 
-                if id_storage in config["storages"]:
+                continue
+                # TODO
+
+                if storage in firefly.settings.storage:
                     config["storages"][id_storage]["protocol"] = "local"
                     config["storages"][id_storage]["path"] = base_path
                     logging.debug(f"Mapped storage {id_storage} to {base_path}")

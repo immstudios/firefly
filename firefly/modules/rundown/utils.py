@@ -2,12 +2,13 @@ import time
 import json
 import datetime
 
-from firefly.common import pixlib
-from firefly.objects import has_right
+import firefly
+
 from firefly.widgets import ToolBarStretcher, ChannelDisplay
 from firefly.qt import (
     Qt,
     QAction,
+    QApplication,
     QToolBar,
     QDialog,
     QCalendarWidget,
@@ -17,6 +18,7 @@ from firefly.qt import (
     QIcon,
     QDrag,
     QMimeData,
+    pixlib,
 )
 
 
@@ -89,8 +91,10 @@ class ItemButton(QToolButton):
         self.pressed.connect(self.startDrag)
         self.setIcon(QIcon(pixlib[self.button_config["icon"]]))
         self.setToolTip(self.button_config["tooltip"])
+        self.setFocusPolicy(Qt.NoFocus)
 
     def startDrag(self):
+        self.setAttribute(Qt.WA_UnderMouse, False)
         item_data = {}
         for key in self.button_config:
             if key not in ["tooltip", "icon"]:
@@ -100,6 +104,8 @@ class ItemButton(QToolButton):
         mimeData.setData("application/nx.item", json.dumps([item_data]).encode("utf-8"))
         drag.setMimeData(mimeData)
         if drag.exec(Qt.DropAction.CopyAction):
+            QApplication.processEvents()
+
             pass  # nejak to rozumne ukonc
 
 
@@ -115,6 +121,7 @@ def rundown_toolbar(wnd):
     wnd.addAction(action_find_next)
 
     toolbar = QToolBar(wnd)
+    toolbar.setContentsMargins(0, 0, 0, 0)
 
     action_day_prev = QAction(QIcon(pixlib["previous"]), "&Previous day", wnd)
     action_day_prev.setShortcut("Alt+Left")
@@ -144,7 +151,7 @@ def rundown_toolbar(wnd):
     action_day_next.triggered.connect(wnd.go_day_next)
     toolbar.addAction(action_day_next)
 
-    if has_right("rundown_edit", anyval=True):
+    if firefly.user.can("rundown_edit", anyval=True):
 
         toolbar.addSeparator()
 
@@ -172,3 +179,4 @@ def rundown_toolbar(wnd):
     toolbar.addWidget(wnd.channel_display)
 
     return toolbar
+

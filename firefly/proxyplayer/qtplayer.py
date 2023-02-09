@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
-
 import functools
 
-from nxtools import logging, log_traceback
+from nxtools import s2tc
 from firefly.proxyplayer.utils import get_navbar, RegionBar, TimecodeWindow
 from firefly.qt import (
     Qt,
@@ -14,38 +12,9 @@ from firefly.qt import (
     QIcon,
 )
 
-try:
-    from .mpv import MPV
-
-    has_mpv = True
-except OSError:
-    has_mpv = False
-    logging.warning(
-        "Unable to load MPV libraries. Video preview will not be available."
-    )
-
-
-class DummyPlayer:
-    def property_observer(self, *args):
-        return lambda x: x
-
-    def __setitem__(self, key, value):
-        return
-
-    def __getitem__(self, key):
-        return
-
-    def play(self, *args, **kwargs):
-        pass
-
-    def seek(self, *args, **kwargs):
-        pass
-
-    def frame_step(self, *args, **kwargs):
-        pass
-
-    def frame_back_step(self, *args, **kwargs):
-        pass
+from PySide6.QtCore import Slot
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+from PySide6.QtMultimediaWidgets import QVideoWidget
 
 
 class VideoPlayer(QWidget):
@@ -56,17 +25,13 @@ class VideoPlayer(QWidget):
 
         self.markers = {}
 
-        self.video_window = QWidget(self)
+        self.video_window = QVideoWidget(self)
         self.video_window.setStyleSheet("background-color: #161616;")
-        if not has_mpv:
-            self.player = DummyPlayer()
-        else:
-            try:
-                window_id = self.video_window.winId().__int__()
-                self.player = MPV(keep_open=True, wid=f"{window_id}")
-            except Exception:
-                log_traceback(handlers=False)
-                self.player = DummyPlayer()
+
+        self.audio_output = QAudioOutput()
+        self.player = QMediaPlayer()
+        self.player.setAudioOutput(self.audio_output)
+        self.player.setVideoOutput(self.video_window)
 
         self.position = 0
         self.duration = 0
@@ -80,6 +45,8 @@ class VideoPlayer(QWidget):
         self.prev_duration = 0
         self.prev_mark_in = 0
         self.prev_mark_out = 0
+
+        self.seek_to = None
 
         #
         # Displays
@@ -148,17 +115,7 @@ class VideoPlayer(QWidget):
         self.setLayout(layout)
         self.navbar.setFocus()
 
-        @self.player.property_observer("time-pos")
-        def time_observer(_name, value):
-            self.on_time_change(value)
-
-        @self.player.property_observer("duration")
-        def duration_observer(_name, value):
-            self.on_duration_change(value)
-
-        @self.player.property_observer("pause")
-        def pause_observer(_name, value):
-            self.on_pause_change(value)
+        self.player.playbackStateChanged.connect(self.playback_state_changed)
 
         # Displays updater
 
@@ -166,15 +123,26 @@ class VideoPlayer(QWidget):
         self.display_timer.timeout.connect(self.on_display_timer)
         self.display_timer.start(40)
 
+        self.seek_timer = QTimer()
+        self.seek_timer.timeout.connect(self.on_seek_timer)
+        self.seek_timer.start(100)
+
     @property
     def frame_dur(self):
         return 1 / self.fps
 
     def load(self, path, mark_in=0, mark_out=0, markers={}):
+        if self.player.playbackState() != QMediaPlayer.StoppedState:
+            self.player.stop()
+
         self.loaded = False
         self.markers = markers
-        self.player["pause"] = True
-        self.player.play(path)
+
+        self.player.setSource(path)
+        self.player.play()
+        self.player.pause()
+        self.loaded = True
+
         self.prev_mark_in = -1
         self.prev_mark_out = -1
         self.mark_in = mark_in
@@ -184,8 +152,13 @@ class VideoPlayer(QWidget):
         self.duration_display.set_value(0)
         self.position_display.set_value(0)
 
-    def on_time_change(self, value):
-        self.position = value
+    @Slot("QMediaPlayer::PlaybackState")
+    def playback_state_changed(self, state):
+        print(self.player.position(), self.player.duration())
+        if self.player.playbackState() == QMediaPlayer.PlayingState:
+            self.action_play.setIcon(QIcon(self.pixlib["pause"]))
+        else:
+            self.action_play.setIcon(QIcon(self.pixlib["play"]))
 
     def on_duration_change(self, value):
         if value:
@@ -197,48 +170,41 @@ class VideoPlayer(QWidget):
         self.duration_changed = True
         self.region_bar.update()
 
-    def on_pause_change(self, value):
-        if hasattr(self, "action_play"):
-            self.action_play.setIcon(QIcon(self.pixlib[["pause", "play"][int(value)]]))
-
     def on_timeline_seek(self):
         if not self.loaded:
             return
-        try:
-            self.player["pause"] = True
-            self.player.seek(self.timeline.value() / 100.0, "absolute", "exact")
-        except Exception:
-            pass
+        self.force_pause()
+        self.seek_to = self.timeline.value() / 100.0
 
     def on_frame_next(self):
         if not self.loaded:
             return
-        self.player.frame_step()
+        self.seek(self.position + self.frame_dur)
 
     def on_frame_prev(self):
         if not self.loaded:
             return
-        self.player.frame_back_step()
+        self.seek(self.position - self.frame_dur)
 
     def on_5_next(self):
         if not self.loaded:
             return
-        self.player.seek(5 * self.frame_dur, "relative", "exact")
+        self.seek(self.position + (5 * self.frame_dur))
 
     def on_5_prev(self):
         if not self.loaded:
             return
-        self.player.seek(-5 * self.frame_dur, "relative", "exact")
+        self.seek(self.position - (5 * self.frame_dur))
 
     def on_go_start(self):
         if not self.loaded:
             return
-        self.player.seek(0, "absolute", "exact")
+        self.seek(0)
 
     def on_go_end(self):
         if not self.loaded:
             return
-        self.player.seek(self.duration, "absolute", "exact")
+        self.seek(self.duration)
 
     def on_go_in(self):
         if not self.loaded:
@@ -300,18 +266,20 @@ class VideoPlayer(QWidget):
         if isinstance(position, TimecodeWindow):
             position = position.get_value()
             self.setFocus()
-        self.player.seek(position, "absolute", "exact")
+        self.player.setPosition(int(position * 1000))
 
     def on_pause(self):
         if not self.loaded:
             return
-        self.player["pause"] = not self.player["pause"]
+        if self.player.playbackState() == QMediaPlayer.PlayingState:
+            self.player.pause()
+        else:
+            self.player.play()
 
     def force_pause(self):
         if not self.loaded:
             return
-        if not self.player["pause"]:
-            self.player["pause"] = True
+        self.player.pause()
 
     def update_marks(self):
         i = self.mark_in
@@ -330,9 +298,13 @@ class VideoPlayer(QWidget):
         if not self.loaded:
             return
 
+        self.position = self.player.position() / 1000
+        self.duration = self.player.duration() / 1000
+
         if self.position != self.prev_position and self.position is not None:
             self.position_display.set_value(self.position)
-            self.timeline.setValue(int(self.position * 100))
+            if self.seek_to is not None:
+                self.timeline.setValue(int(self.position * 100))
             self.prev_position = self.position
 
         if self.duration != self.prev_duration and self.position is not None:
@@ -347,3 +319,8 @@ class VideoPlayer(QWidget):
         ):
             self.update_marks()
             self.duration_changed = False
+
+    def on_seek_timer(self):
+        if self.seek_to is not None:
+            self.seek(self.seek_to)
+            self.seek_to = None

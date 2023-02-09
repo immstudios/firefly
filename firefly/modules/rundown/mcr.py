@@ -3,8 +3,9 @@ import math
 
 from nxtools import s2tc
 
+import firefly
+
 from firefly.api import api
-from firefly.objects import has_right
 from firefly.qt import (
     QApplication,
     QPushButton,
@@ -245,7 +246,7 @@ class MCR(QWidget):
 
     def on_channel_changed(self):
         if hasattr(self, "id_channel"):
-            can_mcr = has_right("mcr", self.id_channel)
+            can_mcr = firefly.user.can("mcr", self.id_channel)
             self.btn_take.setEnabled(can_mcr)
             self.btn_freeze.setEnabled(can_mcr)
             self.btn_retake.setEnabled(can_mcr)
@@ -318,3 +319,4 @@ class MCR(QWidget):
             self.display_rem.setFixedSize(self.display_clock.size())
             self.display_dur.setFixedSize(self.display_clock.size())
             self.request_display_resize = False
+

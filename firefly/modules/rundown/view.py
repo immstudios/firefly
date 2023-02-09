@@ -1,20 +1,18 @@
 import functools
 from nxtools import logging, s2time
 
-from .rundown_model import RundownModel
+import firefly
 
 from firefly.api import api
-from firefly.core.common import config
-from firefly.core.enum import RunMode
-from firefly.objects import has_right
+from firefly.enum import RunMode
+from firefly.qt import Qt, QAbstractItemView, QMenu, QAction, QApplication, QMessageBox
+from firefly.view import FireflyView
 
 from firefly.dialogs.event import show_event_dialog
 from firefly.dialogs.send_to import show_send_to_dialog
 from firefly.dialogs.rundown import PlaceholderDialog, show_trim_dialog
 
-from firefly.view import FireflyView
-from firefly.qt import Qt, QAbstractItemView, QMenu, QAction, QApplication, QMessageBox
-
+from .model import RundownModel
 
 class RundownView(FireflyView):
     def __init__(self, parent):
@@ -31,7 +29,7 @@ class RundownView(FireflyView):
 
     @property
     def playout_config(self):
-        return config["playout_channels"][self.id_channel]
+        return firefly.settings.get_playout_channel(self.id_channel)
 
     @property
     def start_time(self):
@@ -258,11 +256,18 @@ class RundownView(FireflyView):
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         print("loop:", mode)
-        response = api.set(
-            object_type=self.selected_objects[0].object_type,
-            objects=[obj.id for obj in self.selected_objects],
-            data={"loop": mode},
+
+        response = api.ops(
+            operations=[
+                {
+                    "object_type": obj.object_type,
+                    "id": obj.id,
+                    "data": {"loop": mode},
+                }
+                for obj in self.selected_objects
+            ]
         )
+
         QApplication.restoreOverrideCursor()
         if not response:
             logging.error(response.message)
@@ -275,10 +280,15 @@ class RundownView(FireflyView):
             return
         QApplication.processEvents()
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        response = api.set(
-            object_type=self.selected_objects[0].object_type,
-            objects=[obj.id for obj in self.selected_objects],
-            data={"run_mode": mode},
+        response = api.ops(
+            operations=[
+                {
+                    "object_type": obj.object_type,
+                    "id": obj.id,
+                    "data": {"run_mode": mode},
+                }
+                for obj in self.selected_objects
+            ]
         )
         QApplication.restoreOverrideCursor()
         if not response:
@@ -332,7 +342,7 @@ class RundownView(FireflyView):
         if items:
             QApplication.processEvents()
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-            response = api.delete(object_type="item", objects=items)
+            response = api.delete(object_type="item", ids=items)
             QApplication.restoreOverrideCursor()
             if not response:
                 logging.error(response.message)
@@ -385,7 +395,7 @@ class RundownView(FireflyView):
                 data[key] = dlg.meta[key]
         if not data:
             return
-        response = api.set(object_type=obj.object_type, objects=[obj.id], data=data)
+        response = api.set(object_type=obj.object_type, id=obj.id, data=data)
         if not response:
             logging.error(response.message)
             return
@@ -399,7 +409,7 @@ class RundownView(FireflyView):
 
     def on_activate(self, mi):
         obj = self.model().object_data[mi.row()]
-        can_mcr = has_right("mcr", self.id_channel)
+        can_mcr = firefly.user.can("mcr", self.id_channel)
         if obj.object_type == "item":
 
             if obj.id:
@@ -419,8 +429,8 @@ class RundownView(FireflyView):
 
         # Event edit
         elif obj.object_type == "event" and (
-            has_right("scheduler_view", self.id_channel)
-            or has_right("scheduler_edit", self.id_channel)
+            firefly.user.can("scheduler_view", self.id_channel)
+            or firefly.user.can("scheduler_edit", self.id_channel)
         ):
             self.on_edit_event()
         self.clearSelection()

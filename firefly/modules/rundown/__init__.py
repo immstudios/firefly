@@ -4,8 +4,9 @@ import functools
 
 from nxtools import logging
 
+import firefly
+
 from firefly.base_module import BaseModule
-from firefly.objects import has_right
 from firefly.qt import (
     QVBoxLayout,
     QModelIndex,
@@ -15,10 +16,10 @@ from firefly.qt import (
     QInputDialog,
 )
 
-from .rundown_utils import rundown_toolbar, day_start, get_date
-from .rundown_mcr import MCR
-from .rundown_plugins import PlayoutPlugins
-from .rundown_view import RundownView
+from .utils import rundown_toolbar, day_start, get_date
+from .mcr import MCR
+from .plugins import PlayoutPlugins
+from .view import RundownView
 
 
 class RundownModule(BaseModule):
@@ -44,7 +45,7 @@ class RundownModule(BaseModule):
 
         self.mcr = self.plugins = False
 
-        if has_right("mcr", anyval=True):
+        if firefly.user.can("mcr", anyval=True):
             self.mcr = MCR(self)
             self.plugins = PlayoutPlugins(self)
             if self.app_state.get("show_mcr", False):
@@ -75,11 +76,11 @@ class RundownModule(BaseModule):
 
     @property
     def can_edit(self):
-        return has_right("rundown_edit", self.id_channel)
+        return firefly.user.can("rundown_edit", self.id_channel)
 
     @property
     def can_schedule(self):
-        return has_right("scheduler_edit", self.id_channel)
+        return firefly.user.can("scheduler_edit", self.id_channel)
 
     def load(self, **kwargs):
         event = kwargs.get("event", False)
@@ -101,16 +102,14 @@ class RundownModule(BaseModule):
             self.id_channel = kwargs["id_channel"]
 
         if "start_time" in kwargs:
-            new_start = day_start(
-                kwargs["start_time"], self.playout_config["day_start"]
-            )
+            new_start = day_start(kwargs["start_time"], self.playout_config.day_start)
             if new_start != self.start_time:
                 do_update_header = True
                 self.start_time = new_start
 
         if not self.start_time:
             do_update_header = True
-            self.start_time = day_start(time.time(), self.playout_config["day_start"])
+            self.start_time = day_start(time.time(), self.playout_config.day_start)
 
         self.view.model().load(
             functools.partial(
@@ -163,7 +162,7 @@ class RundownModule(BaseModule):
                     break
 
     def update_header(self):
-        ch = self.playout_config["title"]
+        ch = self.playout_config.name
         t = datetime.date.fromtimestamp(self.start_time)
         if t < datetime.date.today():
             s = " color='red'"
@@ -191,7 +190,7 @@ class RundownModule(BaseModule):
         if self.mcr:
             self.mcr.on_channel_changed()
 
-        can_rundown_edit = has_right("rundown_edit", self.id_channel)
+        can_rundown_edit = firefly.user.can("rundown_edit", self.id_channel)
         self.main_window.action_rundown_edit.setEnabled(can_rundown_edit)
         self.toggle_rundown_edit(can_rundown_edit and self.edit_wanted)
 
@@ -218,7 +217,7 @@ class RundownModule(BaseModule):
         y, m, d = get_date()
         if not y:
             return
-        hh, mm = self.playout_config["day_start"]
+        hh, mm = self.playout_config.day_start
         dt = datetime.datetime(y, m, d, hh, mm)
         self.load(start_time=time.mktime(dt.timetuple()))
 
@@ -302,7 +301,7 @@ class RundownModule(BaseModule):
         if self.main_window.current_module != self.main_window.rundown:
             return
 
-        if message.method == "playout_status":
+        if message.topic == "playout_status":
             if message.data["id_channel"] != self.id_channel:
                 return
 
@@ -324,7 +323,7 @@ class RundownModule(BaseModule):
             if self.mcr:
                 self.mcr.seismic_handler(message)
 
-        elif message.method == "objects_changed":
+        elif message.topic == "objects_changed":
             if message.data["object_type"] == "event":
                 for id_event in message.data["objects"]:
                     if id_event in self.view.model().event_ids:
@@ -338,9 +337,8 @@ class RundownModule(BaseModule):
             elif message.data["object_type"] == "asset":
                 self.refresh_assets(*message.data["objects"])
 
-        elif message.method == "job_progress":
-            if self.playout_config.get("send_action", 0) == message.data["id_action"]:
-
+        elif message.topic == "job_progress":
+            if self.playout_config.send_action == message.data["id_action"]:
                 model = self.view.model()
                 for row, obj in enumerate(model.object_data):
                     if obj["id_asset"] == message.data["id_asset"]:
@@ -355,3 +353,4 @@ class RundownModule(BaseModule):
     def refresh_assets(self, *assets):
         model = self.view.model()
         model.refresh_assets(assets)
+

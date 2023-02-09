@@ -95,7 +95,7 @@ class ComboMenuDelegate(QAbstractItemDelegate):
 
         if idt is not None:
             idt = int(idt)
-            menuoption.rect.adjust(idt * 16, 0, 0, 0)
+            menuoption.rect.adjust(idt * 24, 0, 0, 0)
 
         menuoption.menuHasCheckableItems = True
         menuoption.tabWidth = 0

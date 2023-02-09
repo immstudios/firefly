@@ -2,7 +2,7 @@ import copy
 
 from nxtools import logging, s2tc
 
-from firefly.core.metadata import meta_types
+from firefly.metadata import meta_types
 from firefly.view import FireflyViewModel, FireflyView
 from firefly.qt import Qt, QInputDialog, QMenu, QAction
 

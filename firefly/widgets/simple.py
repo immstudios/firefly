@@ -114,7 +114,7 @@ class FireflyNumeric(QSpinBox):
 class FireflyDatetime(QLineEdit):
     def __init__(self, parent, **kwargs):
         super(FireflyDatetime, self).__init__(parent)
-        mode = kwargs.get("mode", "datetime")
+        mode = kwargs.get("mode")
 
         if mode == "date":
             self.mask = "9999-99-99"
@@ -124,7 +124,7 @@ class FireflyDatetime(QLineEdit):
             self.mask = "9999"
             self.format = "%Y"
 
-        elif mode == "datetime":
+        else:
             self.mask = "9999-99-99 99:99"
             self.format = "%Y-%m-%d %H:%M"
 

@@ -1,38 +1,74 @@
-import os
 import json
+import os
 import time
 
+import firefly
+
 from nxtools import logging, log_traceback
+from firefly.config import config
+from firefly.enum import ObjectStatus, ContentType, MediaType
+from firefly.qt import QApplication
 
-from firefly.cellformat import FireflyObject
-from firefly.core.enum import ObjectStatus
-from firefly.core.common import config
-from firefly.core.base_objects import (
-    AssetMixIn,
-    ItemMixIn,
-    BinMixIn,
-    EventMixIn,
-    UserMixIn,
-)
+from .base import BaseObject
 
 
-class Asset(AssetMixIn, FireflyObject):
-    pass
+class Asset(BaseObject):
+    object_type_id = 0
+    required = ["media_type", "content_type", "id_folder"]
+    defaults = {"media_type": MediaType.VIRTUAL, "content_type": ContentType.TEXT}
+
+    def mark_in(self, new_val=False):
+        if new_val:
+            self["mark_in"] = new_val
+        return max(float(self["mark_in"] or 0), 0)
+
+    def mark_out(self, new_val=False):
+        if new_val:
+            self["mark_out"] = new_val
+        return max(float(self["mark_out"] or 0), 0)
+
+    @property
+    def file_path(self):
+        if self["media_type"] != MediaType.FILE:
+            return ""
+        if storage := firefly.settings.get_storage(self["id_storage"]):
+            if not storage.path:
+                return ""
+            return os.path.join(storage.path, self["path"])
+        return ""
+
+    @property
+    def duration(self):
+        dur = float(self.meta.get("duration", 0))
+        mark_in = float(self.meta.get("mark_in", 0))
+        mark_out = float(self.meta.get("mark_out", 0))
+        if not dur:
+            return 0
+        if mark_out > 0:
+            dur = mark_out + (1 / self.fps)
+        if mark_in > 0:
+            dur -= mark_in
+        return dur
+
+    @property
+    def fps(self):
+        n, d = [int(k) for k in self.meta.get("fps", "25/1").split("/")]
+        return n / d
 
 
 asset_loading = Asset()
 asset_loading["title"] = "Loading..."
 asset_loading["status"] = ObjectStatus.CREATING
 
+CACHE_LIMIT = 1000
 
-CACHE_LIMIT = 10000
 
-
-class AssetCache(object):
+class AssetCache:
     def __init__(self):
         self.data = {}
         self.api = None
         self.handler = None
+        self.busy = False
 
     def __getitem__(self, key):
         key = int(key)
@@ -48,7 +84,8 @@ class AssetCache(object):
         key = int(key)
         return self.data.get(key, Asset(meta={"title": "Loading...", "id": key}))
 
-    def request(self, requested):
+    def request(self, requested: list[tuple[int, int]], handler=None):
+        self.busy = True
         to_update = []
         for id, mtime in requested:
             id = int(id)
@@ -70,11 +107,12 @@ class AssetCache(object):
             )
         else:
             logging.info("Requesting data for {} assets".format(asset_count))
-        self.api.get(self.on_response, objects=to_update)
+        self.api.get(self.on_response, ids=to_update)
 
     def on_response(self, response):
         if response.is_error:
             logging.error(response.message)
+            self.busy = False
             return False
         ids = []
         for meta in response.data:
@@ -84,14 +122,20 @@ class AssetCache(object):
                 continue
             self.data[id_asset] = Asset(meta=meta)
             ids.append(id_asset)
+        self.busy = False
         logging.debug("Updated {} assets in cache".format(len(ids)))
         if self.handler:
             self.handler(*ids)
         return True
 
+    def wait(self):
+        while self.busy:
+            time.sleep(0.001)
+            QApplication.processEvents()
+
     @property
     def cache_path(self):
-        return "ffdata.{}.cache".format(config["site_name"])
+        return f"ffdata.{config.site.name}.cache"
 
     def load(self):
         if not os.path.exists(self.cache_path):
@@ -100,7 +144,7 @@ class AssetCache(object):
         try:
             data = json.load(open(self.cache_path))
         except Exception:
-            log_traceback("Corrupted cache file '{}'".format(self.cache_path))
+            log_traceback(f"Corrupted cache file '{self.cache_path}'")
             return
 
         for meta in data:
@@ -127,30 +171,3 @@ class AssetCache(object):
 
 
 asset_cache = AssetCache()
-
-
-class Item(ItemMixIn, FireflyObject):
-    @property
-    def asset(self):
-        if not self["id_asset"]:
-            return False
-        return asset_cache.get(self["id_asset"])
-
-
-class Bin(BinMixIn, FireflyObject):
-    pass
-
-
-class Event(EventMixIn, FireflyObject):
-    pass
-
-
-class User(UserMixIn, FireflyObject):
-    pass
-
-
-user = User()
-
-
-def has_right(*args, **kwargs):
-    return user.has_right(*args, **kwargs)

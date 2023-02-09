@@ -1,16 +1,19 @@
 import time
 import json
-import datetime
 import functools
 
-from nxtools import s2time, s2tc, format_time, logging
+from nxtools import s2time, s2tc, format_time, logging, datestr2ts
+
+import firefly
 
 from firefly.api import api
-from firefly.objects import Event, Asset, has_right
+from firefly.objects import Event, Asset
+from firefly.helpers.scheduling import can_append
 from firefly.dialogs.event import show_event_dialog
 
 from firefly.qt import (
     Qt,
+    QPen,
     QWidget,
     QPainter,
     QFont,
@@ -33,19 +36,26 @@ from firefly.qt import (
     app_skin,
 )
 
-from firefly.modules.scheduler_utils import (
-    COLOR_CALENDAR_BACKGROUND,
-    COLOR_DAY_BACKGROUND,
-    TIME_PENS,
-    RUN_PENS,
-    SECS_PER_DAY,
-    MINS_PER_DAY,
-    SECS_PER_WEEK,
-    SAFE_OVERRUN,
-    CLOCKBAR_WIDTH,
-    text_shorten,
-    suggested_duration,
-)
+from .utils import text_shorten, suggested_duration
+
+SECS_PER_DAY = 3600 * 24
+MINS_PER_DAY = 60 * 24
+SECS_PER_WEEK = SECS_PER_DAY * 7
+SAFE_OVERRUN = 5  # Do not warn if overrun < 5 mins
+CLOCKBAR_WIDTH = 45
+COLOR_CALENDAR_BACKGROUND = QColor("#161616")
+COLOR_DAY_BACKGROUND = QColor("#323232")
+
+TIME_PENS = [
+    (60, QPen(QColor("#999999"), 2, Qt.PenStyle.SolidLine)),
+    (15, QPen(QColor("#999999"), 1, Qt.PenStyle.SolidLine)),
+    (5, QPen(QColor("#444444"), 1, Qt.PenStyle.SolidLine)),
+]
+
+RUN_PENS = [
+    QPen(QColor("#dddd00"), 2, Qt.PenStyle.SolidLine),
+    QPen(QColor("#dd0000"), 2, Qt.PenStyle.SolidLine),
+]
 
 
 class SchedulerVerticalBar(QWidget):
@@ -288,7 +298,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         drag.exec(Qt.DropAction.MoveAction)
 
     def dragTargetChanged(self, evt):
-        if not has_right("scheduler_edit", self.calendar.id_channel):
+        if not firefly.user.can("scheduler_edit", self.calendar.id_channel):
             return
         if type(evt) == SchedulerDayWidget:
             self.drag_outside = False
@@ -297,7 +307,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             self.calendar.drag_source.update()
 
     def dragEnterEvent(self, evt):
-        if not has_right("scheduler_edit", self.calendar.id_channel):
+        if not firefly.user.can("scheduler_edit", self.calendar.id_channel):
             return
         if evt.mimeData().hasFormat("application/nx.asset"):
             d = evt.mimeData().data("application/nx.asset").data()
@@ -307,7 +317,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 return
             asset = Asset(meta=d[0])
 
-            if not eval(self.calendar.playout_config["scheduler_accepts"]):
+            if not can_append(asset, self.calendar.playout_config.scheduler_accepts):
                 evt.ignore()
                 return
 
@@ -335,7 +345,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
             self.calendar.drag_source.update()
 
     def dragMoveEvent(self, evt):
-        if not has_right("scheduler_edit", self.calendar.id_channel):
+        if not firefly.user.can("scheduler_edit", self.calendar.id_channel):
             return
         self.dragging = True
         self.calendar.focus_data = []
@@ -361,11 +371,11 @@ class SchedulerDayWidget(SchedulerVerticalBar):
 
     def dropEvent(self, evt):
         drop_ts = max(
-            self.start_time, self.round_ts(self.cursor_time - self.calendar.drag_offset)
+            self.start_time,
+            self.round_ts(self.cursor_time - self.calendar.drag_offset),
         )
-        do_reload = False
 
-        if not has_right("scheduler_edit", self.id_channel):
+        if not firefly.user.can("scheduler_edit", self.id_channel):
             logging.error("You are not allowed to modify schedule of this channel.")
             self.calendar.drag_source = False
             self.calendar.dragging = False
@@ -395,19 +405,19 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                     f"Creating event from {self.calendar.dragging}"
                     f"at time {format_time(self.cursor_time)}"
                 )
-                if show_event_dialog(
+                if response := show_event_dialog(
                     self,
                     asset=self.calendar.dragging,
                     id_channel=self.id_channel,
                     start=drop_ts,
+                    date=self.calendar.date,
                 ):
-                    do_reload = True
+                    self.calendar.set_data(response["events"])
             else:
                 self.calendar.setCursor(Qt.CursorShape.WaitCursor)
-                response = api.schedule(
+                if response := api.scheduler(
                     id_channel=self.id_channel,
-                    start_time=self.calendar.week_start_time,
-                    end_time=self.calendar.week_end_time,
+                    date=self.calendar.date,
                     events=[
                         {
                             "id_asset": self.calendar.dragging.id,
@@ -415,12 +425,8 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                             "id_channel": self.id_channel,
                         }
                     ],
-                )
-                self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
-                if not response:
-                    logging.error(response.message)
-
-            do_reload = True
+                ):
+                    self.calendar.set_data(response["events"])
 
         elif type(self.calendar.dragging) == Event:
             event = self.calendar.dragging
@@ -445,29 +451,31 @@ class SchedulerDayWidget(SchedulerVerticalBar):
                 if not event.id:
                     logging.debug("Creating empty event")
                     # Create empty event. Event edit dialog is enforced.
-                    if show_event_dialog(self, id_channel=self.id_channel, start=drop_ts):
-                        do_reload = True
+                    if response := show_event_dialog(
+                        self,
+                        id_channel=self.id_channel,
+                        start=drop_ts,
+                        date=self.calendar.date,
+                    ):
+                        self.calendar.set_data(response["events"])
                 else:
                     # Just dragging events around. Instant save
                     self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
-                    response = api.schedule(
+                    if response := api.scheduler(
                         id_channel=self.id_channel,
-                        start_time=self.calendar.week_start_time,
-                        end_time=self.calendar.week_end_time,
-                        events=[event.meta],
-                    )
-                    self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
-                    if not response:
-                        logging.error(response.message)
-                    else:
-                        do_reload = response.data
+                        date=self.calendar.date,
+                        events=[
+                            {
+                                "id": event.id,
+                                "start": event["start"],
+                            }
+                        ],
+                    ):
+                        self.calendar.set_data(response["events"])
 
+        self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
         self.calendar.drag_source = False
         self.calendar.dragging = False
-        if type(do_reload) == list:
-            self.calendar.set_data(do_reload)
-        elif do_reload:
-            self.calendar.load()
 
     def contextMenuEvent(self, event):
         if not self.cursor_event:
@@ -486,7 +494,7 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         action_edit_event.triggered.connect(self.on_edit_event)
         menu.addAction(action_edit_event)
 
-        if has_right("scheduler_edit", self.calendar.id_channel):
+        if firefly.user.can("scheduler_edit", self.calendar.id_channel):
             menu.addSeparator()
             action_delete_event = QAction("Delete event", self)
             action_delete_event.triggered.connect(self.on_delete_event)
@@ -503,14 +511,18 @@ class SchedulerDayWidget(SchedulerVerticalBar):
     def on_edit_event(self):
         if not self.calendar.selected_event:
             return
-        if show_event_dialog(self, event=self.calendar.selected_event):
-            self.calendar.load()
+        if response := show_event_dialog(
+            self,
+            event=self.calendar.selected_event,
+            date=self.calendar.date,
+        ):
+            self.calendar.set_data(response["events"])
 
     def on_delete_event(self):
         if not self.calendar.selected_event:
             return
         cursor_event = self.calendar.selected_event
-        if not has_right("scheduler_edit", self.id_channel):
+        if not firefly.user.can("scheduler_edit", self.id_channel):
             logging.error("You are not allowed to modify schedule of this channel.")
             return
 
@@ -524,16 +536,15 @@ class SchedulerDayWidget(SchedulerVerticalBar):
         if ret == QMessageBox.StandardButton.Yes:
             QApplication.processEvents()
             self.calendar.setCursor(Qt.CursorShape.WaitCursor)
-            response = api.schedule(
+            response = api.scheduler(
                 id_channel=self.id_channel,
-                start_time=self.calendar.week_start_time,
-                end_time=self.calendar.week_end_time,
                 delete=[cursor_event.id],
+                date=self.calendar.date,
             )
             self.calendar.setCursor(Qt.CursorShape.ArrowCursor)
             if response:
                 logging.info(f"{cursor_event} deleted")
-                self.calendar.set_data(response.data)
+                self.calendar.set_data(response["events"])
             else:
                 logging.error(response.message)
                 self.calendar.load()
@@ -686,53 +697,46 @@ class SchedulerCalendar(QWidget):
 
     @property
     def day_start(self):
-        return self.playout_config["day_start"]
+        return self.playout_config.day_start
 
     @property
     def event_ids(self):
         return [event.id for event in self.events]
 
-    def load(self, ts=False):
-        if not self.week_start_time and not ts:
-            ts = time.time()
+    @property
+    def date(self):
+        """Return the first day of week from the parent."""
+        return self.parent().date
 
-        if ts:
-            dt = datetime.datetime.fromtimestamp(ts)
-            week_start = dt - datetime.timedelta(days=dt.weekday())
-            week_start = week_start.replace(
-                hour=self.day_start[0], minute=self.day_start[1], second=0
-            )
-            self.week_start_time = time.mktime(week_start.timetuple())
-            self.week_end_time = self.week_start_time + SECS_PER_WEEK
+    def load(self):
+        """Load the current week"""
+        self.week_start_time = datestr2ts(self.date, *self.day_start)
+        self.week_end_time = 3600 * 24 * 7
 
         QApplication.processEvents()
         self.setCursor(Qt.CursorShape.WaitCursor)
 
-        response = api.schedule(
-            id_channel=self.id_channel,
-            start_time=self.week_start_time,
-            end_time=self.week_end_time,
-        )
+        response = api.scheduler(id_channel=self.id_channel, date=self.date)
 
-        if response:
-            self.clock_bar.day_start = self.day_start
-            self.clock_bar.update()
-            self.set_data(response.data)
-
-            for i, widgets in enumerate(zip(self.days, self.headers)):
-                day_widget, header_widget = widgets
-                start_time = self.week_start_time + (i * SECS_PER_DAY)
-                day_widget.set_time(start_time)
-                header_widget.set_time(start_time)
-        else:
+        if not response:
             logging.error(response.message)
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+            return
+
+        self.clock_bar.day_start = self.day_start
+        self.clock_bar.update()
+        self.set_data(response["events"])
+
+        for i, widgets in enumerate(zip(self.days, self.headers)):
+            day_widget, header_widget = widgets
+            start_time = self.week_start_time + (i * 3600 * 24)
+            day_widget.set_time(start_time)
+            header_widget.set_time(start_time)
         self.setCursor(Qt.CursorShape.ArrowCursor)
         self.on_zoom()
 
-    def set_data(self, data):
-        self.events = []
-        for meta in data:
-            self.events.append(Event(meta=meta))
+    def set_data(self, events: list[dict]):
+        self.events = [Event(meta=e) for e in events]
         QApplication.processEvents()
         self.update()
 

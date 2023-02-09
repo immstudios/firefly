@@ -1,13 +1,7 @@
-__all__ = ["FireflyObject"]
-
 from nxtools import s2time, s2tc
 
-from firefly.common import Colors
-
-from firefly.core.common import config
-from firefly.core.base_objects import BaseObject
-from firefly.core.enum import ObjectStatus, RunMode
-
+import firefly
+from firefly.enum import ObjectStatus, RunMode, Colors
 
 RUNDOWN_EVENT_BACKGROUND_COLOR = "#0f0f0f"
 
@@ -61,11 +55,11 @@ class FormatFolder(CellFormat):
 
     def display(self, obj, **kwargs):
         id_folder = obj["id_folder"]
-        return config["folders"].get(id_folder, DEFAULT_FOLDER)["title"]
+        return firefly.settings.get_folder(id_folder).name
 
     def foreground(self, obj, **kwargs):
         id_folder = obj["id_folder"]
-        return config["folders"].get(id_folder, DEFAULT_FOLDER)["color"]
+        return firefly.settings.get_folder(id_folder).color
 
 
 class FormatContentType(CellFormat):
@@ -153,8 +147,8 @@ class FormatRundownDifference(CellFormat):
         return ""
 
     def foreground(self, obj, **kwargs):
-        if obj["rundown_broadcast"] and obj["rundown_scheduled"]:
-            diff = obj["rundown_broadcast"] - obj["rundown_scheduled"]
+        if obj["broadcast_time"] and obj["scheduled_time"]:
+            diff = obj["broadcast_time"] - obj["scheduled_time"]
             return ["#ff0000", "#00ff00"][diff >= 0]
 
 
@@ -284,26 +278,21 @@ class FormatTitle(CellFormat):
             return "trash-sm"
 
         if obj.object_type == "item":
+            item_role = obj.get("item_role")
             if obj["id_folder"]:
                 return "folder_" + str(obj["id_folder"])
-            elif obj["item_role"] == "lead_in":
+            elif item_role == "lead_in":
                 return "lead-in-sm"
-            elif obj["item_role"] == "lead_out":
+            elif item_role == "lead_out":
                 return "lead-out-sm"
-            elif obj["item_role"] == "live":
+            elif item_role == "live":
                 return "live-sm"
-            elif obj["item_role"] == "placeholder":
+            elif item_role == "placeholder":
                 return "placeholder-sm"
 
-    # REMOVED: use state-based colors in status coulmn only
     def foreground(self, obj, **kwargs):
         if obj.object_type == "asset":
             return STATUS_FG_COLORS[obj["status"]]
-        elif obj.object_type == "item" and obj["id_asset"]:
-            item_status = parse_item_status(obj)
-            if item_status == ObjectStatus.REMOTE:
-                return STATUS_FG_COLORS[ObjectStatus.ONLINE]
-            return STATUS_FG_COLORS[item_status]
 
     def font(self, obj, **kwargs):
         if obj.object_type == "event":
@@ -330,67 +319,3 @@ format_helpers = {}
 for h in format_helpers_list:
     helper = h()
     format_helpers[h.key] = helper
-
-#
-# Firefly object
-#
-
-
-class FireflyObject(BaseObject):
-    def format_display(self, key, **kwargs):
-        if key in format_helpers:
-            val = format_helpers[key].display(self, **kwargs)
-            if val is not None:
-                return val
-        return self.show(key, hide_null=True, shorten=100)
-
-    def format_foreground(self, key, **kwargs):
-        model = kwargs.get("model")
-        if self.object_type == "item":
-            if (
-                self["status"] == ObjectStatus.AIRED
-                and model
-                and model.cued_item != self.id
-                and model.current_item != self.id
-            ):
-                return STATUS_FG_COLORS[ObjectStatus.AIRED]
-            if self["run_mode"] == RunMode.RUN_SKIP:
-                return Colors.TEXT_FADED
-        if key in format_helpers:
-            return format_helpers[key].foreground(self, **kwargs)
-
-    def format_background(self, key, **kwargs):
-        model = kwargs.get("model")
-        if self.object_type == "event":
-            if model.__class__.__name__ == "RundownModel":
-                return RUNDOWN_EVENT_BACKGROUND_COLOR
-        if model and self.object_type == "item":
-            if not self.id:
-                return "#111140"
-            if model.cued_item == self.id:
-                return "#059005"
-            elif model.current_item == self.id:
-                return "#900505"
-            elif self.object_type == "item" and self["item_role"] == "live":
-                return Colors.LIVE_BACKGROUND
-            elif not self["id_asset"]:
-                return "#303030"
-        return None
-
-    def format_decoration(self, key, **kwargs):
-        if key in format_helpers:
-            return format_helpers[key].decoration(self, **kwargs)
-        return None
-
-    def format_font(self, key, **kwargs):
-        if self.object_type == "item":
-            if self["run_mode"] == RunMode.RUN_SKIP and key == "title":
-                return "strikeout"
-            if self["id_asset"] == self["rundown_event_asset"]:
-                return "bold"
-        if key in format_helpers:
-            return format_helpers[key].font(self, **kwargs)
-
-    def format_tooltip(self, key, **kwargs):
-        if key in format_helpers:
-            return format_helpers[key].tooltip(self, **kwargs)
