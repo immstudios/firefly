@@ -12,8 +12,8 @@ jobs:
       - name: Test Build Python Exe
         uses: eric2788/pyinstaller-build@master
         with:
-          main: main
-          artifact: Program
+          main: firefly
+          artifact: firefly
           use-dependencies: false
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
