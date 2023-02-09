@@ -13,7 +13,7 @@ jobs:
         uses: eric2788/pyinstaller-build@master
         with:
           main: main
-          artifact: Program
+          artifact: firefly
           use-dependencies: false
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
