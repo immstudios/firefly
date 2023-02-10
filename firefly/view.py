@@ -19,12 +19,16 @@ from firefly.qt import (
 
 @functools.lru_cache(maxsize=100)
 def format_header(key):
-    return meta_types[key].header
+    if key in meta_types:
+        return meta_types[key].header
+    return key.replace('_', ' ').title()
 
 
 @functools.lru_cache(maxsize=100)
 def format_description(key):
-    return meta_types[key].description
+    if key in meta_types:
+        return meta_types[key].description
+    return ""
 
 
 class FireflyViewModel(QAbstractTableModel):

@@ -1,4 +1,4 @@
-import functools
+from functools import partial
 from nxtools import logging, s2time
 
 import firefly
@@ -13,6 +13,7 @@ from firefly.dialogs.send_to import show_send_to_dialog
 from firefly.dialogs.rundown import PlaceholderDialog, show_trim_dialog
 
 from .model import RundownModel
+
 
 class RundownView(FireflyView):
     def __init__(self, parent):
@@ -99,16 +100,13 @@ class RundownView(FireflyView):
         if len(obj_set) == 1:
             if len(self.selected_objects) == 1:
                 if self.selected_objects[0]["item_role"] == "placeholder":
-                    solvers = self.playout_config.get("solvers", [])
-                    if solvers:
+                    if solvers := self.playout_config.solvers:
                         solver_menu = menu.addMenu("Solve using...")
                         for solver in solvers:
                             action_solve = QAction(solver.capitalize(), self)
-                            action_solve.setStatusTip(
-                                "Solve this placeholder using {}".format(solver)
-                            )
+                            action_solve.setStatusTip(f"Solve using {solver}")
                             action_solve.triggered.connect(
-                                functools.partial(self.on_solve, solver)
+                                partial(self.on_solve, solver)
                             )
                             solver_menu.addAction(action_solve)
 
@@ -132,7 +130,7 @@ class RundownView(FireflyView):
                     self.selected_objects[0]["run_mode"] == RunMode.RUN_AUTO
                 )
                 action_mode_auto.triggered.connect(
-                    functools.partial(self.on_set_mode, RunMode.RUN_AUTO)
+                    partial(self.on_set_mode, RunMode.RUN_AUTO)
                 )
                 mode_menu.addAction(action_mode_auto)
 
@@ -143,7 +141,7 @@ class RundownView(FireflyView):
                     self.selected_objects[0]["run_mode"] == RunMode.RUN_MANUAL
                 )
                 action_mode_manual.triggered.connect(
-                    functools.partial(self.on_set_mode, RunMode.RUN_MANUAL)
+                    partial(self.on_set_mode, RunMode.RUN_MANUAL)
                 )
                 mode_menu.addAction(action_mode_manual)
 
@@ -154,7 +152,7 @@ class RundownView(FireflyView):
                     self.selected_objects[0]["run_mode"] == RunMode.RUN_SKIP
                 )
                 action_mode_skip.triggered.connect(
-                    functools.partial(self.on_set_mode, RunMode.RUN_SKIP)
+                    partial(self.on_set_mode, RunMode.RUN_SKIP)
                 )
                 mode_menu.addAction(action_mode_skip)
 
@@ -177,7 +175,7 @@ class RundownView(FireflyView):
                     self.selected_objects[0]["run_mode"] == RunMode.RUN_AUTO
                 )
                 action_mode_auto.triggered.connect(
-                    functools.partial(self.on_set_mode, RunMode.RUN_AUTO)
+                    partial(self.on_set_mode, RunMode.RUN_AUTO)
                 )
                 mode_menu.addAction(action_mode_auto)
 
@@ -188,7 +186,7 @@ class RundownView(FireflyView):
                     self.selected_objects[0]["run_mode"] == RunMode.RUN_MANUAL
                 )
                 action_mode_manual.triggered.connect(
-                    functools.partial(self.on_set_mode, RunMode.RUN_MANUAL)
+                    partial(self.on_set_mode, RunMode.RUN_MANUAL)
                 )
                 mode_menu.addAction(action_mode_manual)
 
@@ -199,7 +197,7 @@ class RundownView(FireflyView):
                     self.selected_objects[0]["run_mode"] == RunMode.RUN_SOFT
                 )
                 action_mode_soft.triggered.connect(
-                    functools.partial(self.on_set_mode, RunMode.RUN_SOFT)
+                    partial(self.on_set_mode, RunMode.RUN_SOFT)
                 )
                 mode_menu.addAction(action_mode_soft)
 
@@ -210,7 +208,7 @@ class RundownView(FireflyView):
                     self.selected_objects[0]["run_mode"] == RunMode.RUN_HARD
                 )
                 action_mode_hard.triggered.connect(
-                    functools.partial(self.on_set_mode, RunMode.RUN_HARD)
+                    partial(self.on_set_mode, RunMode.RUN_HARD)
                 )
                 mode_menu.addAction(action_mode_hard)
 
@@ -421,7 +419,7 @@ class RundownView(FireflyView):
                         timeout=1,
                         action="cue",
                         id_channel=self.id_channel,
-                        id_item=obj.id,
+                        payload={"id_item" : obj.id},
                     )
                     if not response:
                         logging.error(response.message)

@@ -116,10 +116,11 @@ QHeaderView::section {
     background-color: $color-bkg-secondary;
     color: $color-text;
     font-weight: bold;
-    padding: 5px;
-    border: 0;
+    padding: 3px 5px;
+    border-top: 1px solid $color-surface-04;
     border-right: 1px solid $color-surface-04;
     border-bottom: 1px solid $color-surface-04;
+    border-bottom: 0;
 }
 
 

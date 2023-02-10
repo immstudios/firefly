@@ -22,6 +22,7 @@ if PLATFORM == "windows":
 
 
 def load_filesystem(handler=False):
+    paths: dict[int, str] = {}
     if PLATFORM == "windows":
         for letter in get_available_drives():
             if handler:
@@ -43,11 +44,16 @@ def load_filesystem(handler=False):
 
                 if site != config.site.name:
                     continue
+                paths[id_storage] = base_path
 
+    for storage in firefly.settings.storages:
+        if PLATFORM == "windows" and storage.id in paths:
+            storage.path = paths[storage.id]
+            logging.debug(f"Mapped storage {id_storage} to {base_path}")
+
+        elif PLATFORM == "unix":
+            path = f"/mnt/{config.site.name}_{storage.id:<02d}"
+            if not os.path.isdir(path):
                 continue
-                # TODO
-
-                if storage in firefly.settings.storage:
-                    config["storages"][id_storage]["protocol"] = "local"
-                    config["storages"][id_storage]["path"] = base_path
-                    logging.debug(f"Mapped storage {id_storage} to {base_path}")
+            storage.path = path
+            logging.debug(f"Mapped storage {id_storage} to {path}")

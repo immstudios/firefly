@@ -1,4 +1,6 @@
-from nxtools import get_guid
+import json
+
+from nxtools import get_guid, logging
 from pydantic import BaseModel, Field
 
 
@@ -35,8 +37,14 @@ class FireflyConfig(BaseModel):
 def get_config() -> FireflyConfig:
     """Get firefly configuration."""
 
-    # TODO: Load from file.
+    try:
+        with open("settings.json") as f:
+            config = FireflyConfig(**json.load(f))
+            return config
+    except Exception as e:
+        logging.error(f"Failed to load configuration: {e}")
 
+    # Default configuration
     sites = [
         SiteConfiguration(name="nebula", host="http://localhost:4455"),
     ]

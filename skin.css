@@ -72,10 +72,11 @@ QHeaderView::section {
   background-color: #19161f;
   color: #d7d4d5;
   font-weight: bold;
-  padding: 5px;
-  border: 0;
+  padding: 3px 5px;
+  border-top: 1px solid #2e2a38;
   border-right: 1px solid #2e2a38;
-  border-bottom: 1px solid #2e2a38; }
+  border-bottom: 1px solid #2e2a38;
+  border-bottom: 0; }
 
 QTableCornerButton::section {
   background-color: #24202e; }
