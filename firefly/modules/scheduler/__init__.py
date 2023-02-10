@@ -27,7 +27,7 @@ class SchedulerModule(BaseModule):
         self.calendar.load()
         header = (
             f"Week from {self.date} ({self.week_number})"
-            f"- {self.playout_config.name}"
+            f" - {self.playout_config.name}"
         )
         self.channel_display.setText(header)
 
@@ -55,12 +55,10 @@ class SchedulerModule(BaseModule):
             #     self.calendar.update()
 
     def open_rundown(self, ts, event=False):
-        pass
-        # TODO
-        # self.main_window.main_widget.rundown.load(start_time=ts, event=event)
-        # self.main_window.main_widget.switch_tab(
-        #     self.main_window.main_widget.rundown, perform_on_switch_tab=False
-        # )
+        self.main_window.main_widget.rundown.load(start_time=ts, event=event)
+        self.main_window.main_widget.switch_tab(
+            self.main_window.main_widget.rundown, perform_on_switch_tab=False
+        )
 
     def on_channel_changed(self):
         logging.debug(f"[SCHEDULER] setting channel to {self.id_channel}")

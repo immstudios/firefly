@@ -32,7 +32,7 @@ from firefly.qt import (
 def check_login(wnd):
     response = api.init()
     if not response:
-        QMessageBox.critical(wnd, f"Error {response.message}")
+        QMessageBox.critical(wnd, "Critical error", response.message)
         return False
     user_meta = response.get("user", False)
     if user_meta:
@@ -41,7 +41,7 @@ def check_login(wnd):
         return False
     response = api.init()
     if not response:
-        QMessageBox.critical(wnd, f"Error {response.message}")
+        QMessageBox.critical(wnd, "Login failed", response.message)
         return False
     return response
 

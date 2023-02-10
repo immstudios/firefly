@@ -123,7 +123,10 @@ class NebulaAPI:
         message = payload.get("detail", "")
         payload.pop("detail", None)
 
-        if status > 399:
+        if status is None:
+            status = 500
+            message = "Unable to connect to server"
+        elif status > 399:
             message = f"ERROR {status} from {url}\n\n{message}"
 
         result = NebulaResponse(status, message, **payload)

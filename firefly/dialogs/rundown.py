@@ -6,6 +6,7 @@ from firefly.api import api
 from firefly.metadata import meta_types
 from firefly.enum import MetaClass
 from firefly.widgets import MetaEditor
+from firefly.settings import FolderField
 from firefly.qt import (
     Qt,
     QDialog,
@@ -26,14 +27,13 @@ class PlaceholderDialog(QDialog):
         keys = []
         for k in ["title", "subtitle", "description", "color", "duration"]:  # TODO
             if k in meta:
-                keys.append([k, {"default": meta[k]}])
+                keys.append(FolderField(name=k, mode="text"))
 
         self.form = MetaEditor(parent, keys)
         for k in keys:
-            if meta_types[k[0]]["class"] == MetaClass.SELECT:
-                self.form.inputs[k[0]].auto_data(meta_types[k[0]])
-            k = k[0]
-            self.form[k] = meta[k]
+            if meta_types[k.name].type == MetaClass.SELECT:
+                self.form.inputs[k.name].auto_data(meta_types[k.name])
+            self.form[k.name] = meta[k.name]
 
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
