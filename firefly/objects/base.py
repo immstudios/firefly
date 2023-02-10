@@ -48,7 +48,7 @@ class BaseObject:
     @property
     def id(self):
         """Return object ID."""
-        return self.meta.get("id", False)
+        return self.meta.get("id", None)
 
     @property
     def id_folder(self):

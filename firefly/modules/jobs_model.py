@@ -14,10 +14,6 @@ from firefly.qt import (
     QAction,
 )
 
-# from firefly.common import *
-# from firefly.widgets import *
-# from firefly.view import *
-
 
 DEFAULT_HEADER_DATA = [
     "id",
@@ -137,7 +133,7 @@ class JobsModel(FireflyViewModel):
             logging.error(response.message)
         else:
             request_assets = []
-            for row in response.data:
+            for row in response["jobs"]:
                 data.append(row)
                 request_assets.append([row["id_asset"], 0])
             asset_cache.request(request_assets)
@@ -193,17 +189,20 @@ class FireflyJobsView(FireflyView):
         menu.exec(event.globalPos())
 
     def on_restart(self, jobs):
-        response = api.jobs(restart=jobs)
-        if not response:
-            logging.error(response.message)
-        else:
-            logging.info(response.message)
+        for job in jobs:
+            api.job_restart(job)
+            response = api.jobs(restart=job)
+            if not response:
+                logging.error(response.message)
+            else:
+                logging.info(response.message)
         self.model.load()
 
     def on_abort(self, jobs):
-        response = api.jobs(abort=jobs)
-        if not response:
-            logging.error(response.message)
-        else:
-            logging.info(response.message)
-        self.model.load()
+        for job in jobs:
+            response = api.jobs(abort=job)
+            if not response:
+                logging.error(response.message)
+            else:
+                logging.info(response.message)
+            self.model.load()
