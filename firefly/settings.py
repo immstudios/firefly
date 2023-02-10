@@ -3,8 +3,9 @@ from pydantic import BaseModel, Field
 from firefly.enum import ContentType, MediaType
 
 
-def find_by_id(array: list[dict[str, Any]], id: int) -> Any:
+def find_by_id(array: list[Any], id: int) -> Any:
     for item in array:
+        assert hasattr(item, 'id')
         if item.id == id:
             return item
     return None
