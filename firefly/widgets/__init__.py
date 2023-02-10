@@ -104,6 +104,7 @@ class MetaEditor(QWidget):
         layout = QGridLayout()
         layout.setColumnStretch(0, 0)
         layout.setColumnStretch(1, 3)
+        layout.setColumnMinimumWidth(0, 150)
 
         i = 0
         for field in keys:
