@@ -1,3 +1,3 @@
 __all__ = ["VideoPlayer"]
 
-from firefly.proxyplayer.qtplayer import VideoPlayer
+from firefly.proxyplayer.videoplayer import VideoPlayer
