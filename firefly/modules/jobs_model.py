@@ -119,7 +119,8 @@ class JobsModel(FireflyViewModel):
         elif role == Qt.ItemDataRole.ToolTipRole:
             return f"{obj['message']}\n\n{asset_cache[obj['id_asset']]}"
         elif role == Qt.ItemDataRole.ForegroundRole:
-            return colors[obj["status"]]
+            if key == "progress":
+                return colors[obj["status"]]
 
         return None
 

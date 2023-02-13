@@ -1,4 +1,4 @@
-name: Test Build Python Exe
+name: Build windows binary
 
 on:
   push:
