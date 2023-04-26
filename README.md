@@ -1,4 +1,4 @@
 Firefly
 =======
 
-Development version
+Development moved to https://github.com/nebulabroadcast/firefly
